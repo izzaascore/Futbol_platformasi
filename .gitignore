@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+*.db
+*.sqlite3
+.vscode/
+node_modules/
+dist/
+build/
+.agents/
+.gemini/
