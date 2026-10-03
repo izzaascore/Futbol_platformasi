@@ -13,6 +13,16 @@ class UserCreate(UserBase):
     password: str
     role: UserRole = UserRole.PLAYER
     kyc_document_url: str | None = None
+    # Player fields
+    position: str | None = None
+    height: int | None = None
+    weight: int | None = None
+    preferred_foot: str | None = None
+    team: str | None = None
+    video_link: str | None = None
+    # Scout fields
+    organization: str | None = None
+    license_url: str | None = None
 
 class UserLogin(BaseModel):
     firstName: str

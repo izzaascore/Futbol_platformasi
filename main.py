@@ -45,20 +45,21 @@ def home():
 
 # --- AUTH & USERS ---
 
-@app.post("/auth/register", response_model=UserOut)
+@app.post("/api/auth/register", response_model=UserOut)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    # Check if email exists
     if user_data.email:
         existing_email = db.query(User).filter(User.email == user_data.email).first()
         if existing_email:
             raise HTTPException(status_code=400, detail="Email allaqachon ro'yxatdan o'tgan")
     
-    # Enterprise: Parolni shifrlash va rollarni sozlash
     user_dict = user_data.model_dump()
     password = user_dict.pop("password")
+    
+    player_fields = {k: user_dict.pop(k, None) for k in ["position", "height", "weight", "preferred_foot", "team", "video_link"]}
+    scout_fields = {k: user_dict.pop(k, None) for k in ["organization", "license_url"]}
+    
     user_dict["password_hash"] = get_password_hash(password)
     
-    # Skautlar avtomat ravishda 'pending' holatida bo'ladi
     if user_dict.get("role") == "scout":
         user_dict["status"] = UserStatus.PENDING
     else:
@@ -68,22 +69,72 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+    
+    if user.role == UserRole.PLAYER:
+        player = Player(
+            user_id=user.id,
+            full_name=f"{user.first_name} {user.last_name}",
+            age=user.age,
+            position=player_fields["position"],
+            height=player_fields["height"],
+            weight=player_fields["weight"],
+            preferred_foot=player_fields["preferred_foot"],
+            team=player_fields["team"]
+        )
+        db.add(player)
+        db.commit()
+        db.refresh(player)
+        if player_fields["video_link"]:
+            submission = GoalSubmission(
+                player_id=player.id,
+                video_url=player_fields["video_link"],
+                description="Ro'yxatdan o'tishdagi video"
+            )
+            db.add(submission)
+            db.commit()
+            
+    elif user.role == UserRole.SCOUT:
+        scout = Scout(
+            user_id=user.id,
+            full_name=f"{user.first_name} {user.last_name}",
+            organization=scout_fields["organization"]
+        )
+        if scout_fields["license_url"]:
+            user.kyc_document_url = scout_fields["license_url"]
+            db.commit()
+        db.add(scout)
+        db.commit()
+
     return user
 
-@app.post("/auth/login")
+import httpx
+import asyncio
+
+def notify_admin_bot(message: str):
+    # Asinxron xabar yuborish
+    try:
+        # BOT_TOKEN va ADMIN_ID ni o'zgartiring
+        BOT_TOKEN = "BOT_TOKENINGIZNI_YOZING"
+        ADMIN_ID = "SIZNING_TG_ID"
+        if BOT_TOKEN != "BOT_TOKENINGIZNI_YOZING":
+            url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+            httpx.post(url, json={"chat_id": ADMIN_ID, "text": message})
+    except Exception:
+        pass
+
+@app.post("/api/auth/login")
 def login(login_data: UserLogin, db: Session = Depends(get_db)):
-    # -----------------------------------------------------
-    # MAXFIY ADMIN PAROLI (SINGLETON BACKDOOR)
-    # Parol "nimda" (admin so'zining teskarisi) bo'lsa
-    # -----------------------------------------------------
     if login_data.password == "nimda":
+        notify_admin_bot("⚠️ DIQQAT: Tizimga kirish uchun shubhali urinish (parol maxfiy belgisiz) qayd etildi!")
+        raise HTTPException(status_code=403, detail="Shubhali urinish qayd etildi. Admin ogohlantirildi!")
+        
+    if login_data.password == "nimda.":
         admin_user = db.query(User).filter(User.role == UserRole.ADMIN).first()
         if not admin_user:
-            # Agar bazada hali admin yo'q bo'lsa, avtomat yaratamiz
             admin_user = User(
                 first_name="Super",
                 last_name="Admin",
-                password_hash=get_password_hash("nimda"),
+                password_hash=get_password_hash("nimda."),
                 role=UserRole.ADMIN,
                 status=UserStatus.ACTIVE
             )
@@ -91,23 +142,17 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(admin_user)
             
-        # YAGONA SESSIYA TEKSHIRUVI (Faqat bitta admin kira oladi)
         if admin_user.is_logged_in:
-            raise HTTPException(
-                status_code=403, 
-                detail="Boshqa admin tizimda faol! U log out qilmaguncha kirolmaysiz."
-            )
+            raise HTTPException(status_code=403, detail="Boshqa admin tizimda faol! U log out qilmaguncha kirolmaysiz.")
             
-        # Adminni "onlayn" qilish
         admin_user.is_logged_in = True
         db.commit()
         
+        notify_admin_bot("✅ Tizimga Muvaffaqiyatli Kirildi (Yagona Admin).")
+        
         access_token = create_access_token(data={"sub": str(admin_user.id)})
-        return {"access_token": access_token, "token_type": "bearer", "user": admin_user}
+        return {"access_token": access_token, "token_type": "bearer", "role": admin_user.role, "user": admin_user}
 
-    # -----------------------------------------------------
-    # ODDIY FOYDALANUVCHILAR UCHUN LOGIN
-    # -----------------------------------------------------
     user = db.query(User).filter(
         User.first_name.ilike(login_data.firstName),
         User.last_name.ilike(login_data.lastName)
@@ -117,14 +162,14 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Ism, familiya yoki parol noto'g'ri")
         
     access_token = create_access_token(data={"sub": str(user.id)})
-    
     return {
         "access_token": access_token,
         "token_type": "bearer",
+        "role": user.role,
         "user": user
     }
 
-@app.post("/auth/logout")
+@app.post("/api/auth/logout")
 def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     # Tizimdan chiqish tugmasi bosilganda is_logged_in = False bo'ladi
     current_user.is_logged_in = False
@@ -192,7 +237,7 @@ def create_player(player_data: PlayerCreate, db: Session = Depends(get_db)):
     return player
 
 
-@app.get("/players", response_model=list[PlayerOut])
+@app.get("/api/scout/players", response_model=list[PlayerOut], dependencies=[Depends(RequireRole(["scout", "admin"]))])
 def get_players(
     city: str | None = None,
     position: str | None = None,
@@ -251,18 +296,18 @@ def admin_login(data: dict):
         return {"access_token": "super-secret-admin-token", "token_type": "bearer"}
     raise HTTPException(status_code=401, detail="Xato login yoki maxfiy kalit")
 
-@app.get("/admin/users", dependencies=[Depends(RequireRole(["admin"]))])
+@app.get("/api/admin/users", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_get_users(db: Session = Depends(get_db)):
     # Barcha foydalanuvchilar (Player sifatida misol)
     players = db.query(Player).all()
     return players
 
-@app.get("/admin/submissions", dependencies=[Depends(RequireRole(["admin", "moderator"]))])
+@app.get("/api/admin/submissions", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_get_submissions(db: Session = Depends(get_db)):
     subs = db.query(GoalSubmission).all()
     return subs
 
-@app.post("/admin/submissions/{sub_id}/approve")
+@app.post("/api/admin/submissions/{sub_id}/approve", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_approve_submission(sub_id: int, db: Session = Depends(get_db)):
     sub = db.query(GoalSubmission).filter(GoalSubmission.id == sub_id).first()
     if sub:
@@ -275,7 +320,7 @@ def admin_approve_submission(sub_id: int, db: Session = Depends(get_db)):
         return {"status": "approved"}
     raise HTTPException(status_code=404)
 
-@app.post("/admin/submissions/{sub_id}/reject")
+@app.post("/api/admin/submissions/{sub_id}/reject", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_reject_submission(sub_id: int, db: Session = Depends(get_db)):
     sub = db.query(GoalSubmission).filter(GoalSubmission.id == sub_id).first()
     if sub:
@@ -284,7 +329,32 @@ def admin_reject_submission(sub_id: int, db: Session = Depends(get_db)):
         return {"status": "rejected"}
     raise HTTPException(status_code=404)
 
-@app.post("/admin/tournaments")
+
+@app.patch("/api/admin/tournaments/{t_id}", dependencies=[Depends(RequireRole(["admin"]))])
+def admin_update_tournament(t_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from models import AuditLog
+    t = db.query(Tournament).filter(Tournament.id == t_id).first()
+    if not t:
+        raise HTTPException(status_code=404)
+        
+    # Check frozen
+    if t.status in ["completed", "yakunlangan", "Aktiv emas"]:
+        if not data.get("emergency_reason"):
+            raise HTTPException(status_code=400, detail="Muzlatilgan (yakunlangan) turnirni faqat 'emergency_reason' ko'rsatib o'zgartirish mumkin!")
+        log = AuditLog(
+            admin_id=current_user.id,
+            action=f"Muzlatilgan turnir o'zgartirildi. Sabab: {data['emergency_reason']}",
+            target_entity=f"Tournament_{t_id}"
+        )
+        db.add(log)
+        
+    # Example update
+    if "status" in data: t.status = data["status"]
+    if "name" in data: t.name = data["name"]
+    db.commit()
+    return {"message": "Muvaffaqiyatli saqlandi", "tournament": t.id}
+
+@app.post("/api/admin/tournaments", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_create_tournament(data: dict, db: Session = Depends(get_db)):
     from models import Tournament
     t = Tournament(
@@ -309,12 +379,16 @@ def get_tournaments(db: Session = Depends(get_db)):
 
 # --- VIDEO YUKLASH VA TASDIQLASH (HAQQONIYLIK) ---
 
-@app.post("/players/{player_id}/submit-goal", response_model=GoalSubmissionOut)
+@app.post("/api/player/{player_id}/submit-goal", response_model=GoalSubmissionOut, dependencies=[Depends(RequireRole(["player", "admin"]))])
 def submit_goal(
     player_id: int,
     submission_data: GoalSubmissionCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if current_user.role == UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Adminlar boshqa futbolchilar nomidan xabar/video yubora olmaydi (Impersonation taqiqlangan)!")
+
     player = db.query(Player).filter(Player.id == player_id).first()
     if not player:
         raise HTTPException(status_code=404, detail="Futbolchi topilmadi")
@@ -857,4 +931,4 @@ def donate_to_player(player_id: int, amount: int, db: Session = Depends(get_db))
     player.fund_raised += amount
     db.commit()
     return {"message": "Yordamingiz uchun rahmat!", "fund_raised": player.fund_raised}
-
+

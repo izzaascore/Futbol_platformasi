@@ -14,7 +14,6 @@ class VerificationStatus(str, PyEnum):
 class UserRole(str, PyEnum):
     PLAYER = "player"
     SCOUT = "scout"
-    MODERATOR = "moderator"
     ADMIN = "admin"
 
 class UserStatus(str, PyEnum):
@@ -101,6 +100,7 @@ class Player(Base):
     __tablename__ = "players"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     # Telegram ID katta son bo'lgani uchun BigInteger
     telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True, index=True)
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -204,6 +204,7 @@ class Scout(Base):
     __tablename__ = "scouts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
     organization: Mapped[str | None] = mapped_column(String(100), nullable=True)
     contact_info: Mapped[str | None] = mapped_column(String(100), nullable=True)
