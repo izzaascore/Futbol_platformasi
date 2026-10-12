@@ -1,6 +1,6 @@
 from enum import Enum as PyEnum
 from datetime import datetime
-from sqlalchemy import String, Integer, BigInteger, ForeignKey, Enum, DateTime, Text
+from sqlalchemy import String, Integer, BigInteger, ForeignKey, Enum, DateTime, Text, Column, Boolean, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -22,24 +22,13 @@ class UserStatus(str, PyEnum):
     BANNED = "banned"
 
 
-class Tournament(Base):
-    __tablename__ = "tournaments"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String, default="")
-    prize = Column(String, default="")
-    status = Column(String, default="Aktiv")
-    image = Column(String, default="")
-    teams_count = Column(Integer, default=16)
-    start_date = Column(String, default="")
-    location = Column(String, default="")
-    is_active = Column(Boolean, default=True)
+
 
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    telegram_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, index=True, nullable=True)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.PLAYER, nullable=False)
     status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), default=UserStatus.ACTIVE, nullable=False)
     
@@ -55,12 +44,12 @@ class User(Base):
     kyc_document_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Yagona sessiya (Singleton Admin) nazorati
-    is_logged_in: Mapped[bool] = mapped_column(Integer, default=False)
+    is_logged_in: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Intizom va Kundalik mashg'ulotlar (FootballRise Daily)
     discipline_score: Mapped[int] = mapped_column(Integer, default=100)
     streak: Mapped[int] = mapped_column(Integer, default=0)
-    hardcore_mode: Mapped[bool] = mapped_column(Integer, default=False)
+    hardcore_mode: Mapped[bool] = mapped_column(Boolean, default=False)
     last_training_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -87,7 +76,7 @@ class UserVideo(Base):
     status: Mapped[VerificationStatus] = mapped_column(Enum(VerificationStatus), default=VerificationStatus.PENDING)
     
     # AI Auto-Clipping (Avtomatik Highlights)
-    is_ai_processed: Mapped[bool] = mapped_column(Integer, default=False)
+    is_ai_processed: Mapped[bool] = mapped_column(Boolean, default=False)
     highlight_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -118,7 +107,7 @@ class Player(Base):
     height: Mapped[int | None] = mapped_column(Integer, nullable=True)
     weight: Mapped[int | None] = mapped_column(Integer, nullable=True)
     pass_accuracy: Mapped[int | None] = mapped_column(Integer, nullable=True) # % (0-100)
-    sprint_speed: Mapped[float | None] = mapped_column(Integer, nullable=True) # km/h
+    sprint_speed: Mapped[float | None] = mapped_column(Float, nullable=True) # km/h
     stamina: Mapped[int | None] = mapped_column(Integer, nullable=True) # % (0-100)
     
     # Psixologik va Mental Testlar (Mental Toughness)
@@ -128,10 +117,10 @@ class Player(Base):
     physical_discipline_score: Mapped[int] = mapped_column(Integer, default=50) # 0-100
 
     # Advanced Analytics & Wearables (Jahon standarti)
-    xg_total: Mapped[float] = mapped_column(Integer, default=0.0) # Expected Goals
-    xa_total: Mapped[float] = mapped_column(Integer, default=0.0) # Expected Assists
-    top_speed_kmh: Mapped[float] = mapped_column(Integer, default=0.0) # Smart qurilmalardan (GPS)
-    distance_covered_km: Mapped[float] = mapped_column(Integer, default=0.0)
+    xg_total: Mapped[float] = mapped_column(Float, default=0.0) # Expected Goals
+    xa_total: Mapped[float] = mapped_column(Float, default=0.0) # Expected Assists
+    top_speed_kmh: Mapped[float] = mapped_column(Float, default=0.0) # Smart qurilmalardan (GPS)
+    distance_covered_km: Mapped[float] = mapped_column(Float, default=0.0)
 
     # Karyera Jamg'armasi va Web3 Fan Tokens
     fund_goal: Mapped[int] = mapped_column(Integer, default=0)
@@ -193,7 +182,7 @@ class GoalSubmission(Base):
     )
     
     # AI Auto-Clipping
-    is_ai_processed: Mapped[bool] = mapped_column(Integer, default=False)
+    is_ai_processed: Mapped[bool] = mapped_column(Boolean, default=False)
     highlight_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -208,7 +197,7 @@ class Scout(Base):
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
     organization: Mapped[str | None] = mapped_column(String(100), nullable=True)
     contact_info: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    is_pro: Mapped[bool] = mapped_column(Integer, default=False) # Scout PRO subscription
+    is_pro: Mapped[bool] = mapped_column(Boolean, default=False) # Scout PRO subscription
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class ScoutReport(Base):
@@ -218,7 +207,7 @@ class ScoutReport(Base):
     scout_id: Mapped[int] = mapped_column(ForeignKey("scouts.id"), nullable=False)
     player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), nullable=False)
     report_text: Mapped[str] = mapped_column(Text, nullable=False)
-    is_hidden: Mapped[bool] = mapped_column(Integer, default=True)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
@@ -239,6 +228,11 @@ class Tournament(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     prize: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="upcoming") # upcoming, ongoing, completed
+    image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    teams_count: Mapped[int] = mapped_column(Integer, default=16)
+    start_date: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class TournamentParticipant(Base):
@@ -311,7 +305,7 @@ class PlayerMatchStat(Base):
     match_id: Mapped[int] = mapped_column(ForeignKey("matches.id"), nullable=False)
     player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), nullable=False)
     
-    rating: Mapped[float] = mapped_column(Integer, default=6.0) # Base rating
+    rating: Mapped[float] = mapped_column(Float, default=6.0) # Base rating
     passes: Mapped[int] = mapped_column(Integer, default=0)
     saves: Mapped[int] = mapped_column(Integer, default=0)
     tackles: Mapped[int] = mapped_column(Integer, default=0)
@@ -326,7 +320,7 @@ class DailyDrill(Base):
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[Text] = mapped_column(Text, nullable=False)
     duration: Mapped[str] = mapped_column(String(50), nullable=True)
     animation_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     dos: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -351,7 +345,7 @@ class VideoBattle(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    is_active: Mapped[bool] = mapped_column(Integer, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class VideoBattleEntry(Base):
@@ -371,7 +365,7 @@ class Referee(Base):
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    rating: Mapped[float] = mapped_column(Integer, default=0.0)
+    rating: Mapped[float] = mapped_column(Float, default=0.0)
     rating_count: Mapped[int] = mapped_column(Integer, default=0)
 
 class Academy(Base):
@@ -381,7 +375,7 @@ class Academy(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     subdomain: Mapped[str | None] = mapped_column(String(50), unique=True, index=True, nullable=True) # B2B SaaS uchun masalan: realmadrid
     location: Mapped[str] = mapped_column(String(100), nullable=False)
-    rating: Mapped[float] = mapped_column(Integer, default=0.0)
+    rating: Mapped[float] = mapped_column(Float, default=0.0)
     rating_count: Mapped[int] = mapped_column(Integer, default=0)
 
     players: Mapped[list["Player"]] = relationship(back_populates="academy")
@@ -392,8 +386,8 @@ class FanTokenInvestment(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     investor_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), nullable=False)
-    amount_invested: Mapped[float] = mapped_column(Integer, nullable=False)
-    equity_percentage: Mapped[float] = mapped_column(Integer, nullable=False)
+    amount_invested: Mapped[float] = mapped_column(Float, nullable=False)
+    equity_percentage: Mapped[float] = mapped_column(Float, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     investor: Mapped["User"] = relationship()
@@ -426,8 +420,8 @@ class RecoveryLog(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), nullable=False)
     log_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    sleep_hours: Mapped[float] = mapped_column(Integer, default=0.0)
-    water_liters: Mapped[float] = mapped_column(Integer, default=0.0)
+    sleep_hours: Mapped[float] = mapped_column(Float, default=0.0)
+    water_liters: Mapped[float] = mapped_column(Float, default=0.0)
     ai_feedback: Mapped[str | None] = mapped_column(Text, nullable=True) # ChatGPT advice
     
     player: Mapped["Player"] = relationship(back_populates="recovery_logs")

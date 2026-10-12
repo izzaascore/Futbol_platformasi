@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Key, ShieldHalf } from 'lucide-react';
+import { API_URL } from '../../config';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-        const res = await fetch('http://localhost:8000/api/auth/login', {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(form)
@@ -22,6 +23,12 @@ const LoginPage = () => {
         }
         const data = await res.json();
         localStorage.setItem('talaqCurrentUser', JSON.stringify(data.user));
+        if (data.access_token) {
+            localStorage.setItem('token', data.access_token);
+        }
+        if (data.role) {
+            localStorage.setItem('role', data.role);
+        }
         
         // Role based redirect
         if (data.role === 'admin') navigate('/admin/dashboard');

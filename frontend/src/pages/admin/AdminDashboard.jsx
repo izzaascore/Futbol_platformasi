@@ -6,7 +6,7 @@ import {
     FileClock, MessageSquareWarning, DollarSign, MessageCircle, ShieldX, ChevronDown, ChevronRight
 } from 'lucide-react';
 
-const API_URL = 'http://localhost:8000';
+import { API_URL } from '../../config';
 
 export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,6 +14,17 @@ export default function AdminPage() {
     const [passkey, setPasskey] = useState('');
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('users');
+
+    useEffect(() => {
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+        const userStr = localStorage.getItem('talaqCurrentUser');
+        let user = null;
+        try { user = userStr ? JSON.parse(userStr) : null; } catch(e) {}
+        if (token && (role === 'admin' || user?.role === 'admin')) {
+            setIsAuthenticated(true);
+        }
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -24,6 +35,12 @@ export default function AdminPage() {
                 body: JSON.stringify({ username, passkey })
             });
             if (res.ok) {
+                const data = await res.json();
+                if (data.access_token) {
+                    localStorage.setItem('adminToken', data.access_token);
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('role', 'admin');
+                }
                 setIsAuthenticated(true);
                 setError('');
             } else {
@@ -224,10 +241,16 @@ function UsersMonitor() {
     const [users, setUsers] = useState([]);
     
     useEffect(() => {
-        fetch(`${API_URL}/admin/users`)
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+        fetch(`${API_URL}/api/admin/users`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
             .then(res => res.json())
-            .then(data => setUsers(data))
-            .catch(console.error);
+            .then(data => setUsers(Array.isArray(data) ? data : []))
+            .catch(err => {
+                console.error(err);
+                setUsers([]);
+            });
     }, []);
     
     return (
@@ -284,22 +307,32 @@ function ModerationQueue() {
     }, []);
     
     const fetchSubs = () => {
-        fetch(`${API_URL}/admin/submissions`)
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+        fetch(`${API_URL}/api/admin/submissions`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
             .then(res => res.json())
-            .then(data => setSubs(data))
-            .catch(console.error);
+            .then(data => setSubs(Array.isArray(data) ? data : []))
+            .catch(err => {
+                console.error(err);
+                setSubs([]);
+            });
     };
     
     const handleAction = async (id, action) => {
         try {
-            await fetch(`${API_URL}/admin/submissions/${id}/${action}`, { method: 'POST' });
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+            await fetch(`${API_URL}/api/admin/submissions/${id}/${action}`, {
+                method: 'POST',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
             fetchSubs();
         } catch (e) {
             console.error(e);
         }
     };
     
-    const pendingSubs = subs.filter(s => s.status === 'pending');
+    const pendingSubs = Array.isArray(subs) ? subs.filter(s => s.status === 'pending') : [];
     
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -376,16 +409,23 @@ function TournamentsHub() {
     useEffect(() => {
         fetch(`${API_URL}/tournaments`)
             .then(res => res.json())
-            .then(data => setTournaments(data))
-            .catch(console.error);
+            .then(data => setTournaments(Array.isArray(data) ? data : []))
+            .catch(err => {
+                console.error(err);
+                setTournaments([]);
+            });
     }, []);
     
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`${API_URL}/admin/tournaments`, {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/api/admin/tournaments`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify(form)
             });
             if (res.ok) {

@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import React, { useState, useEffect } from 'react';
-import { Upload, Star, Target, Trophy, PlayCircle, ShieldCheck, Camera, Video, Activity, Clock, Share2, Settings, Plus, Eye, BarChart2, Users, MessageSquare, Shield, CheckCircle, XCircle, Send } from 'lucide-react';
+import { Upload, Star, Target, Trophy, PlayCircle, ShieldCheck, Camera, Video, Activity, Clock, Share2, Settings, Plus, Eye, BarChart2, Users, MessageSquare, Shield, CheckCircle, XCircle, Send, Flame } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
+import { API_URL } from '../config';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -57,7 +58,7 @@ export default function ProfilePage() {
         return;
       }
       
-      const res = await fetch(`http://localhost:8000/users/${user.id}/hardcore`, { method: 'PATCH' });
+      const res = await fetch(`${API_URL}/users/${user.id}/hardcore`, { method: 'PATCH' });
       const data = await res.json();
       const updatedUser = { ...user, hardcore_mode: data.hardcore_mode };
       setUser(updatedUser);

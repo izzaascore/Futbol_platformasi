@@ -9,8 +9,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from database import Base, engine, SessionLocal
-from models import Player, GoalSubmission, VerificationStatus, User, UserVideo, CareerHistory, UserStatus, UserRole
-from schemas import PlayerCreate, PlayerOut, GoalSubmissionCreate, GoalSubmissionOut, UserCreate, UserLogin, UserOut, UserProfileImageUpdate, UserVideoOut, CareerHistoryCreate, CareerHistoryOut
+from models import Player, GoalSubmission, VerificationStatus, User, UserVideo, CareerHistory, UserStatus, UserRole, Scout
+from schemas import PlayerCreate, PlayerOut, GoalSubmissionCreate, GoalSubmissionOut, UserCreate, UserLogin, UserOut, UserProfileImageUpdate, UserVideoOut, CareerHistoryCreate, CareerHistoryOut, TelegramAuthRequest
 from security import get_password_hash, verify_password, create_access_token, get_current_user, RequireRole
 
 Base.metadata.create_all(bind=engine)
@@ -44,6 +44,57 @@ def home():
     return {"message": "Football Platform API ishlayapti!"}
 
 # --- AUTH & USERS ---
+
+@app.post("/api/auth/telegram-webapp")
+def telegram_webapp_auth(tg_data: TelegramAuthRequest, db: Session = Depends(get_db)):
+    # Telegram foydalanuvchisi mavjudligini tekshirish
+    user = db.query(User).filter(User.telegram_id == tg_data.id).first()
+    if not user:
+        # Yangi foydalanuvchi yaratish
+        user = User(
+            telegram_id=tg_data.id,
+            first_name=tg_data.first_name,
+            last_name=tg_data.last_name or "",
+            profile_image=tg_data.photo_url,
+            password_hash=get_password_hash(f"tg_{tg_data.id}_tma_secure"),
+            role=UserRole.PLAYER,
+            status=UserStatus.ACTIVE
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        # O'yinchi profilini ham bog'lash
+        player = db.query(Player).filter(Player.telegram_id == tg_data.id).first()
+        if not player:
+            player = Player(
+                user_id=user.id,
+                telegram_id=tg_data.id,
+                full_name=f"{tg_data.first_name} {tg_data.last_name or ''}".strip(),
+                goals_claimed=0,
+                goals_verified=0
+            )
+            db.add(player)
+            db.commit()
+        else:
+            player.user_id = user.id
+            db.commit()
+    else:
+        # Mavjud o'yinchi bog'langanligini tekshirish
+        player = db.query(Player).filter(Player.user_id == user.id).first()
+        if not player:
+            player = db.query(Player).filter(Player.telegram_id == tg_data.id).first()
+            if player:
+                player.user_id = user.id
+                db.commit()
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": user.role,
+        "user": user
+    }
 
 @app.post("/api/auth/register", response_model=UserOut)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -177,7 +228,15 @@ def logout(current_user: User = Depends(get_current_user), db: Session = Depends
     return {"message": "Tizimdan muvaffaqiyatli chiqildi (Logged out)"}
 
 @app.patch("/users/{user_id}/profile-image", response_model=UserOut)
-def update_profile_image(user_id: int, image_data: UserProfileImageUpdate, db: Session = Depends(get_db)):
+def update_profile_image(
+    user_id: int,
+    image_data: UserProfileImageUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Faqat o'z profilini yoki admin o'zgartira oladi
+    if current_user.id != user_id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Faqat o'z profilingizni o'zgartira olasiz!")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")
@@ -187,16 +246,64 @@ def update_profile_image(user_id: int, image_data: UserProfileImageUpdate, db: S
     return user
 
 @app.post("/users/{user_id}/videos", response_model=UserVideoOut)
-def upload_user_video(user_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_user_video(
+    user_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Faqat o'z videosini yuklaydi yoki admin
+    if current_user.id != user_id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Faqat o'z profilingizga video yuklay olasiz!")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")
     
-    file_path = f"uploads/videos/{user_id}_{file.filename}"
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    import pathlib
+    allowed_extensions = {".mp4", ".webm", ".mov", ".avi", ".mkv"}
+    suffix = pathlib.Path(file.filename or "video.mp4").suffix.lower()
+    if suffix not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Faqat video fayllari ruxsat etilgan (.mp4, .webm, .mov, .avi)")
     
-    video_url = f"http://localhost:8000/{file_path}"
+    # --- CLOUDINARY YUKLASH ---
+    cloudinary_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+    cloudinary_key = os.getenv("CLOUDINARY_API_KEY")
+    cloudinary_secret = os.getenv("CLOUDINARY_API_SECRET")
+    
+    if cloudinary_name and cloudinary_key and cloudinary_secret and cloudinary_name != "your_cloud_name":
+        # Haqiqiy Cloudinary yuklash
+        try:
+            import cloudinary
+            import cloudinary.uploader
+            cloudinary.config(
+                cloud_name=cloudinary_name,
+                api_key=cloudinary_key,
+                api_secret=cloudinary_secret
+            )
+            file_bytes = await file.read()
+            result = cloudinary.uploader.upload(
+                file_bytes,
+                resource_type="video",
+                folder=f"football_rise/user_{user_id}",
+                public_id=f"video_{user_id}_{int(__import__('time').time())}",
+                overwrite=True
+            )
+            video_url = result.get("secure_url", "")
+            cloudinary_public_id = result.get("public_id", "")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Cloudinary yuklashda xatolik: {str(e)}")
+    else:
+        # Cloudinary sozlanmagan — lokal saqlash (ishlab chiqish uchun)
+        import uuid
+        os.makedirs("uploads/videos", exist_ok=True)
+        safe_name = f"{user_id}_{uuid.uuid4().hex}{suffix}"
+        file_path = f"uploads/videos/{safe_name}"
+        contents = await file.read()
+        with open(file_path, "wb") as buffer:
+            buffer.write(contents)
+        video_url = f"http://localhost:8000/{file_path}"
+        cloudinary_public_id = None
+    
     user_video = UserVideo(user_id=user_id, video_url=video_url)
     db.add(user_video)
     db.commit()
@@ -208,22 +315,46 @@ def get_user_videos(user_id: int, db: Session = Depends(get_db)):
     return db.query(UserVideo).filter(UserVideo.user_id == user_id).all()
 
 @app.delete("/videos/{video_id}")
-def delete_user_video(video_id: int, db: Session = Depends(get_db)):
+def delete_user_video(
+    video_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     video = db.query(UserVideo).filter(UserVideo.id == video_id).first()
     if not video:
         raise HTTPException(status_code=404, detail="Video topilmadi")
     
+    # Faqat video egasi yoki admin o'chira oladi
+    if video.user_id != current_user.id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Bu videoni o'chirish uchun ruxsatingiz yo'q!")
+    
+    # Cloudinary dan ham o'chirish
     try:
-        if "uploads/" in video.video_url:
-            file_path = video.video_url.split("http://localhost:8000/")[1]
+        cloudinary_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+        if cloudinary_name and "cloudinary.com" in (video.video_url or ""):
+            import cloudinary
+            import cloudinary.uploader
+            cloudinary.config(
+                cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                api_key=os.getenv("CLOUDINARY_API_KEY"),
+                api_secret=os.getenv("CLOUDINARY_API_SECRET")
+            )
+            # URL dan public_id olish
+            parts = video.video_url.split("/upload/")
+            if len(parts) > 1:
+                public_id = parts[1].rsplit(".", 1)[0]
+                cloudinary.uploader.destroy(public_id, resource_type="video")
+        elif "uploads/" in (video.video_url or ""):
+            # Lokal fayl
+            file_path = video.video_url.replace("http://localhost:8000/", "")
             if os.path.exists(file_path):
                 os.remove(file_path)
     except Exception:
-        pass
+        pass  # O'chirishda xatolik bo'lsa DB dan o'chirishni to'xtatmaymiz
 
     db.delete(video)
     db.commit()
-    return {"message": "O'chirildi"}
+    return {"message": "Video muvaffaqiyatli o'chirildi"}
 
 
 # --- O'YINCHILAR ---
@@ -235,6 +366,20 @@ def create_player(player_data: PlayerCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(player)
     return player
+
+@app.get("/players", response_model=list[PlayerOut])
+@app.get("/api/players", response_model=list[PlayerOut])
+def get_all_players(
+    city: str | None = None,
+    position: str | None = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Player)
+    if city:
+        query = query.filter(Player.city.ilike(f"%{city}%"))
+    if position:
+        query = query.filter(Player.position.ilike(f"%{position}%"))
+    return query.all()
 
 
 @app.get("/api/scout/players", response_model=list[PlayerOut], dependencies=[Depends(RequireRole(["scout", "admin"]))])
@@ -290,28 +435,44 @@ def add_career_history(player_id: int, career_data: CareerHistoryCreate, db: Ses
 # --- ADMIN ENDPOINTS (Restricted by Middleware) ---
 
 @app.post("/admin/login")
-def admin_login(data: dict):
+def admin_login(data: dict, db: Session = Depends(get_db)):
     # O'ta murakkab qattiq kodlangan maxfiy kalit
     if data.get("username") == "erkin_master" and data.get("passkey") == "X@9f#vL$2!qP":
-        return {"access_token": "super-secret-admin-token", "token_type": "bearer"}
+        admin_user = db.query(User).filter(User.role == UserRole.ADMIN).first()
+        if not admin_user:
+            admin_user = User(
+                first_name="Erkin",
+                last_name="Master",
+                password_hash=get_password_hash("X@9f#vL$2!qP"),
+                role=UserRole.ADMIN,
+                status=UserStatus.ACTIVE
+            )
+            db.add(admin_user)
+            db.commit()
+            db.refresh(admin_user)
+        access_token = create_access_token(data={"sub": str(admin_user.id)})
+        return {"access_token": access_token, "token_type": "bearer", "role": admin_user.role, "user": admin_user}
     raise HTTPException(status_code=401, detail="Xato login yoki maxfiy kalit")
 
+@app.get("/admin/users", dependencies=[Depends(RequireRole(["admin"]))])
 @app.get("/api/admin/users", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_get_users(db: Session = Depends(get_db)):
     # Barcha foydalanuvchilar (Player sifatida misol)
     players = db.query(Player).all()
     return players
 
+@app.get("/admin/submissions", dependencies=[Depends(RequireRole(["admin"]))])
 @app.get("/api/admin/submissions", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_get_submissions(db: Session = Depends(get_db)):
     subs = db.query(GoalSubmission).all()
     return subs
 
+@app.post("/admin/submissions/{sub_id}/approve", dependencies=[Depends(RequireRole(["admin"]))])
 @app.post("/api/admin/submissions/{sub_id}/approve", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_approve_submission(sub_id: int, db: Session = Depends(get_db)):
     sub = db.query(GoalSubmission).filter(GoalSubmission.id == sub_id).first()
     if sub:
-        sub.status = VerificationStatus.VERIFIED
+        sub.status = VerificationStatus.APPROVED
         # Agar bu gol bo'lsa, o'yinchi statistikasiga qo'shish kerak
         player = db.query(Player).filter(Player.id == sub.player_id).first()
         if player:
@@ -320,6 +481,7 @@ def admin_approve_submission(sub_id: int, db: Session = Depends(get_db)):
         return {"status": "approved"}
     raise HTTPException(status_code=404)
 
+@app.post("/admin/submissions/{sub_id}/reject", dependencies=[Depends(RequireRole(["admin"]))])
 @app.post("/api/admin/submissions/{sub_id}/reject", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_reject_submission(sub_id: int, db: Session = Depends(get_db)):
     sub = db.query(GoalSubmission).filter(GoalSubmission.id == sub_id).first()
@@ -354,6 +516,7 @@ def admin_update_tournament(t_id: int, data: dict, db: Session = Depends(get_db)
     db.commit()
     return {"message": "Muvaffaqiyatli saqlandi", "tournament": t.id}
 
+@app.post("/admin/tournaments", dependencies=[Depends(RequireRole(["admin"]))])
 @app.post("/api/admin/tournaments", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_create_tournament(data: dict, db: Session = Depends(get_db)):
     from models import Tournament
@@ -372,12 +535,29 @@ def admin_create_tournament(data: dict, db: Session = Depends(get_db)):
     db.refresh(t)
     return t
 
-@app.get("/tournaments")
-def get_tournaments(db: Session = Depends(get_db)):
-    from models import Tournament
-    return db.query(Tournament).filter(Tournament.is_active == True).all()
+# NOTE: /tournaments GET endpoint quyida (494-qator) to'liq va response_model bilan e'lon qilingan.
 
 # --- VIDEO YUKLASH VA TASDIQLASH (HAQQONIYLIK) ---
+
+@app.post("/players/{player_id}/submit-goal", response_model=GoalSubmissionOut)
+def submit_goal_direct(
+    player_id: int,
+    submission_data: GoalSubmissionCreate,
+    db: Session = Depends(get_db)
+):
+    player = db.query(Player).filter(Player.id == player_id).first()
+    if not player:
+        raise HTTPException(status_code=404, detail="Futbolchi topilmadi")
+
+    submission = GoalSubmission(
+        player_id=player_id,
+        video_url=submission_data.video_url,
+        description=submission_data.description
+    )
+    db.add(submission)
+    db.commit()
+    db.refresh(submission)
+    return submission
 
 @app.post("/api/player/{player_id}/submit-goal", response_model=GoalSubmissionOut, dependencies=[Depends(RequireRole(["player", "admin"]))])
 def submit_goal(
@@ -405,7 +585,7 @@ def submit_goal(
 
 
 # Admin yoki moderator tomonidan golni tasdiqlash endpointi
-@app.patch("/submissions/{submission_id}/verify", response_model=GoalSubmissionOut)
+@app.patch("/submissions/{submission_id}/verify", response_model=GoalSubmissionOut, dependencies=[Depends(RequireRole(["admin"]))])
 def verify_goal(
     submission_id: int,
     status: VerificationStatus,
@@ -924,6 +1104,8 @@ def ai_compare_players(req: AICompareRequest, db: Session = Depends(get_db)):
 # Crowdfunding Support
 @app.post("/players/{player_id}/donate")
 def donate_to_player(player_id: int, amount: int, db: Session = Depends(get_db)):
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Summa 0 dan katta bo'lishi shart!")
     player = db.query(Player).filter(Player.id == player_id).first()
     if not player:
         raise HTTPException(status_code=404, detail="O'yinchi topilmadi")

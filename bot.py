@@ -9,14 +9,18 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardRemove,
     InlineKeyboardMarkup,
-    InlineKeyboardButton
+    InlineKeyboardButton,
+    WebAppInfo,
+    MenuButtonWebApp
 )
+import os
 import httpx
 
 logging.basicConfig(level=logging.INFO)
 
-BOT_TOKEN = "BOT_TOKENINGIZNI_YOZING"
-API_BASE_URL = "http://127.0.0.1:8000"  # FastAPI manzili
+BOT_TOKEN = os.getenv("BOT_TOKEN", "BOT_TOKENINGIZNI_YOZING")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")  # FastAPI manzili
+WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:5173")  # Telegram Mini App URL
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -40,8 +44,14 @@ class SubmitGoalState(StatesGroup):
 
 # --- TUGMALAR (Keyboards) ---
 
+def get_webapp_inline_kb():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⚡ FootballRise Mini App (Ilovani ochish)", web_app=WebAppInfo(url=WEBAPP_URL))]
+    ])
+
 def get_main_menu():
     kb = [
+        [KeyboardButton(text="📱 FootballRise Ilovasi (Mini App)", web_app=WebAppInfo(url=WEBAPP_URL))],
         [KeyboardButton(text="👤 Profilim"), KeyboardButton(text="⚽ Gol videosini yuborish")],
         [KeyboardButton(text="🏆 Reyting (Top o'yinchilar)")]
     ]
@@ -82,22 +92,27 @@ async def start_handler(message: types.Message, state: FSMContext):
 
     if current_player:
         await message.answer(
-            f"Salom, {current_player['full_name']}! 👋\n"
-            "Platforma menyusidan birini tanlang:",
-            reply_markup=get_main_menu()
+            f"Salom, {current_player['full_name']}! 👋\n\n"
+            "FootballRise platformasiga xush kelibsiz. Quyidagi tugma orqali ilovani to'g'ridan-to'g'ri Telegram ichida ochishingiz mumkin:",
+            reply_markup=get_webapp_inline_kb()
         )
+        await message.answer("Yoki bot menyusidan foydalaning:", reply_markup=get_main_menu())
     else:
         # Auto-Sync: Ism va familiyani avtomatik olamiz
         full_name = message.from_user.full_name
         await state.update_data(full_name=full_name)
         
+        await message.answer(
+            f"Assalomu alaykum, {full_name}! ⚽\n\n"
+            "FootballRise platformasiga xush kelibsiz. Ilovani Telegram ichida to'g'ridan-to'g'ri ochishingiz mumkin:",
+            reply_markup=get_webapp_inline_kb()
+        )
+
         kb = [[KeyboardButton(text="📱 Telefon raqamni yuborish", request_contact=True)]]
         markup = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
 
         await message.answer(
-            f"Assalomu alaykum, {full_name}! ⚽\n\n"
-            "Platformaga xush kelibsiz. Tizim Telegram ma'lumotlaringizni (User ID va Ism) avtomatik sinxronizatsiya qildi.\n\n"
-            "To'liq xavfsizlik va unikal profil yaratish uchun telefon raqamingizni tasdiqlang:",
+            "Yoki bot orqali profil yaratish uchun telefon raqamingizni tasdiqlang:",
             reply_markup=markup
         )
         await state.set_state(RegistrationState.phone)
@@ -315,6 +330,14 @@ async def show_leaderboard(message: types.Message):
 
 async def main():
     print("Bot ishga tushdi...")
+    if BOT_TOKEN and BOT_TOKEN != "BOT_TOKENINGIZNI_YOZING":
+        try:
+            await bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(text="Ilova", web_app=WebAppInfo(url=WEBAPP_URL))
+            )
+            print("Telegram Chat Menu tugmasi (Mini App) sozlandi!")
+        except Exception as e:
+            print(f"Chat Menu sozlashda ogohlantirish: {e}")
     await dp.start_polling(bot)
 
 

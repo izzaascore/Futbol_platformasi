@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PlayCircle, CheckCircle, Flame, Dumbbell, ShieldAlert, Check, X, Skull } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const API_URL = 'http://localhost:8000';
+import { API_URL } from '../config';
 
 export default function DailyDrillsPage() {
     const [drills, setDrills] = useState([]);

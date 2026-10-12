@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import ScoutLayout from './layouts/ScoutLayout';
 import PlayerLayout from './layouts/PlayerLayout';
+import { API_URL } from './config';
 
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
@@ -23,7 +24,7 @@ import NewsPage from './pages/NewsPage';
 import RankingsPage from './pages/RankingsPage';
 import ProfilePage from './pages/ProfilePage';
 import MatchCenterPage from './pages/MatchCenterPage';
-import DailyDrillsPage from './pages/DailyDrillsPage';
+import ReelsPage from './pages/ReelsPage';
 import ManifestoPage from './pages/ManifestoPage';
 
 // Public layout wrapper for normal pages (like Home, News, etc.)
@@ -48,8 +49,11 @@ function PublicLayout({ children }) {
 
               <nav className="hidden xl:flex items-center space-x-6">
                   <Link to="/" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Bosh sahifa</Link>
-                  <Link to="/manifesto" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Manifest</Link>
+                  <Link to="/players" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">O'yinchilar</Link>
+                  <Link to="/rankings" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Reyting</Link>
+                  <Link to="/tournaments" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Turnirlar</Link>
                   <Link to="/live" className="text-[11px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors animate-pulse flex items-center gap-1"><Activity className="w-3 h-3"/> Live Center</Link>
+                  <Link to="/manifesto" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Manifest</Link>
               </nav>
 
               <div className="flex items-center gap-4">
@@ -79,14 +83,76 @@ function PublicLayout({ children }) {
           {children}
       </main>
 
-      <footer className="bg-stone-950 py-8 text-center text-stone-500 text-xs font-bold uppercase tracking-widest">
+      <footer className="bg-stone-950 py-8 text-center text-stone-500 text-xs font-bold uppercase tracking-widest pb-24 md:pb-8">
         FootballRise &copy; {new Date().getFullYear()}
       </footer>
+
+      {/* Mobile & Telegram Mini App Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-stone-950/95 backdrop-blur-xl border-t border-stone-800 md:hidden flex justify-around items-center py-2 px-1 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+        <Link to="/" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-amber-500 p-2">
+          <Home className="w-5 h-5" />
+          <span>Asosiy</span>
+        </Link>
+        <Link to="/players" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-amber-500 p-2">
+          <Users className="w-5 h-5" />
+          <span>Iqtidorlar</span>
+        </Link>
+        <Link to="/live" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-400 p-2">
+          <Activity className="w-5 h-5 animate-pulse" />
+          <span>Live</span>
+        </Link>
+        <Link to="/reels" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-amber-500 p-2">
+          <Flame className="w-5 h-5" />
+          <span>Reels</span>
+        </Link>
+        <Link to={user ? `/${user.role}/dashboard` : "/login"} className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-amber-500 p-2">
+          <User className="w-5 h-5" />
+          <span>{user ? "Profil" : "Kirish"}</span>
+        </Link>
+      </nav>
     </div>
   );
 }
 
 function App() {
+  useEffect(() => {
+    // Telegram WebApp tekshiruvi va avtomatik moslashuv
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+      try {
+        tg.setHeaderColor('#0a0a0a');
+        tg.setBackgroundColor('#050505');
+      } catch (e) {}
+
+      // Telegramdan avtomatik 1-bosqichli kirish (TMA seamless auth)
+      const tgUser = tg.initDataUnsafe?.user;
+      if (tgUser && !localStorage.getItem('token')) {
+        fetch(`${API_URL}/api/auth/telegram-webapp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: tgUser.id,
+            first_name: tgUser.first_name,
+            last_name: tgUser.last_name || '',
+            username: tgUser.username || '',
+            photo_url: tgUser.photo_url || ''
+          })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.access_token) {
+              localStorage.setItem('token', data.access_token);
+              localStorage.setItem('role', data.role);
+              localStorage.setItem('talaqCurrentUser', JSON.stringify(data.user));
+            }
+          })
+          .catch(console.error);
+      }
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -97,6 +163,13 @@ function App() {
         <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
         <Route path="/manifesto" element={<PublicLayout><ManifestoPage /></PublicLayout>} />
         <Route path="/live" element={<PublicLayout><MatchCenterPage /></PublicLayout>} />
+        <Route path="/players" element={<PublicLayout><PlayersPage /></PublicLayout>} />
+        <Route path="/scouts" element={<PublicLayout><ScoutsPage /></PublicLayout>} />
+        <Route path="/tournaments" element={<PublicLayout><TournamentsPage /></PublicLayout>} />
+        <Route path="/rankings" element={<PublicLayout><RankingsPage /></PublicLayout>} />
+        <Route path="/reels" element={<PublicLayout><ReelsPage /></PublicLayout>} />
+        <Route path="/shop" element={<PublicLayout><ShopPage /></PublicLayout>} />
+        <Route path="/news" element={<PublicLayout><NewsPage /></PublicLayout>} />
         
         {/* Admin Routes */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
@@ -118,7 +191,7 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['player']} />}>
             <Route path="/player" element={<PlayerLayout />}>
                 <Route path="dashboard" element={<PlayerDashboard />} />
-                <Route path="drills" element={<DailyDrillsPage />} />
+                <Route path="reels" element={<ReelsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
             </Route>
         </Route>

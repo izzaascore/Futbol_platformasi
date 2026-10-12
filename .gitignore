@@ -8,9 +8,13 @@ venv/
 .env
 *.db
 *.sqlite3
+*.bak
+uploads/
 .vscode/
 node_modules/
+frontend/node_modules/
 dist/
+frontend/dist/
 build/
 .agents/
 .gemini/

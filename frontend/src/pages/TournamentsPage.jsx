@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import React, { useEffect, useState } from 'react';
 import { Trophy, Calendar, MapPin, Users, ArrowRight, Circle, PlayCircle, Shield, CheckCircle } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
+import { API_URL } from '../config';
 
 const TournamentsPage = () => {
   const [tournaments, setTournaments] = useState([]);
@@ -16,7 +17,7 @@ const TournamentsPage = () => {
   ];
 
   useEffect(() => {
-    fetch('http://localhost:8000/tournaments')
+    fetch(`${API_URL}/tournaments`)
       .then(res => res.json())
       .then(data => {
         setTournaments(data.length > 0 ? data : fallbackTournaments);

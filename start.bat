@@ -1,13 +1,17 @@
 @echo off
-echo Platformani ishga tushirish (Backend, Bot, Frontend)...
+echo Platformani ishga tushirish (Backend, Bot, Frontend, Monitor)...
 
-:: Backendni ishga tushirish (yangi oynada)
-start "Backend (FastAPI)" cmd /k "call .venv\Scripts\activate.bat && uvicorn main:app --reload --port 8000"
+:: ABDULBOSIT - Self-Healing Monitor (Backend + Auto-Patch)
+start "ABDULBOSIT (Backend + Monitor)" cmd /k "cd /d %~dp0 && .venv\Scripts\python.exe self_healing_monitor.py"
 
 :: Telegram Botni ishga tushirish (yangi oynada)
-start "Telegram Bot" cmd /k "call .venv\Scripts\activate.bat && python bot.py"
+start "Telegram Bot" cmd /k "cd /d %~dp0 && .venv\Scripts\python.exe bot.py"
 
 :: Frontendni ishga tushirish (yangi oynada)
-start "Frontend (React)" cmd /k "cd frontend && npm run dev"
+start "Frontend (React)" cmd /k "cd /d %~dp0\frontend && npm run dev"
 
-echo Barcha serverlar ishga tushirildi! Siz ishni davom ettirishingiz mumkin.
+:: Obsidian Watcherni ishga tushirish (yangi oynada)
+start "Obsidian Watcher" cmd /k "cd /d %~dp0 && .venv\Scripts\python.exe sync_watcher.py"
+
+echo Barcha serverlar ishga tushirildi!
+echo ABDULBOSIT endi barcha loglarni kuzatyapti va xatoliklarni o'zi tuzatyapti.

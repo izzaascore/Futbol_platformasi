@@ -5,9 +5,17 @@ from models import VerificationStatus, UserRole, UserStatus
 class UserBase(BaseModel):
     first_name: str
     last_name: str
+    telegram_id: int | None = None
     age: int | None = None
     address: str | None = None
     email: str | None = None
+
+class TelegramAuthRequest(BaseModel):
+    id: int
+    first_name: str
+    last_name: str | None = None
+    username: str | None = None
+    photo_url: str | None = None
 
 class UserCreate(UserBase):
     password: str
