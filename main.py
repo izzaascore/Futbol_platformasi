@@ -93,6 +93,12 @@ async def security_defense_middleware(request: Request, call_next):
     elif is_auth_route and response.status_code == 200:
         rate_limiter.record_success_auth(client_ip)
 
+    # 3. Kiber-Xavfsizlik Sarlavhalari (Security Headers - OWASP Top 100 himoyasi)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
     return response
 
 os.makedirs("uploads/videos", exist_ok=True)
