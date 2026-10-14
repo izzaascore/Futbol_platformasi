@@ -39,6 +39,10 @@ from ai_concierge import (
     create_virtual_room,
     close_virtual_room,
     get_room_peer,
+    search_obsidian_knowledge_base,
+    save_to_knowledge_base,
+    register_pending_question,
+    resolve_pending_question,
     USER_ACTIVE_ROOMS,
     INTENT_TEAM_RULES,
     INTENT_TOURNAMENT,
@@ -418,6 +422,46 @@ async def reject_room_callback(query: types.CallbackQuery):
 
 
 # ==============================================================
+# CONTINUOUS LEARNING: ADMIN REPLY HANDLER (HUMAN-IN-THE-LOOP)
+# ==============================================================
+@dp.message(F.reply_to_message)
+async def admin_reply_feedback_handler(message: types.Message):
+    if not ADMIN_TELEGRAM_ID or str(message.from_user.id) != str(ADMIN_TELEGRAM_ID):
+        return
+
+    reply_to_id = message.reply_to_message.message_id
+    pending = resolve_pending_question(reply_to_id)
+    if pending:
+        target_user_id = pending["user_id"]
+        target_user_name = pending["user_name"]
+        orig_question = pending["question"]
+        admin_answer = message.text.strip()
+
+        # 1. Foydalanuvchiga admin javobini yetkazish
+        try:
+            await bot.send_message(
+                target_user_id,
+                f"💬 <b>Loyiha rahbari savolingizga javob berdi:</b>\n\n"
+                f"❓ <i>Savolingiz:</i> {orig_question}\n\n"
+                f"✅ <b>Javob:</b>\n{admin_answer}",
+                parse_mode="HTML"
+            )
+        except Exception as e:
+            await message.reply(f"⚠️ Foydalanuvchiga yuborishda xatolik: {e}")
+
+        # 2. Abdulbosit agenti: Obsidian FAQ bazasiga o'rganish sifatida qo'shish
+        save_to_knowledge_base(orig_question, admin_answer)
+
+        await message.reply(
+            f"🎉 <b>Muvaffaqiyatli!</b>\n\n"
+            f"1. Javob <b>{target_user_name}</b> ga yetkazildi.\n"
+            f"2. <b>Agent Abdulbosit:</b> Savol-javob <code>docs/obsidian_sync/Bilimlar_Bazasi_FAQ.md</code> bazasiga saqlandi! "
+            f"Endi bot xuddi shu yoki o'xshash savol berilganda mustaqil javob bera oladi (Continuous Learning).",
+            parse_mode="HTML"
+        )
+
+
+# ==============================================================
 # AGENT RUSTAM & AUTONOMOUS ADAPTIVE CONCIERGE (MAHORAGA ENGINE)
 # ==============================================================
 @dp.message(F.text)
@@ -548,18 +592,44 @@ async def adaptive_ai_handler(message: types.Message, state: FSMContext):
         )
         return
 
-    # E) Boshqa umumiy savollar
+    # E) Boshqa noma'lum / noodatiy savollar (RAG -> Human-in-the-Loop)
     else:
+        # 1-qadam: Obsidian Bilimlar Bazasidan qidiramiz (RAG)
+        rag_result = search_obsidian_knowledge_base(text)
+        if rag_result:
+            answer_content, source_file = rag_result
+            await message.answer(
+                f"🧠 <b>Bilimlar Bazasi (Agent Abdulbosit):</b>\n\n"
+                f"{answer_content}\n\n"
+                f"📚 <i>Manba: Obsidian/{source_file}</i>",
+                parse_mode="HTML"
+            )
+            return
+
+        # 2-qadam: Agar bazada ham topilmasa — Mahoraga Human-in-the-Loop (Adminga yuborish)
         await message.answer(
-            "⚽️ <b>FootballRise Aqlli Yordamchisi:</b>\n\n"
-            "Savolingiz uchun rahmat! Men quyidagi yo'nalishlarda yordam bera olaman:\n"
-            "• 🏆 <b>Turnirlar grafigi:</b> 'Turnir qachon?'\n"
-            "• 📋 <b>Tarkib qoidalari:</b> '10 kishi bilan o'ynasa bo'ladimi?'\n"
-            "• 🤝 <b>O'yinchilar bilan aloqa:</b> 'Falonchi o'yinchi bilan gaplashmoqchiman'\n"
-            "• 📱 <b>Ilova:</b> '⚡️ FootballRise Mini App' tugmasi orqali to'liq platformaga o'tish.\n\n"
-            "<i>Aniqroq savolingiz bo'lsa, bemalol yozing — darhol yordam beraman!</i>",
+            "🤔 <b>Juda qiziq va noodatiy savol bo'ldi!</b>\n\n"
+            "Bu savol bo'yicha eng aniq ma'lumotni olish uchun uni to'g'ridan-to'g'ri loyiha rahbariga (Adminga) yo'naltirdim. "
+            "Rahbarimiz javob yozishi bilan sizga shu yerning o'zida yetkazaman va kelgusi safar uchun tizim buni avtomatik o'rganib oladi! ⚡️",
             parse_mode="HTML"
         )
+
+        if ADMIN_TELEGRAM_ID:
+            try:
+                admin_msg = await bot.send_message(
+                    ADMIN_TELEGRAM_ID,
+                    f"❓ <b>NOODATIY SAVOL KELDI (Human-in-the-Loop):</b>\n\n"
+                    f"👤 <b>Foydalanuvchi:</b> {user_name} ({username})\n"
+                    f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+                    f"📝 <b>Savol:</b>\n<i>{text}</i>\n\n"
+                    f"✍️ <i>Ushbu xabarga <b>Reply (Javob)</b> qilib javob yozsangiz, bot javobingizni foydalanuvchiga yetkazadi "
+                    f"hamda 'Bilimlar_Bazasi_FAQ.md' ga avtomatik qo'shib tizimga o'rgatadi!</i>",
+                    parse_mode="HTML"
+                )
+                register_pending_question(admin_msg.message_id, user_id, user_name, text)
+            except Exception as e:
+                print(f"Admin forward error: {e}")
+        return
 
 
 async def main():

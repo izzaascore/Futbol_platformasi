@@ -3,11 +3,13 @@ FootballRise Autonomous AI Concierge ("Mahoraga Adaptive Engine")
 Arxitektura:
 - Rustam: Intent Classifier & Orchestrator
 - Farrux: Reglament, Qoidalar va Futbol mantig'i
-- Abdulbosit: Ma'lumotlar bazasi tahlili va Xavfsizlik
+- Abdulbosit: Ma'lumotlar bazasi tahlili, RAG (Obsidian Sync) va Uzluksiz O'rganish (Continuous Learning)
 - Ikrom: P2P Virtual Xona (Chat Bridge) va 24/7 Monitoring
 """
 
+import os
 import re
+import glob
 import httpx
 from datetime import datetime
 
@@ -18,6 +20,24 @@ from datetime import datetime
 USER_ACTIVE_ROOMS = {}
 # room_id -> { 'user1': int, 'user1_name': str, 'user2': int, 'user2_name': str, 'created_at': datetime }
 ROOMS_STORE = {}
+
+# ==============================================================
+# HUMAN-IN-THE-LOOP (ADMIN JAVOBLARINI KUTISH VA TIZIMGA O'RGATISH)
+# ==============================================================
+# admin_message_id -> { 'user_id': int, 'user_name': str, 'question': str, 'created_at': datetime }
+PENDING_ADMIN_QUESTIONS = {}
+
+def register_pending_question(admin_msg_id: int, user_id: int, user_name: str, question: str):
+    PENDING_ADMIN_QUESTIONS[admin_msg_id] = {
+        "user_id": user_id,
+        "user_name": user_name,
+        "question": question,
+        "created_at": datetime.utcnow()
+    }
+
+def resolve_pending_question(admin_msg_id: int):
+    return PENDING_ADMIN_QUESTIONS.pop(admin_msg_id, None)
+
 
 # ==============================================================
 # 1. AGENT RUSTAM: INTENT CLASSIFIER (MAHORAGA ADAPTATION)
@@ -195,3 +215,124 @@ def get_room_peer(user_id: int):
         return room["user2"], room["user1_name"]
     else:
         return room["user1"], room["user2_name"]
+
+
+# ==============================================================
+# 5. AGENT ABDULBOSIT: RAG (OBSIDIAN BILIMLAR BAZASI QIDIRUVI)
+# ==============================================================
+
+def search_obsidian_knowledge_base(query: str, vault_dir: str = None) -> tuple[str, str] | None:
+    """
+    RAG (Retrieval-Augmented Generation):
+    Obsidian papkasidagi barcha .md hujjatlarni o'qib, foydalanuvchi savoliga eng mos bo'limni topadi.
+    Topilsa (javob_matni, manba_fayli) qaytaradi, topilmasa None.
+    """
+    if vault_dir is None:
+        vault_dir = os.getenv("OBSIDIAN_VAULT_PATH", "docs/obsidian_sync")
+
+    if not os.path.isabs(vault_dir):
+        # Nisbiy yo'l bo'lsa, loyiha ildiziga nisbatan tekshiramiz
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        vault_dir = os.path.join(base_dir, vault_dir)
+
+    if not os.path.isdir(vault_dir):
+        return None
+
+    stopwords = {
+        "va", "bilan", "uchun", "haqida", "qanday", "nima", "qanaqa", "qachon", "bormi",
+        "kerak", "men", "siz", "bu", "shu", "faqat", "ham", "yoki", "esa", "qayerda",
+        "kim", "qilsa", "bo'ladi", "mumkin", "iltimos", "salom", "qanaqa"
+    }
+    
+    # Savoldagi kalit so'zlarni ajratib olish
+    words = [re.sub(r'[^\w]', '', w.lower()) for w in query.split()]
+    keywords = [w for w in words if len(w) >= 3 and w not in stopwords]
+
+    if not keywords:
+        return None
+
+    best_score = 0
+    best_section = None
+    best_source = None
+
+    md_files = glob.glob(os.path.join(vault_dir, "*.md"))
+    for file_path in md_files:
+        filename = os.path.basename(file_path)
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except Exception:
+            continue
+
+        # Hujjatni sarlavhalar yoki paragraflar bo'yicha ajratish
+        raw_sections = re.split(r'\n(?=#{1,4}\s)', content)
+        for sec in raw_sections:
+            sec_clean = sec.strip()
+            if len(sec_clean) < 20:
+                continue
+
+            sec_lower = sec_clean.lower()
+            score = 0
+
+            # Sarlavha satrida kalit so'z uchrashiga yuqori ball
+            first_line = sec_clean.split("\n", 1)[0].lower()
+            for kw in keywords:
+                if kw in first_line:
+                    score += 4
+                elif kw in sec_lower:
+                    score += 1
+
+            # To'liq birikma yoki savol jumlasi uchrashiga qo'shimcha bonus
+            if query.lower() in sec_lower:
+                score += 5
+
+            if score > best_score:
+                best_score = score
+                best_section = sec_clean
+                best_source = filename
+
+    # Kamida 2 ball to'plangan bo'lsa natija ishonchli hisoblanadi
+    if best_score >= 2 and best_section:
+        if len(best_section) > 1200:
+            best_section = best_section[:1200] + "..."
+        return best_section, best_source
+
+    return None
+
+
+# ==============================================================
+# 6. AGENT ABDULBOSIT: CONTINUOUS LEARNING (UZLUKSIZ O'RGANISH)
+# ==============================================================
+
+def save_to_knowledge_base(question: str, answer: str, vault_dir: str = None) -> bool:
+    """
+    Admin tomonidan berilgan yangi javobni 'Bilimlar_Bazasi_FAQ.md' ga saqlab,
+    tizimni keyingi safar mustaqil javob bera oladigan darajaga moslaydi.
+    """
+    if vault_dir is None:
+        vault_dir = os.getenv("OBSIDIAN_VAULT_PATH", "docs/obsidian_sync")
+
+    if not os.path.isabs(vault_dir):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        vault_dir = os.path.join(base_dir, vault_dir)
+
+    os.makedirs(vault_dir, exist_ok=True)
+    faq_file = os.path.join(vault_dir, "Bilimlar_Bazasi_FAQ.md")
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    is_new = not os.path.exists(faq_file)
+
+    try:
+        with open(faq_file, "a", encoding="utf-8") as f:
+            if is_new:
+                f.write(
+                    "# 📚 FootballRise Avtonom Bilimlar Bazasi (FAQ)\n\n"
+                    "Ushbu fayl Admin javoblari va agentlarning o'rganishlari asosida avtomatik shakllanadi.\n\n"
+                )
+            f.write(f"### ❓ [{now_str}] {question.strip()}\n\n")
+            f.write(f"**Javob:** {answer.strip()}\n\n")
+            f.write("---\n\n")
+        return True
+    except Exception as e:
+        print(f"Error saving to knowledge base: {e}")
+        return False
