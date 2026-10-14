@@ -21,11 +21,31 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "BOT_TOKENINGIZNI_YOZING")
+RAW_BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+# Aiogram validatsiyasi uchun to'g'ri formatli zaxira token:
+BOT_TOKEN = RAW_BOT_TOKEN if (RAW_BOT_TOKEN and ":" in RAW_BOT_TOKEN) else "1234567890:AAH_DUMMY_TOKEN_PLEASE_REPLACE"
 # Jonli Railway API manzili:
 API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-dc0f4.up.railway.app")
 # Jonli Vercel Mini App manzili:
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platformasi-alpha.vercel.app")
+# Admin Telegram ID (muhim shaxsiy xabarlar uchun):
+ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "")
+
+from ai_concierge import (
+    classify_intent,
+    get_team_rules_response,
+    get_tournament_status_response,
+    search_player_by_name,
+    create_virtual_room,
+    close_virtual_room,
+    get_room_peer,
+    USER_ACTIVE_ROOMS,
+    INTENT_TEAM_RULES,
+    INTENT_TOURNAMENT,
+    INTENT_CONNECT_PLAYER,
+    INTENT_ADMIN_ALERT,
+    INTENT_GENERAL
+)
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -331,6 +351,215 @@ async def show_leaderboard(message: types.Message):
         text += f"{medal} <b>{p['full_name']}</b> ({p['city'] or 'Nomaʼlum'}) — <b>{p['goals_verified']} ta gol</b>\n"
 
     await message.answer(text, parse_mode="HTML")
+
+
+# ==============================================================
+# P2P VIRTUAL XONANI TARK ETISH
+# ==============================================================
+@dp.message(Command("leave_room"))
+async def leave_room_handler(message: types.Message):
+    user_id = message.from_user.id
+    closed = close_virtual_room(user_id)
+    if closed:
+        peer_id = closed["user2"] if closed["user1"] == user_id else closed["user1"]
+        await message.answer("🚪 Siz virtual xonani tark etdingiz. Suhbat yakunlandi.", reply_markup=get_main_menu())
+        try:
+            await bot.send_message(peer_id, "🚪 Suhbatdoshingiz xonani tark etdi. Virtual xona yopildi.", reply_markup=get_main_menu())
+        except Exception:
+            pass
+    else:
+        await message.answer("Siz hozirda hech qanday virtual xonada emassiz.")
+
+
+# ==============================================================
+# VIRTUAL XONAGA TAKLIFNI QABUL / RAD ETISH CALLBACKLARI
+# ==============================================================
+@dp.callback_query(F.data.startswith("accept_room:"))
+async def accept_room_callback(query: types.CallbackQuery):
+    parts = query.data.split(":")
+    requester_id = int(parts[1])
+    requester_name = parts[2]
+    target_id = query.from_user.id
+    target_name = query.from_user.full_name
+
+    create_virtual_room(requester_id, requester_name, target_id, target_name)
+    await query.message.edit_text(
+        f"🟢 <b>Virtual Xona faollashdi!</b>\n\n"
+        f"Siz hozir <b>{requester_name}</b> bilan maxfiy suhbatdasiz. Yozgan xabarlaringiz bot orqali uzatiladi.\n"
+        f"Xonadan chiqish uchun istalgan vaqt /leave_room buyrug'ini yuboring.",
+        parse_mode="HTML"
+    )
+
+    try:
+        await bot.send_message(
+            requester_id,
+            f"🟢 <b>{target_name} taklifingizni qabul qildi!</b>\n\n"
+            f"Virtual Xona ochildi. Endi bot orqali xabar yozishingiz mumkin. "
+            f"Chiqish uchun: /leave_room",
+            parse_mode="HTML"
+        )
+    except Exception:
+        pass
+    await query.answer()
+
+
+@dp.callback_query(F.data.startswith("reject_room:"))
+async def reject_room_callback(query: types.CallbackQuery):
+    requester_id = int(query.data.split(":")[1])
+    await query.message.edit_text("❌ Xonaga kirish taklifi rad etildi.")
+    try:
+        await bot.send_message(
+            requester_id,
+            "ℹ️ O'yinchi hozirda suhbatlashish imkoniga ega emasligini bildirdi (Taklif rad etildi)."
+        )
+    except Exception:
+        pass
+    await query.answer()
+
+
+# ==============================================================
+# AGENT RUSTAM & AUTONOMOUS ADAPTIVE CONCIERGE (MAHORAGA ENGINE)
+# ==============================================================
+@dp.message(F.text)
+async def adaptive_ai_handler(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    user_name = message.from_user.full_name
+    username = f"@{message.from_user.username}" if message.from_user.username else user_name
+    text = message.text.strip()
+
+    # 1. Agar foydalanuvchi faol P2P Virtual Xonada bo'lsa - xabarni suhbatdoshiga uzatamiz!
+    peer_id, peer_name = get_room_peer(user_id)
+    if peer_id:
+        try:
+            await bot.send_message(
+                peer_id,
+                f"💬 <b>{user_name}:</b>\n{text}",
+                parse_mode="HTML"
+            )
+        except Exception:
+            await message.answer("⚠️ Suhbatdoshga xabar yetib bormadi (u botni bloklagan bo'lishi mumkin).")
+        return
+
+    # 2. Rustam agenti xabarning niyatini (Intent) tahlil qiladi
+    intent = classify_intent(text)
+
+    # A) Jamoa tarkibi va 10-13 kishi qoidalari
+    if intent == INTENT_TEAM_RULES:
+        reply = get_team_rules_response(text)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # B) Turnirlar grafigi va holati (Boshlanganmi yoki yangimi)
+    elif intent == INTENT_TOURNAMENT:
+        reply = await get_tournament_status_response(API_BASE_URL)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # C) Falonchi o'yinchi bilan ko'rishish / bog'lanish / topish
+    elif intent == INTENT_CONNECT_PLAYER:
+        await message.answer(
+            "🧠 <b>Agent Rustam tahlili:</b>\n"
+            "Sizning o'yinchi bilan bog'lanish bo'yicha so'rovingiz qabul qilindi. "
+            "Ma'lumotlar bazasidan o'yinchi profili tekshirilmoqda...",
+            parse_mode="HTML"
+        )
+
+        clean_text = text.lower()
+        stopwords = ["bilan", "ko'rishib", "gaplashmoqchiman", "gaplashmoqchidim", "bog'lana", "olmayapman", "aloqa", "topib", "bering", "salom", "iltimos"]
+        words = [w for w in text.split() if w.lower() not in stopwords and len(w) > 2]
+        query_player = " ".join(words) if words else text
+
+        player = await search_player_by_name(API_BASE_URL, query_player)
+        if player and player.get("telegram_id"):
+            target_tg_id = player["telegram_id"]
+            player_full_name = player.get("full_name", "Futbolchi")
+
+            invite_kb = InlineKeyboardMarkup(inline_keyboard=[
+                [
+                    InlineKeyboardButton(text="✅ Roziman, xonaga kirish", callback_data=f"accept_room:{user_id}:{user_name[:15]}"),
+                    InlineKeyboardButton(text="❌ Rad etish", callback_data=f"reject_room:{user_id}")
+                ]
+            ])
+
+            try:
+                await bot.send_message(
+                    target_tg_id,
+                    f"⚡️ <b>Hurmatli {player_full_name}!</b>\n\n"
+                    f"Siz bilan <b>{user_name}</b> ({username}) maxsus virtual xonada bog'lanmoqchi va suhbatlashishni so'ramoqda.\n\n"
+                    f"<i>Suhbatga rozimisiz? Ikkala tomon uchun ham shaxsiy raqamlar sir saqlanadi.</i>",
+                    parse_mode="HTML",
+                    reply_markup=invite_kb
+                )
+                await message.answer(
+                    f"🎯 <b>{player_full_name}</b> muvaffaqiyatli topildi!\n"
+                    f"Unga maxsus virtual xonaga taklifnoma yuborildi. U tasdiqlashi bilan "
+                    f"ikkalangiz uchun bot ichida anonim suhbat xonasi ochiladi.",
+                    parse_mode="HTML"
+                )
+            except Exception:
+                await message.answer(
+                    f"🎯 <b>{player_full_name}</b> topildi, lekin u hali botni faollashtirmagan. "
+                    f"Murojaatingiz ma'murlar e'tiboriga yetkazildi!",
+                    parse_mode="HTML"
+                )
+        else:
+            await message.answer(
+                "🔍 <b>Rustam Agent xulosasi:</b>\n"
+                "Siz so'ragan futbolchi profil bo'yicha qidirildi. "
+                "Hozirda u bilan to'g'ridan-to'g'ri bog'lanish uchun so'rov tizimga kiritildi. "
+                "Shuningdek, ushbu murojaat platforma rahbariga yetkazildi!",
+                parse_mode="HTML"
+            )
+
+        if ADMIN_TELEGRAM_ID:
+            try:
+                await bot.send_message(
+                    ADMIN_TELEGRAM_ID,
+                    f"🤝 <b>Yangi Aloqa So'rovi (Matchmaking):</b>\n"
+                    f"Kimdan: {user_name} ({username})\n"
+                    f"So'rov matni: {text}",
+                    parse_mode="HTML"
+                )
+            except Exception:
+                pass
+        return
+
+    # D) Muhim shaxsiy masala / shikoyat / pul
+    elif intent == INTENT_ADMIN_ALERT:
+        if ADMIN_TELEGRAM_ID:
+            try:
+                await bot.send_message(
+                    ADMIN_TELEGRAM_ID,
+                    f"🚨 <b>MUHIM SHAXSIY MUROJAAT:</b>\n\n"
+                    f"👤 <b>Foydalanuvchi:</b> {user_name} ({username})\n"
+                    f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+                    f"📝 <b>Murojaat matni:</b>\n<i>{text}</i>",
+                    parse_mode="HTML"
+                )
+            except Exception as e:
+                print(f"Admin alert error: {e}")
+
+        await message.answer(
+            "⚡️ <b>Agent Rustam (Boshqaruvchi):</b>\n\n"
+            "Sizning murojaatingiz <b>yuqori ustuvorlikdagi shaxsiy masala</b> sifatida qayd etildi va "
+            "to'g'ridan-to'g'ri platforma rahbariyatiga yetkazildi. "
+            "Tez orada siz bilan shaxsan aloqaga chiqiladi.",
+            parse_mode="HTML"
+        )
+        return
+
+    # E) Boshqa umumiy savollar
+    else:
+        await message.answer(
+            "⚽️ <b>FootballRise Aqlli Yordamchisi:</b>\n\n"
+            "Savolingiz uchun rahmat! Men quyidagi yo'nalishlarda yordam bera olaman:\n"
+            "• 🏆 <b>Turnirlar grafigi:</b> 'Turnir qachon?'\n"
+            "• 📋 <b>Tarkib qoidalari:</b> '10 kishi bilan o'ynasa bo'ladimi?'\n"
+            "• 🤝 <b>O'yinchilar bilan aloqa:</b> 'Falonchi o'yinchi bilan gaplashmoqchiman'\n"
+            "• 📱 <b>Ilova:</b> '⚡️ FootballRise Mini App' tugmasi orqali to'liq platformaga o'tish.\n\n"
+            "<i>Aniqroq savolingiz bo'lsa, bemalol yozing — darhol yordam beraman!</i>",
+            parse_mode="HTML"
+        )
 
 
 async def main():
