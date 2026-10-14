@@ -16,6 +16,7 @@ class TelegramAuthRequest(BaseModel):
     last_name: str | None = None
     username: str | None = None
     photo_url: str | None = None
+    init_data: str | None = None
 
 class UserCreate(UserBase):
     password: str
@@ -461,4 +462,4 @@ class TournamentOut(TournamentCreate):
 
     class Config:
         from_attributes = True
-
+

@@ -137,7 +137,8 @@ function App() {
             first_name: tgUser.first_name,
             last_name: tgUser.last_name || '',
             username: tgUser.username || '',
-            photo_url: tgUser.photo_url || ''
+            photo_url: tgUser.photo_url || '',
+            init_data: tg.initData || ''
           })
         })
           .then(res => res.json())

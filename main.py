@@ -11,7 +11,19 @@ from starlette.responses import JSONResponse
 from database import Base, engine, SessionLocal
 from models import Player, GoalSubmission, VerificationStatus, User, UserVideo, CareerHistory, UserStatus, UserRole, Scout
 from schemas import PlayerCreate, PlayerOut, GoalSubmissionCreate, GoalSubmissionOut, UserCreate, UserLogin, UserOut, UserProfileImageUpdate, UserVideoOut, CareerHistoryCreate, CareerHistoryOut, TelegramAuthRequest
-from security import get_password_hash, verify_password, create_access_token, get_current_user, RequireRole
+from security import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    get_current_user,
+    RequireRole,
+    check_ownership,
+    verify_telegram_init_data,
+    rate_limiter,
+    detect_malicious_payload,
+    ADMIN_USERNAME,
+    ADMIN_PASSKEY
+)
 
 Base.metadata.create_all(bind=engine)
 
@@ -20,13 +32,56 @@ app = FastAPI(title="Football Platform API")
 # Removed old vulnerable IP Middleware
 
 
+ALLOWED_ORIGINS = [
+    "https://futbol-platformasi-alpha.vercel.app",
+    "https://web-production-dc0f4.up.railway.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+frontend_env = os.getenv("WEBAPP_URL")
+if frontend_env and frontend_env not in ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS.append(frontend_env)
+
+# Qat'iy CORS nazorati (Faqat rasmiy frontend domenlariga ruxsat)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Kiber-Himoya Middleware: Rate Limiting & Intrusion Detection
+@app.middleware("http")
+async def security_defense_middleware(request: Request, call_next):
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    
+    # 1. Zararli so'rovlar / SQL Injection / Path Traversal tekshiruvi
+    if detect_malicious_payload(str(request.url.query)):
+        rate_limiter.block_ip(client_ip, 3600)
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Xavfsizlik tizimi: Noqonuniy so'rov (Inyeksiya/Buzish) aniqlandi va IP bloklandi."}
+        )
+
+    # 2. Rate Limiting tekshiruvi (Brute-force / DoS spamdan himoya)
+    path = request.url.path
+    is_auth_route = any(p in path for p in ["/api/auth/", "/admin/login"])
+    allowed, msg = rate_limiter.check(client_ip, is_auth=is_auth_route)
+    if not allowed:
+        return JSONResponse(status_code=429, content={"detail": msg})
+
+    response = await call_next(request)
+    
+    # Muvaffaqiyatsiz auth urinishlarini hisobga olish
+    if is_auth_route and response.status_code == 401:
+        rate_limiter.record_failed_auth(client_ip)
+    elif is_auth_route and response.status_code == 200:
+        rate_limiter.record_success_auth(client_ip)
+
+    return response
 
 os.makedirs("uploads/videos", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
@@ -47,7 +102,16 @@ def home():
 
 @app.post("/api/auth/telegram-webapp")
 def telegram_webapp_auth(tg_data: TelegramAuthRequest, db: Session = Depends(get_db)):
-    # Telegram foydalanuvchisi mavjudligini tekshirish
+    # 1. Telegram Kriptografik imzo (HMAC-SHA256) tekshiruvi — Soxtalashtirishdan himoya
+    bot_token = os.getenv("BOT_TOKEN", "").strip()
+    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890"):
+        if not tg_data.init_data or not verify_telegram_init_data(tg_data.init_data, bot_token):
+            raise HTTPException(
+                status_code=401,
+                detail="Xavfsizlik xatosi: Telegram haqiqiylik imzosi (HMAC) tasdiqlanmadi yoki ma'lumotlar soxtalashtirilgan!"
+            )
+
+    # 2. Telegram foydalanuvchisi mavjudligini tekshirish
     user = db.query(User).filter(User.telegram_id == tg_data.id).first()
     if not user:
         # Yangi foydalanuvchi yaratish
@@ -421,10 +485,18 @@ def get_player(player_id: int, db: Session = Depends(get_db)):
     return player
 
 @app.post("/players/{player_id}/career", response_model=CareerHistoryOut)
-def add_career_history(player_id: int, career_data: CareerHistoryCreate, db: Session = Depends(get_db)):
+def add_career_history(
+    player_id: int,
+    career_data: CareerHistoryCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     player = db.query(Player).filter(Player.id == player_id).first()
     if not player:
         raise HTTPException(status_code=404, detail="Futbolchi topilmadi")
+    
+    # Broken Access Control (IDOR) himoyasi: Faqat o'yinchi egasi yoki admin qo'sha oladi
+    check_ownership(player.user_id, current_user, "o'yinchi karyerasi")
     
     career = CareerHistory(player_id=player_id, **career_data.model_dump())
     db.add(career)
@@ -436,14 +508,14 @@ def add_career_history(player_id: int, career_data: CareerHistoryCreate, db: Ses
 
 @app.post("/admin/login")
 def admin_login(data: dict, db: Session = Depends(get_db)):
-    # O'ta murakkab qattiq kodlangan maxfiy kalit
-    if data.get("username") == "erkin_master" and data.get("passkey") == "X@9f#vL$2!qP":
+    # Xavfsiz .env kalitlari orqali tekshirish
+    if data.get("username") == ADMIN_USERNAME and data.get("passkey") == ADMIN_PASSKEY:
         admin_user = db.query(User).filter(User.role == UserRole.ADMIN).first()
         if not admin_user:
             admin_user = User(
                 first_name="Erkin",
                 last_name="Master",
-                password_hash=get_password_hash("X@9f#vL$2!qP"),
+                password_hash=get_password_hash(ADMIN_PASSKEY),
                 role=UserRole.ADMIN,
                 status=UserStatus.ACTIVE
             )
@@ -543,11 +615,14 @@ def admin_create_tournament(data: dict, db: Session = Depends(get_db)):
 def submit_goal_direct(
     player_id: int,
     submission_data: GoalSubmissionCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     player = db.query(Player).filter(Player.id == player_id).first()
     if not player:
         raise HTTPException(status_code=404, detail="Futbolchi topilmadi")
+
+    check_ownership(player.user_id, current_user, "gol/video ma'lumotlari")
 
     submission = GoalSubmission(
         player_id=player_id,
@@ -572,6 +647,8 @@ def submit_goal(
     player = db.query(Player).filter(Player.id == player_id).first()
     if not player:
         raise HTTPException(status_code=404, detail="Futbolchi topilmadi")
+
+    check_ownership(player.user_id, current_user, "gol/video")
 
     submission = GoalSubmission(
         player_id=player_id,
@@ -906,7 +983,12 @@ def get_drills(db: Session = Depends(get_db)):
 
 
 @app.post("/users/{user_id}/drills/complete")
-def complete_drill(user_id: int, db: Session = Depends(get_db)):
+def complete_drill(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    check_ownership(user_id, current_user, "mashg'ulotlar")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")
@@ -954,7 +1036,12 @@ def complete_drill(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.patch("/users/{user_id}/hardcore")
-def toggle_hardcore_mode(user_id: int, db: Session = Depends(get_db)):
+def toggle_hardcore_mode(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    check_ownership(user_id, current_user, "hardcore rejim")
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")

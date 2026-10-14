@@ -46,7 +46,8 @@ const LoginPage = () => {
           first_name: userPayload.first_name,
           last_name: userPayload.last_name || '',
           username: userPayload.username || '',
-          photo_url: userPayload.photo_url || ''
+          photo_url: userPayload.photo_url || '',
+          init_data: window.Telegram?.WebApp?.initData || ''
         })
       });
 
