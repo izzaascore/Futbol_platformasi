@@ -439,3 +439,53 @@ class MentalTestResult(Base):
     
     player: Mapped["Player"] = relationship(back_populates="mental_tests")
 
+
+# --- AI PRE-MATCH PREDICTION & SOS MATCHMAKER ---
+
+class MatchPrediction(Base):
+    __tablename__ = "match_predictions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey("matches.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    predicted_home_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    predicted_away_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    points_awarded: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user: Mapped["User"] = relationship()
+    match: Mapped["Match"] = relationship()
+
+
+class MatchCallout(Base):
+    __tablename__ = "match_callouts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    title: Mapped[str] = mapped_column(String(150), nullable=False)
+    city: Mapped[str] = mapped_column(String(100), nullable=False)
+    district: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    stadium_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    match_time: Mapped[str] = mapped_column(String(100), nullable=False) # Masalan: "Bugun 20:00"
+    players_needed: Mapped[int] = mapped_column(Integer, default=1)
+    position_needed: Mapped[str] = mapped_column(String(50), default="Ixtiyoriy")
+    price_per_person: Mapped[int] = mapped_column(Integer, default=0) # So'mda yoki 0 (tekin)
+    status: Mapped[str] = mapped_column(String(20), default="open") # "open", "filled", "cancelled"
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    creator: Mapped["User"] = relationship()
+    responses: Mapped[list["CalloutResponse"]] = relationship(back_populates="callout", cascade="all, delete-orphan")
+
+
+class CalloutResponse(Base):
+    __tablename__ = "callout_responses"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    callout_id: Mapped[int] = mapped_column(ForeignKey("match_callouts.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="joined") # "joined", "confirmed", "declined"
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    callout: Mapped["MatchCallout"] = relationship(back_populates="responses")
+    user: Mapped["User"] = relationship()

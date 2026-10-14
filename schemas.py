@@ -463,3 +463,78 @@ class TournamentOut(TournamentCreate):
     class Config:
         from_attributes = True
 
+
+
+# --- AI PRE-MATCH PREDICTION & SOS MATCHMAKER SCHEMAS ---
+
+class MatchPredictionCreate(BaseModel):
+    predicted_home_score: int
+    predicted_away_score: int
+
+class MatchPredictionOut(BaseModel):
+    id: int
+    match_id: int
+    user_id: int
+    predicted_home_score: int
+    predicted_away_score: int
+    points_awarded: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PreMatchAnalysisOut(BaseModel):
+    match_id: int
+    home_team: str
+    away_team: str
+    win_probability_home: int
+    draw_probability: int
+    win_probability_away: int
+    home_attack_rating: int
+    away_attack_rating: int
+    home_defense_rating: int
+    away_defense_rating: int
+    ai_tactical_breakdown: str
+    community_votes: dict
+
+class CalloutResponseCreate(BaseModel):
+    note: str | None = None
+
+class CalloutResponseOut(BaseModel):
+    id: int
+    callout_id: int
+    user_id: int
+    note: str | None = None
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class MatchCalloutCreate(BaseModel):
+    title: str
+    city: str
+    district: str | None = None
+    stadium_name: str
+    match_time: str
+    players_needed: int = 1
+    position_needed: str = "Ixtiyoriy"
+    price_per_person: int = 0
+
+class MatchCalloutOut(BaseModel):
+    id: int
+    creator_id: int
+    title: str
+    city: str
+    district: str | None = None
+    stadium_name: str
+    match_time: str
+    players_needed: int
+    position_needed: str
+    price_per_person: int
+    status: str
+    created_at: datetime
+    joined_count: int = 0
+
+    class Config:
+        from_attributes = True

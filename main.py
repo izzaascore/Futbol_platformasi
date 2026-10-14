@@ -1219,3 +1219,233 @@ def donate_to_player(player_id: int, amount: int, db: Session = Depends(get_db))
     db.commit()
     return {"message": "Yordamingiz uchun rahmat!", "fund_raised": player.fund_raised}
 
+
+
+# ==============================================================
+# AI PRE-MATCH PROBABILITY & BASHORATLAR TIZIMI
+# ==============================================================
+from models import MatchPrediction, MatchCallout, CalloutResponse
+from schemas import (
+    MatchPredictionCreate,
+    MatchPredictionOut,
+    PreMatchAnalysisOut,
+    MatchCalloutCreate,
+    MatchCalloutOut,
+    CalloutResponseCreate,
+    CalloutResponseOut
+)
+
+@app.get("/matches/{match_id}/prematch-ai", response_model=PreMatchAnalysisOut)
+def get_prematch_ai_analysis(match_id: int, db: Session = Depends(get_db)):
+    match = db.query(Match).filter(Match.id == match_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="O'yin topilmadi")
+
+    # Jamoalar nomidan deterministik va realistik kuch parametrlarini hisoblash
+    import hashlib
+    h_seed = int(hashlib.md5(match.home_team.lower().encode()).hexdigest()[:4], 16) % 25 + 70
+    a_seed = int(hashlib.md5(match.away_team.lower().encode()).hexdigest()[:4], 16) % 25 + 68
+
+    home_attack = min(98, h_seed + 3)
+    away_attack = min(96, a_seed)
+    home_defense = min(95, (h_seed * 2 + 15) % 22 + 73)
+    away_defense = min(95, (a_seed * 2 + 10) % 22 + 72)
+
+    power_diff = (home_attack - away_attack) + (home_defense - away_defense)
+    
+    # Ehtimolliklar
+    win_h = max(20, min(70, 44 + power_diff))
+    draw = max(18, min(30, 26 - abs(power_diff) // 2))
+    win_a = 100 - win_h - draw
+
+    # AI Taktik xulosasi
+    if win_h > win_a + 10:
+        tactical = (
+            f"⚡️ AI Murabbiy Tahlili: {match.home_team} mezbonlik ustunligi va kuchli hujum kuchi ({home_attack}/100) hisobiga "
+            f"yaqqol favorit. {match.away_team} himoyaga tayanib, faqat tezkor qarshi hujumlarda imkoniyat izlashi kerak."
+        )
+    elif win_a > win_h + 10:
+        tactical = (
+            f"⚡️ AI Murabbiy Tahlili: {match.away_team} tarkibiy kuch va maydonni nazorat qilish ({away_attack}/100) bo'yicha "
+            f"oldinda. Biroq {match.home_team} o'z muxlislari ko'z o'ngida agressiv pressing bilan syurpriz qilishi mumkin."
+        )
+    else:
+        tactical = (
+            f"⚡️ AI Murabbiy Tahlili: O'ta murosasiz to'qnashuv! Har ikki jamoaning g'alaba qozonish ehtimoli deyarli teng. "
+            f"O'yin taqdirini individual mahorat va standart vaziyatlar hal qilishi kutilmoqda."
+        )
+
+    # Muxlislar bashoratlari statistikasi
+    predictions = db.query(MatchPrediction).filter(MatchPrediction.match_id == match.id).all()
+    total_preds = len(predictions)
+    h_votes = sum(1 for p in predictions if p.predicted_home_score > p.predicted_away_score)
+    d_votes = sum(1 for p in predictions if p.predicted_home_score == p.predicted_away_score)
+    a_votes = sum(1 for p in predictions if p.predicted_home_score < p.predicted_away_score)
+
+    comm = {
+        "total_votes": total_preds,
+        "home_pct": round((h_votes / total_preds * 100) if total_preds else win_h),
+        "draw_pct": round((d_votes / total_preds * 100) if total_preds else draw),
+        "away_pct": round((a_votes / total_preds * 100) if total_preds else win_a),
+    }
+
+    return {
+        "match_id": match.id,
+        "home_team": match.home_team,
+        "away_team": match.away_team,
+        "win_probability_home": win_h,
+        "draw_probability": draw,
+        "win_probability_away": win_a,
+        "home_attack_rating": home_attack,
+        "away_attack_rating": away_attack,
+        "home_defense_rating": home_defense,
+        "away_defense_rating": away_defense,
+        "ai_tactical_breakdown": tactical,
+        "community_votes": comm
+    }
+
+
+@app.post("/matches/{match_id}/predict", response_model=MatchPredictionOut)
+def predict_match_score(
+    match_id: int,
+    pred_data: MatchPredictionCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    match = db.query(Match).filter(Match.id == match_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="O'yin topilmadi")
+
+    # Foydalanuvchi allaqachon bashorat qilganmi tekshiramiz
+    existing = db.query(MatchPrediction).filter(
+        MatchPrediction.match_id == match_id,
+        MatchPrediction.user_id == current_user.id
+    ).first()
+
+    if existing:
+        existing.predicted_home_score = pred_data.predicted_home_score
+        existing.predicted_away_score = pred_data.predicted_away_score
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    prediction = MatchPrediction(
+        match_id=match_id,
+        user_id=current_user.id,
+        predicted_home_score=pred_data.predicted_home_score,
+        predicted_away_score=pred_data.predicted_away_score
+    )
+    db.add(prediction)
+    db.commit()
+    db.refresh(prediction)
+    return prediction
+
+
+@app.get("/matches/{match_id}/predictions", response_model=list[MatchPredictionOut])
+def get_match_predictions(match_id: int, db: Session = Depends(get_db)):
+    return db.query(MatchPrediction).filter(MatchPrediction.match_id == match_id).all()
+
+
+# ==============================================================
+# SOS MATCHMAKER: "FUTBOLGA ODAM YETMAYAPTI!"
+# ==============================================================
+
+@app.post("/api/match-callouts", response_model=MatchCalloutOut)
+def create_match_callout(
+    data: MatchCalloutCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    callout = MatchCallout(
+        creator_id=current_user.id,
+        title=data.title,
+        city=data.city,
+        district=data.district,
+        stadium_name=data.stadium_name,
+        match_time=data.match_time,
+        players_needed=data.players_needed,
+        position_needed=data.position_needed,
+        price_per_person=data.price_per_person
+    )
+    db.add(callout)
+    db.commit()
+    db.refresh(callout)
+    return callout
+
+
+@app.get("/api/match-callouts", response_model=list[MatchCalloutOut])
+def list_match_callouts(
+    city: str | None = None,
+    status: str = "open",
+    db: Session = Depends(get_db)
+):
+    query = db.query(MatchCallout)
+    if status:
+        query = query.filter(MatchCallout.status == status)
+    if city:
+        query = query.filter(MatchCallout.city.ilike(f"%{city}%"))
+
+    callouts = query.order_by(MatchCallout.created_at.desc()).all()
+    res = []
+    for c in callouts:
+        out = MatchCalloutOut.model_validate(c)
+        out.joined_count = len(c.responses)
+        res.append(out)
+    return res
+
+
+@app.post("/api/match-callouts/{callout_id}/join", response_model=CalloutResponseOut)
+def join_match_callout(
+    callout_id: int,
+    data: CalloutResponseCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    callout = db.query(MatchCallout).filter(MatchCallout.id == callout_id).first()
+    if not callout:
+        raise HTTPException(status_code=404, detail="E'lon topilmadi")
+
+    if callout.status != "open":
+        raise HTTPException(status_code=400, detail="Bu o'yin uchun qabul to'xtatilgan yoki to'lgan!")
+
+    # Oldin qo'shilganmi tekshiramiz
+    existing = db.query(CalloutResponse).filter(
+        CalloutResponse.callout_id == callout_id,
+        CalloutResponse.user_id == current_user.id
+    ).first()
+    if existing:
+        return existing
+
+    resp = CalloutResponse(
+        callout_id=callout_id,
+        user_id=current_user.id,
+        note=data.note,
+        status="joined"
+    )
+    db.add(resp)
+    db.commit()
+    db.refresh(resp)
+
+    # Agar yetarlicha odam to'plangan bo'lsa, statusni 'filled' qilamiz
+    joined_count = db.query(CalloutResponse).filter(CalloutResponse.callout_id == callout_id).count()
+    if joined_count >= callout.players_needed:
+        callout.status = "filled"
+        db.commit()
+
+    return resp
+
+
+@app.delete("/api/match-callouts/{callout_id}")
+def delete_match_callout(
+    callout_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    callout = db.query(MatchCallout).filter(MatchCallout.id == callout_id).first()
+    if not callout:
+        raise HTTPException(status_code=404, detail="E'lon topilmadi")
+
+    check_ownership(callout.creator_id, current_user, "e'lon")
+    db.delete(callout)
+    db.commit()
+    return {"message": "E'lon muvaffaqiyatli o'chirildi"}

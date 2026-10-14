@@ -47,6 +47,8 @@ INTENT_TEAM_RULES = "TEAM_RULES"
 INTENT_TOURNAMENT = "TOURNAMENT"
 INTENT_CONNECT_PLAYER = "CONNECT_PLAYER"
 INTENT_ADMIN_ALERT = "ADMIN_ALERT"
+INTENT_MATCHMAKER_SOS = "MATCHMAKER_SOS"
+INTENT_PREMATCH_AI = "PREMATCH_AI"
 INTENT_GENERAL = "GENERAL"
 
 def classify_intent(text: str) -> str:
@@ -70,6 +72,14 @@ def classify_intent(text: str) -> str:
     # 4. Muhim shaxsiy murojaatlar (pul, nohaqlik, homiy, shikoyat)
     if any(k in clean for k in ["shikoyat", "pul", "to'lov", "nohaqlik", "hakam sotilgan", "homiy", "sponsor", "rahbariyat", "prezident", "shaxsan", "aldashdi", "jiddiy masalasi"]):
         return INTENT_ADMIN_ALERT
+
+    # 5. SOS Matchmaker: Odam yetmayapti, futbolga odam kerak
+    if any(k in clean for k in ["odam yetmayapti", "odam kerak", "o'yinchi kerak", "futbolga odam", "tarkib to'lmayapti", "zaxira kerak", "bitta odam kerak", "ikkita odam kerak", "matchmaker", "sos e'lon"]):
+        return INTENT_MATCHMAKER_SOS
+
+    # 6. AI Pre-Match: Kim yutadi, ehtimollik qanaqa, o'yin bashorati
+    if any(k in clean for k in ["kim yutadi", "yutish ehtimoli", "pre-match", "prematch", "o'yin bashorati", "kim kuchli", "ehtimollik qanaqa", "tahlil qilib ber", "taktik tahlil", "bashorat qil"]):
+        return INTENT_PREMATCH_AI
 
     return INTENT_GENERAL
 
@@ -336,3 +346,112 @@ def save_to_knowledge_base(question: str, answer: str, vault_dir: str = None) ->
     except Exception as e:
         print(f"Error saving to knowledge base: {e}")
         return False
+
+
+# ==============================================================
+# 7. AGENT RUSTAM: SOS MATCHMAKER & PRE-MATCH AI INTEGRATSIYASI
+# ==============================================================
+
+async def get_sos_callouts_response(api_base_url: str) -> str:
+    """
+    Ochiq SOS e'lonlarni olib kelib, bot foydalanuvchisiga taqdim etadi.
+    """
+    callouts = []
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            res = await client.get(f"{api_base_url}/api/match-callouts?status=open")
+            if res.status_code == 200:
+                callouts = res.json()
+    except Exception:
+        pass
+
+    if not callouts:
+        return (
+            "⚡️ <b>SOS: Futbolga Odam Qidirish Markazi:</b>\n\n"
+            "Ayni vaqtda faol e'lonlar mavjud emas.\n\n"
+            "Agar o'z jamoangizga shoshilinch o'yinchi kerak bo'lsa, "
+            "bot menyusidagi <b>'⚡️ FootballRise Mini App' -> 'Matchmaker'</b> bo'limi orqali 30 soniyada e'lon bering! "
+            "Shahardagi barcha erkin futbolchilar e'loningizni ko'radi."
+        )
+
+    msg = "⚡️ <b>Ayni Vaqtdagi Qaynoq SOS O'yinlar (Odam Yetmayapti):</b>\n\n"
+    for c in callouts[:3]:
+        title = c.get("title", "O'yin")
+        stadium = c.get("stadium_name", "Noma'lum stadion")
+        m_time = c.get("match_time", "Bugun")
+        needed = c.get("players_needed", 1)
+        pos = c.get("position_needed", "Ixtiyoriy")
+        price = c.get("price_per_person", 0)
+        price_str = f"{price:,} so'm" if price > 0 else "Tekin"
+
+        msg += (
+            f"⚽️ <b>{title}</b>\n"
+            f"📍 Stadion: {stadium}\n"
+            f"⏰ Vaqt: <b>{m_time}</b>\n"
+            f"🏃‍♂️ Kerak: <b>{needed} nafar ({pos})</b> | 💵 To'lov: {price_str}\n\n"
+        )
+
+    msg += "👉 <i>Qo'shilish uchun bot menyusidagi <b>'⚡️ FootballRise Mini App' -> 'Matchmaker'</b> bo'limiga kiring va 'Men boraman!' tugmasini bosing!</i>"
+    return msg
+
+
+async def get_prematch_ai_response(api_base_url: str, text: str) -> str:
+    """
+    Pre-Match AI ehtimollik va tahlilini olib keladi.
+    """
+    matches = []
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            res = await client.get(f"{api_base_url}/matches")
+            if res.status_code == 200:
+                matches = res.json()
+    except Exception:
+        pass
+
+    target_match = None
+    clean = text.lower()
+    for m in matches:
+        if m.get("home_team", "").lower() in clean or m.get("away_team", "").lower() in clean:
+            target_match = m
+            break
+
+    if not target_match and matches:
+        target_match = matches[0]
+
+    if not target_match:
+        return (
+            "🧠 <b>AI Pre-Match Ehtimollik Markazi:</b>\n\n"
+            "Hozirda rejalashtirilgan o'yinlar topilmadi. "
+            "Mini App ichidagi 'Live Center' bo'limi orqali yangi o'yinlarni kuzatishingiz mumkin!"
+        )
+
+    m_id = target_match.get("id")
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            res = await client.get(f"{api_base_url}/matches/{m_id}/prematch-ai")
+            if res.status_code == 200:
+                data = res.json()
+                h_team = data.get("home_team")
+                a_team = data.get("away_team")
+                win_h = data.get("win_probability_home")
+                draw = data.get("draw_probability")
+                win_a = data.get("win_probability_away")
+                tactical = data.get("ai_tactical_breakdown", "")
+                comm = data.get("community_votes", {})
+
+                return (
+                    f"🔮 <b>AI Pre-Match Ehtimollik Tahlili:</b>\n\n"
+                    f"⚔️ <b>{h_team} vs {a_team}</b>\n\n"
+                    f"📊 <b>G'alaba Ehtimolligi:</b>\n"
+                    f"🟢 {h_team}: <b>{win_h}%</b>\n"
+                    f"🟡 Durang: <b>{draw}%</b>\n"
+                    f"🔴 {a_team}: <b>{win_a}%</b>\n\n"
+                    f"{tactical}\n\n"
+                    f"👥 <i>Muxlislar ovozi: {comm.get('total_votes', 0)} ta bashorat "
+                    f"({comm.get('home_pct', win_h)}% {h_team} g'alabasiga ishonmoqda).</i>\n\n"
+                    f"👉 <i>O'z hisobingizni bashorat qilish uchun Mini App'dagi 'Match Center'ga o'ting!</i>"
+                )
+    except Exception:
+        pass
+
+    return "⚠️ AI Pre-match tahlilini yuklashda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."

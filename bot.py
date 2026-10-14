@@ -48,6 +48,10 @@ from ai_concierge import (
     INTENT_TOURNAMENT,
     INTENT_CONNECT_PLAYER,
     INTENT_ADMIN_ALERT,
+    INTENT_MATCHMAKER_SOS,
+    INTENT_PREMATCH_AI,
+    get_sos_callouts_response,
+    get_prematch_ai_response,
     INTENT_GENERAL
 )
 
@@ -592,7 +596,19 @@ async def adaptive_ai_handler(message: types.Message, state: FSMContext):
         )
         return
 
-    # E) Boshqa noma'lum / noodatiy savollar (RAG -> Human-in-the-Loop)
+    # E) SOS Matchmaker: Odam yetmayapti / O'yinchi qidirish
+    elif intent == INTENT_MATCHMAKER_SOS:
+        reply = await get_sos_callouts_response(API_BASE_URL)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # F) AI Pre-Match: Kim yutadi / Ehtimollik tahlili
+    elif intent == INTENT_PREMATCH_AI:
+        reply = await get_prematch_ai_response(API_BASE_URL, text)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # G) Boshqa noma'lum / noodatiy savollar (RAG -> Human-in-the-Loop)
     else:
         # 1-qadam: Obsidian Bilimlar Bazasidan qidiramiz (RAG)
         rag_result = search_obsidian_knowledge_base(text)
