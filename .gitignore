@@ -5,8 +5,12 @@ __pycache__/
 .Python
 env/
 .env
-.env*
+.env.local
+.env.production
 .env.*
+!.env.example
+*.db
+*.sqlite
 *.sqlite3
 *.bak
 uploads/
