@@ -15,12 +15,17 @@ from aiogram.types import (
 )
 import os
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "BOT_TOKENINGIZNI_YOZING")
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")  # FastAPI manzili
-WEBAPP_URL = os.getenv("WEBAPP_URL", "http://localhost:5173")  # Telegram Mini App URL
+# Jonli Railway API manzili:
+API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-dc0f4.up.railway.app")
+# Jonli Vercel Mini App manzili:
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platformasi-alpha.vercel.app")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()

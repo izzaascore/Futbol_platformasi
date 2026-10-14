@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShieldHalf, FileText, UserPlus, FileUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ShieldHalf, FileText, UserPlus, FileUp, Send, Sparkles } from 'lucide-react';
 import { API_URL } from '../../config';
 
 const RegisterPage = () => {
@@ -16,6 +16,22 @@ const RegisterPage = () => {
     organization: '', license_url: ''
   });
   const [error, setError] = useState('');
+
+  // Telegramdan ma'lumotlarni avtomatik to'ldirish
+  useEffect(() => {
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      const tgUser = tg.initDataUnsafe?.user;
+      if (tgUser) {
+        setForm(prev => ({
+          ...prev,
+          firstName: tgUser.first_name || '',
+          lastName: tgUser.last_name || ''
+        }));
+      }
+    }
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -72,7 +88,14 @@ const RegisterPage = () => {
             <ShieldHalf className="w-6 h-6" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-white text-center mb-6 uppercase tracking-widest">Ro'yxatdan O'tish</h2>
+        <h2 className="text-2xl font-bold text-white text-center mb-4 uppercase tracking-widest">Ro'yxatdan O'tish</h2>
+        
+        <Link to="/login" className="mb-6 p-3 rounded-xl bg-sky-500/10 border border-sky-500/30 hover:border-sky-500/50 flex items-center justify-between text-xs font-bold text-sky-400 transition-all group">
+          <span className="flex items-center gap-2">
+            <Send className="w-4 h-4 text-sky-400" /> Telegram orqali 1 ta bosishda tezkor kirish
+          </span>
+          <span className="text-white group-hover:translate-x-1 transition-transform">Tezkor kirish →</span>
+        </Link>
         
         {error && <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded mb-4 text-xs font-bold text-center uppercase tracking-widest">{error}</div>}
 
