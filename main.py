@@ -34,11 +34,33 @@ IS_PRODUCTION = (
     or os.getenv("RAILWAY_PROJECT_ID") is not None
 )
 
+from contextlib import asynccontextmanager
+import asyncio
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 24/7 Bulutli Bot: Agar BOT_TOKEN mavjud bo'lsa, botni bitta serverda fonda yurgizamiz!
+    bot_task = None
+    bot_token = os.getenv("BOT_TOKEN", "").strip()
+    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890"):
+        try:
+            from bot import bot, dp
+            print("🚀 Bulutda 24/7 Telegram Bot avtomatik ishga tushirilmoqda...")
+            bot_task = asyncio.create_task(dp.start_polling(bot))
+        except Exception as e:
+            print(f"⚠️ Telegram botni fonda ishga tushirishda ogohlantirish: {e}")
+
+    yield
+
+    if bot_task:
+        bot_task.cancel()
+
 app = FastAPI(
     title="Football Platform API",
     docs_url=None if IS_PRODUCTION else "/docs",
     redoc_url=None if IS_PRODUCTION else "/redoc",
-    openapi_url=None if IS_PRODUCTION else "/openapi.json"
+    openapi_url=None if IS_PRODUCTION else "/openapi.json",
+    lifespan=lifespan
 )
 
 # Removed old vulnerable IP Middleware

@@ -7,6 +7,10 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./football.db")
 
+# Railway yoki tashqi bulut provayderlari beradigan 'postgres://' prefiksini SQLAlchemy talabiga moslash
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 # SQLite uchun maxsus parametr, PostgreSQL uchun shart emas
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
