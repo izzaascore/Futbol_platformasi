@@ -27,7 +27,19 @@ from security import (
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Football Platform API")
+# Production rejimida ichki arxitekturani (Swagger / OpenAPI xaritasini) yashirish (OWASP A05)
+IS_PRODUCTION = (
+    os.getenv("ENVIRONMENT", "development").lower() == "production"
+    or os.getenv("RAILWAY_ENVIRONMENT") is not None
+    or os.getenv("RAILWAY_PROJECT_ID") is not None
+)
+
+app = FastAPI(
+    title="Football Platform API",
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json"
+)
 
 # Removed old vulnerable IP Middleware
 
