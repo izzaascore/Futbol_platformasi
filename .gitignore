@@ -4,9 +4,9 @@ __pycache__/
 *.pyd
 .Python
 env/
-venv/
 .env
-*.db
+.env*
+.env.*
 *.sqlite3
 *.bak
 uploads/
