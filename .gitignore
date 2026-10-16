@@ -20,5 +20,5 @@ frontend/node_modules/
 dist/
 frontend/dist/
 build/
-.agents/
+# .agents/
 .gemini/
