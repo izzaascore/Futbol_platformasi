@@ -158,17 +158,17 @@ export default function StadiumsPage() {
 
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Free 100% Watermark-Free Tile Layers
+    // Modern Google Maps Tile Layers with 100% Up-To-Date Official Uzbek Names (No Soviet Names)
     const TILE_URLS = {
-      street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      dark: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      street: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      satellite: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      dark: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'
     };
 
     const initialUrl = TILE_URLS[mapTheme] || TILE_URLS.dark;
     const tiles = L.tileLayer(initialUrl, {
-      maxZoom: 19,
-      subdomains: ['a', 'b', 'c']
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(map);
 
     tileLayerRef.current = tiles;
@@ -185,9 +185,9 @@ export default function StadiumsPage() {
   useEffect(() => {
     if (!mapInstanceRef.current || !tileLayerRef.current) return;
     const TILE_URLS = {
-      street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      dark: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      street: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      satellite: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      dark: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'
     };
     tileLayerRef.current.setUrl(TILE_URLS[mapTheme] || TILE_URLS.dark);
   }, [mapTheme]);
