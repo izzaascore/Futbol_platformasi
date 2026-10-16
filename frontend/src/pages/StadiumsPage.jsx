@@ -16,22 +16,24 @@ import {
   Sparkles, 
   Moon, 
   Sun, 
-  CheckCircle2, 
-  Filter,
-  Compass
+  Compass,
+  Radio,
+  Clock,
+  CheckCircle2,
+  ChevronRight
 } from 'lucide-react';
 import { API_URL } from '../config';
 
 // Uzbekistan Regions & Center Coordinates
 const REGIONS = [
-  { id: "Farg'ona", name: "Farg'ona", lat: 40.3864, lon: 71.7843, zoom: 13 },
-  { id: "Toshkent", name: "Toshkent", lat: 41.2995, lon: 69.2401, zoom: 12 },
-  { id: "Andijon", name: "Andijon", lat: 40.7821, lon: 72.3442, zoom: 13 },
-  { id: "Namangan", name: "Namangan", lat: 41.0058, lon: 71.6436, zoom: 13 },
-  { id: "Samarqand", name: "Samarqand", lat: 39.6542, lon: 66.9597, zoom: 13 }
+  { id: "Farg'ona", name: "Farg'ona", lat: 40.3864, lon: 71.7843, zoom: 13, arenas: "4 ta arena" },
+  { id: "Toshkent", name: "Toshkent", lat: 41.2995, lon: 69.2401, zoom: 12, arenas: "3 ta arena" },
+  { id: "Andijon", name: "Andijon", lat: 40.7821, lon: 72.3442, zoom: 13, arenas: "1 ta arena" },
+  { id: "Namangan", name: "Namangan", lat: 41.0058, lon: 71.6436, zoom: 13, arenas: "1 ta arena" },
+  { id: "Samarqand", name: "Samarqand", lat: 39.6542, lon: 66.9597, zoom: 13, arenas: "1 ta arena" }
 ];
 
-// Distance Calculation (Haversine in km)
+// Distance Calculation (Haversine Formula)
 function calculateDistance(lat1, lon1, lat2, lon2) {
   if (!lat1 || !lon1 || !lat2 || !lon2) return null;
   const R = 6371;
@@ -51,7 +53,7 @@ export default function StadiumsPage() {
   const [selectedStadium, setSelectedStadium] = useState(null);
   const [routeModalStadium, setRouteModalStadium] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [mapTheme, setMapTheme] = useState('dark'); // 'dark' or 'light'
+  const [mapTheme, setMapTheme] = useState('dark'); // 'dark', 'street', 'satellite'
   const [searchQuery, setSearchQuery] = useState('');
   
   // User GPS
@@ -63,7 +65,6 @@ export default function StadiumsPage() {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
-  const userMarkerRef = useRef(null);
   const tileLayerRef = useRef(null);
 
   // 1. AUTO-DETECT GPS ON MOUNT
@@ -77,7 +78,7 @@ export default function StadiumsPage() {
       return;
     }
     setGeoLocating(true);
-    setGeoStatus("Joylashuv aniqlanmoqda...");
+    setGeoStatus("Aniq joylashuvingiz topilmoqda...");
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -97,9 +98,9 @@ export default function StadiumsPage() {
           }
         }
         setSelectedRegion(closest.id);
-        setGeoStatus(`📍 ${closest.name} (${minDist < 2 ? "Ayni shu yerdasiz" : Math.round(minDist) + " km"})`);
+        setGeoStatus(`📍 ${closest.name} (${minDist < 2 ? "Ayni shu hududdasiz" : Math.round(minDist) + " km"})`);
 
-        // Fly map to user location
+        // Fly smoothly to user location
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo([uLat, uLon], 14, { duration: 1.5 });
         }
@@ -148,7 +149,6 @@ export default function StadiumsPage() {
 
     const currentRegion = REGIONS.find(r => r.id === selectedRegion) || REGIONS[0];
 
-    // Create Map
     const map = L.map(mapContainerRef.current, {
       center: [currentRegion.lat, currentRegion.lon],
       zoom: currentRegion.zoom,
@@ -156,10 +156,9 @@ export default function StadiumsPage() {
       attributionControl: false
     });
 
-    // Custom Zoom Control top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Free 100% API-Key-Free Tile Layer (OpenStreetMap & Esri Satellite)
+    // Free 100% Watermark-Free Tile Layers
     const TILE_URLS = {
       street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -193,7 +192,7 @@ export default function StadiumsPage() {
     tileLayerRef.current.setUrl(TILE_URLS[mapTheme] || TILE_URLS.dark);
   }, [mapTheme]);
 
-  // Update Region Map FlyTo
+  // Update Region FlyTo
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const reg = REGIONS.find(r => r.id === selectedRegion);
@@ -202,44 +201,47 @@ export default function StadiumsPage() {
     }
   }, [selectedRegion]);
 
-  // 4. RENDER STADIUM MARKERS ON 2D MAP
+  // 4. RENDER ULTRA-PREMIUM MARKERS ON 2D MAP
   useEffect(() => {
     if (!mapInstanceRef.current || !markersLayerRef.current) return;
 
     markersLayerRef.current.clearLayers();
 
-    // Render Stadium Markers
+    // Render Stadium VIP Markers
     stadiums.forEach((stadium) => {
       const isSelected = selectedStadium && selectedStadium.id === stadium.id;
 
-      // Custom Tailwind HTML Marker
       const customIcon = L.divIcon({
         className: 'custom-stadium-marker',
         html: `
-          <div class="relative cursor-pointer flex flex-col items-center group -translate-x-1/2 -translate-y-full">
-            <div class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap shadow-xl border backdrop-blur-md transition-all ${
+          <div class="relative cursor-pointer flex flex-col items-center group -translate-x-1/2 -translate-y-full transition-transform duration-300">
+            <!-- Floating Pill Tag -->
+            <div class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap shadow-[0_4px_20px_rgba(0,0,0,0.8)] border backdrop-blur-xl flex items-center gap-1.5 transition-all ${
               isSelected 
-                ? 'bg-amber-500 text-black border-amber-300 scale-110 shadow-amber-500/50' 
-                : 'bg-stone-950/90 text-white border-stone-700 hover:border-amber-400'
+                ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-black border-white scale-110 shadow-[0_0_25px_rgba(245,158,11,0.6)]' 
+                : 'bg-stone-950/90 text-stone-100 border-amber-500/40 hover:border-amber-400 group-hover:text-amber-400'
             }">
-              <span>${stadium.name}</span>
-              ${stadium.distanceKm ? `<span class="ml-1 text-[9px] text-emerald-400">• ${stadium.distanceKm < 1 ? Math.round(stadium.distanceKm * 1000) + 'm' : stadium.distanceKm.toFixed(1) + 'km'}</span>` : ''}
+              <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-black animate-ping' : 'bg-amber-400'}"></span>
+              <span class="max-w-[130px] truncate">${stadium.name}</span>
+              ${stadium.distanceKm ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] font-black ${isSelected ? 'bg-black/25 text-black' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">${stadium.distanceKm < 1 ? Math.round(stadium.distanceKm * 1000) + 'm' : stadium.distanceKm.toFixed(1) + 'km'}</span>` : ''}
             </div>
-            <div class="relative mt-1">
-              ${isSelected ? '<span class="absolute -inset-2 rounded-full bg-amber-500/40 animate-ping"></span>' : ''}
-              <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg transition-transform ${
+
+            <!-- Central Beacon Needle -->
+            <div class="relative mt-1 flex flex-col items-center">
+              ${isSelected ? '<span class="absolute -inset-3 rounded-full bg-amber-400/30 animate-ping"></span>' : ''}
+              <div class="w-9 h-9 rounded-full border-2 flex items-center justify-center shadow-2xl transition-all ${
                 isSelected 
-                  ? 'bg-amber-500 border-white text-black scale-125' 
-                  : 'bg-stone-900 border-amber-500/80 text-amber-400 group-hover:scale-110'
+                  ? 'bg-gradient-to-tr from-amber-500 to-amber-300 border-white text-black scale-120 shadow-[0_0_25px_rgba(245,158,11,0.8)]' 
+                  : 'bg-stone-950 border-amber-500/80 text-amber-400 group-hover:border-amber-400 group-hover:scale-110'
               }">
-                ⚽️
+                <span class="text-xs">⚽️</span>
               </div>
-              <div class="w-0.5 h-2.5 bg-amber-500 mx-auto"></div>
+              <div class="w-0.5 h-3 bg-gradient-to-b from-amber-400 to-transparent"></div>
             </div>
           </div>
         `,
-        iconSize: [40, 50],
-        iconAnchor: [20, 50]
+        iconSize: [40, 55],
+        iconAnchor: [20, 55]
       });
 
       const marker = L.marker([stadium.latitude, stadium.longitude], { icon: customIcon })
@@ -251,25 +253,28 @@ export default function StadiumsPage() {
       markersLayerRef.current.addLayer(marker);
     });
 
-    // Render User Location GPS Marker
+    // Render User Location GPS Marker (Pulsing Apple Maps Beacon)
     if (userCoords) {
       const userIcon = L.divIcon({
         className: 'custom-user-marker',
         html: `
           <div class="relative flex flex-col items-center -translate-x-1/2 -translate-y-full">
-            <div class="px-2 py-0.5 rounded bg-emerald-500 text-black font-black text-[9px] uppercase tracking-wider shadow-lg">
-              Siz shu yerdasiz
+            <div class="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 text-black font-black text-[9px] uppercase tracking-wider shadow-lg border border-white/60 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-black animate-ping"></span>
+              <span>Siz shu yerdasiz</span>
             </div>
-            <div class="relative mt-0.5">
-              <span class="absolute -inset-3 rounded-full bg-emerald-400/40 animate-ping"></span>
-              <div class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white shadow-xl">
-                📍
+            <div class="relative mt-1 flex flex-col items-center">
+              <span class="absolute -inset-4 rounded-full bg-emerald-400/30 animate-ping"></span>
+              <span class="absolute -inset-2 rounded-full bg-emerald-400/50 animate-pulse"></span>
+              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-300 border-2 border-white flex items-center justify-center text-black shadow-[0_0_20px_rgba(16,185,129,0.8)]">
+                <span class="text-xs">📍</span>
               </div>
+              <div class="w-0.5 h-3 bg-gradient-to-b from-emerald-400 to-transparent"></div>
             </div>
           </div>
         `,
-        iconSize: [30, 40],
-        iconAnchor: [15, 40]
+        iconSize: [30, 45],
+        iconAnchor: [15, 45]
       });
 
       const uMarker = L.marker([userCoords.lat, userCoords.lon], { icon: userIcon, zIndexOffset: 1000 });
@@ -290,16 +295,16 @@ export default function StadiumsPage() {
   });
 
   return (
-    <div className="relative w-full h-[calc(100vh-80px)] min-h-[600px] bg-[#050505] text-stone-100 flex flex-col overflow-hidden">
+    <div className="relative w-full h-[calc(100vh-80px)] min-h-[620px] bg-[#050505] text-stone-100 flex flex-col overflow-hidden selection:bg-amber-500 selection:text-black">
       
-      {/* 1. TOP INTERACTIVE TOOLBAR */}
-      <header className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 bg-stone-950/95 border-b border-stone-800 shadow-xl backdrop-blur-xl">
+      {/* 1. TOP INTERACTIVE TOOLBAR (Floating Island Design) */}
+      <header className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 bg-stone-950/90 border-b border-stone-800/80 shadow-2xl backdrop-blur-2xl">
         
-        {/* Left: Region Pills & GPS */}
+        {/* Left: Region Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-wider mr-1">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-500/5 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-wider mr-1 shadow-inner">
             <Compass className="w-3.5 h-3.5" />
-            <span>2D Xarita</span>
+            <span>Maydonlar</span>
           </div>
 
           {REGIONS.map((reg) => (
@@ -309,10 +314,10 @@ export default function StadiumsPage() {
                 setSelectedRegion(reg.id);
                 setSelectedStadium(null);
               }}
-              className={`min-h-[38px] px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 selectedRegion === reg.id
-                  ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30'
-                  : 'bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-black shadow-lg shadow-amber-500/30 scale-105'
+                  : 'bg-stone-900/90 hover:bg-stone-800 text-stone-300 border border-stone-800/80'
               }`}
             >
               <MapPin className="w-3 h-3" />
@@ -321,41 +326,47 @@ export default function StadiumsPage() {
           ))}
         </div>
 
-        {/* Right: GPS Locate & Theme Toggle */}
+        {/* Right: GPS Locate & 3-Way Map Switcher */}
         <div className="flex items-center gap-2 ml-auto">
           {/* User GPS button */}
           <button
             onClick={detectLocation}
             title="Mening turgan joyimni topish"
-            className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 transition-all ${
+            className={`min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 transition-all shadow-md ${
               userCoords
-                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-400'
                 : 'bg-stone-900 border-stone-700 text-stone-300 hover:bg-stone-800'
             }`}
           >
             <LocateFixed className={`w-3.5 h-3.5 ${geoLocating ? 'animate-spin text-amber-400' : 'text-emerald-400'}`} />
             <span className="hidden sm:inline">
-              {geoLocating ? "Aniqlanmoqda..." : userCoords ? "GPS Ulangan" : "Turgan Joyim"}
+              {geoLocating ? "Topilmoqda..." : userCoords ? "GPS Ulangan" : "Turgan Joyim"}
             </span>
           </button>
 
-          {/* Map Layer Switcher: Dark, Street, Satellite */}
-          <div className="flex items-center rounded-lg bg-stone-900 border border-stone-800 p-0.5">
+          {/* 3-Way Map Layer Switcher: Dark, Street, Satellite */}
+          <div className="flex items-center rounded-xl bg-stone-900/90 border border-stone-800 p-0.5 shadow-inner">
             <button
               onClick={() => setMapTheme('dark')}
-              className={`px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-wider transition-colors ${mapTheme === 'dark' ? 'bg-amber-500 text-black shadow' : 'text-stone-400 hover:text-white'}`}
+              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
+                mapTheme === 'dark' ? 'bg-amber-500 text-black shadow-md' : 'text-stone-400 hover:text-white'
+              }`}
             >
               🌙 Qorong'u
             </button>
             <button
               onClick={() => setMapTheme('street')}
-              className={`px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-wider transition-colors ${mapTheme === 'street' ? 'bg-amber-500 text-black shadow' : 'text-stone-400 hover:text-white'}`}
+              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
+                mapTheme === 'street' ? 'bg-amber-500 text-black shadow-md' : 'text-stone-400 hover:text-white'
+              }`}
             >
               ☀️ Ko'cha
             </button>
             <button
               onClick={() => setMapTheme('satellite')}
-              className={`px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-wider transition-colors ${mapTheme === 'satellite' ? 'bg-amber-500 text-black shadow' : 'text-stone-400 hover:text-white'}`}
+              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
+                mapTheme === 'satellite' ? 'bg-amber-500 text-black shadow-md' : 'text-stone-400 hover:text-white'
+              }`}
             >
               🛰️ Sun'iy Yo'ldosh
             </button>
@@ -363,34 +374,34 @@ export default function StadiumsPage() {
         </div>
       </header>
 
-      {/* 2. MAIN MAP VIEWPORT + FLOATING CARDS */}
+      {/* 2. MAIN MAP VIEWPORT */}
       <div className="relative flex-1 w-full h-full overflow-hidden">
         
-        {/* LEAFLET REAL MAP CONTAINER */}
+        {/* LEAFLET MAP CANVAS */}
         <div 
           ref={mapContainerRef} 
           className={`w-full h-full z-10 ${mapTheme === 'dark' ? 'dark-tiles' : ''}`} 
         />
 
-        {/* Custom CSS for 100% Free Watermark-Free Dark Tiles */}
+        {/* Custom CSS for Watermark-Free Luxury Dark Tiles */}
         <style>{`
           .dark-tiles .leaflet-tile-pane {
-            filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%);
+            filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(92%);
           }
           .dark-tiles .leaflet-container {
-            background: #050505;
+            background: #080808;
           }
         `}</style>
 
-        {/* GPS Status Floating Notice */}
+        {/* GPS Live Status Floating Pill */}
         {geoStatus && (
-          <div className="absolute top-4 left-4 z-20 pointer-events-none hidden sm:flex items-center gap-2 bg-stone-950/90 border border-stone-800 px-3 py-1.5 rounded-full text-xs font-bold text-stone-300 shadow-xl backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <div className="absolute top-4 left-4 z-20 pointer-events-none hidden sm:flex items-center gap-2 bg-stone-950/90 border border-stone-800/80 px-3.5 py-1.5 rounded-full text-xs font-bold text-stone-200 shadow-2xl backdrop-blur-xl">
+            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
             <span>{geoStatus}</span>
           </div>
         )}
 
-        {/* 3. SELECTED STADIUM FLOATING CARD (Senior Ponytail 2-Button Rule) */}
+        {/* 3. SELECTED STADIUM VIP CARD (Right-Side Floating Island) */}
         <AnimatePresence>
           {selectedStadium && (
             <motion.div
@@ -398,80 +409,96 @@ export default function StadiumsPage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30, scale: 0.96 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              className="absolute bottom-20 sm:bottom-24 right-3 sm:right-6 z-30 w-[94vw] sm:w-[380px] bg-stone-950/95 border border-amber-500/60 rounded-2xl p-4 sm:p-5 shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(245,158,11,0.25)] backdrop-blur-2xl text-white"
+              className="absolute bottom-20 sm:bottom-24 right-3 sm:right-6 z-30 w-[94vw] sm:w-[380px] bg-stone-950/95 border border-amber-500/50 rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_40px_rgba(245,158,11,0.2)] backdrop-blur-2xl text-white overflow-hidden"
             >
+              {/* Close Button */}
               <button
                 onClick={() => setSelectedStadium(null)}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-stone-300 hover:text-white"
+                className="absolute top-3.5 right-3.5 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 border border-stone-700 flex items-center justify-center text-stone-300 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              {/* Photo & Distance Tag */}
-              <div className="relative h-32 w-full rounded-xl overflow-hidden mb-3 bg-stone-900">
+              {/* Stadium Photo & Badges */}
+              <div className="relative h-36 w-full rounded-2xl overflow-hidden mb-3 bg-stone-900 shadow-inner">
                 <img
                   src={selectedStadium.image_url || "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80"}
                   alt={selectedStadium.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/30 to-transparent" />
 
-                <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-[9px] font-black uppercase text-amber-400 border border-stone-700">
+                {/* Region & Distance Badge */}
+                <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md text-[9px] font-black uppercase text-amber-400 border border-stone-700 shadow-md">
+                  <MapPin className="w-3 h-3 text-amber-500" />
                   <span>{selectedStadium.region}</span>
                   {selectedStadium.distanceKm && (
                     <span className="text-emerald-400 font-bold">• {selectedStadium.distanceKm < 1 ? `${Math.round(selectedStadium.distanceKm * 1000)} m` : `${selectedStadium.distanceKm.toFixed(1)} km`}</span>
                   )}
                 </div>
 
-                <div className="absolute bottom-2 left-2 text-white">
-                  <span className="text-base font-black text-amber-400">
+                {/* Price Display */}
+                <div className="absolute bottom-2.5 left-3 text-white">
+                  <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500">
                     {selectedStadium.price_per_hour.toLocaleString('uz-UZ')}
                   </span>
-                  <span className="text-[10px] text-stone-300 font-bold ml-1">so'm / soat</span>
+                  <span className="text-[10px] text-stone-300 font-bold uppercase ml-1.5">so'm / soat</span>
+                </div>
+
+                {/* Rating Badge */}
+                <div className="absolute bottom-2.5 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-[10px] font-black text-amber-400 border border-amber-500/30">
+                  <Star className="w-3 h-3 fill-amber-400" />
+                  <span>{selectedStadium.rating ? selectedStadium.rating.toFixed(1) : '4.9'}</span>
                 </div>
               </div>
 
-              {/* Name & Address */}
-              <h3 className="text-sm sm:text-base font-black uppercase tracking-tight text-white line-clamp-1">
+              {/* Title & Address */}
+              <h3 className="text-base font-black uppercase tracking-tight text-white line-clamp-1">
                 {selectedStadium.name}
               </h3>
               
-              <p className="text-[11px] text-stone-400 mt-1 flex items-center gap-1.5 line-clamp-1">
+              <p className="text-xs text-stone-400 mt-1 flex items-center gap-1.5 line-clamp-1">
                 <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span>{selectedStadium.address || `${selectedStadium.region}, ${selectedStadium.district || ''}`}</span>
               </p>
 
-              <div className="mt-2.5 flex items-center gap-2 text-[10px] font-bold">
-                <span className="px-2 py-0.5 rounded bg-stone-800 text-stone-300 border border-stone-700">
+              {/* Specs Pills */}
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
+                <span className="px-2.5 py-1 rounded-lg bg-stone-900 border border-stone-800 text-stone-300">
                   🌱 {selectedStadium.turf_type}
                 </span>
                 {selectedStadium.has_lights && (
-                  <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
                     <Moon className="w-3 h-3" /> Yoritgichlar bor
                   </span>
                 )}
+                <span className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  ✓ Ochiq
+                </span>
               </div>
 
               {/* --- SENIOR GOLDEN RULE: ATIGI 2 TA KATTA TUGMA --- */}
-              <div className="mt-4 pt-3 border-t border-stone-800 grid grid-cols-2 gap-2.5">
+              <div className="mt-5 pt-3.5 border-t border-stone-800/80 grid grid-cols-2 gap-3">
                 
                 {/* 1. YO'NALISH OLISH (Yandex / Google) */}
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => setRouteModalStadium(selectedStadium)}
-                  className="min-h-[44px] px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 border border-stone-700 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md transition-colors"
+                  className="min-h-[46px] px-3 py-2.5 rounded-2xl bg-stone-900 hover:bg-stone-800 border border-stone-700/80 hover:border-amber-400 text-stone-100 hover:text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-colors"
                 >
                   <Navigation className="w-4 h-4 text-amber-400" />
                   <span>Yo'nalish</span>
-                </button>
+                </motion.button>
 
                 {/* 2. BAND QILISH (Direct Phone Call) */}
-                <button
-                  onClick={() => handleCall(selectedStadium.phone_number)}
-                  className="min-h-[44px] px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/30 transition-colors"
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={(e) => handleCall(selectedStadium.phone_number, e)}
+                  className="min-h-[46px] px-3 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(245,158,11,0.35)] transition-all"
                 >
                   <Phone className="w-4 h-4 fill-black" />
                   <span>Band Qilish</span>
-                </button>
+                </motion.button>
 
               </div>
             </motion.div>
@@ -479,52 +506,54 @@ export default function StadiumsPage() {
         </AnimatePresence>
 
         {/* 4. BOTTOM QUICK THUMBNAILS CAROUSEL */}
-        <div className="absolute bottom-4 left-3 right-3 sm:left-6 sm:right-6 z-20 overflow-x-auto pb-1 scrollbar-none flex items-center gap-2.5">
+        <div className="absolute bottom-4 left-3 right-3 sm:left-6 sm:right-6 z-20 overflow-x-auto pb-1 scrollbar-none flex items-center gap-3">
           {filteredStadiums.map((s) => {
             const isSelected = selectedStadium && selectedStadium.id === s.id;
             return (
-              <button
+              <motion.button
                 key={s.id}
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => {
                   setSelectedStadium(s);
                   if (mapInstanceRef.current) {
                     mapInstanceRef.current.flyTo([s.latitude, s.longitude], 15, { duration: 0.8 });
                   }
                 }}
-                className={`shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-xl backdrop-blur-xl border transition-all text-left ${
+                className={`shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl backdrop-blur-2xl border transition-all text-left shadow-xl ${
                   isSelected
-                    ? 'bg-amber-500 text-black border-white shadow-xl shadow-amber-500/40 scale-105'
-                    : 'bg-stone-950/85 hover:bg-stone-900 text-white border-stone-800 hover:border-amber-400'
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-black border-white shadow-amber-500/40 scale-105'
+                    : 'bg-stone-950/90 hover:bg-stone-900 text-white border-stone-800 hover:border-amber-400/80'
                 }`}
               >
                 <img
                   src={s.image_url || "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=120&q=80"}
                   alt={s.name}
-                  className="w-8 h-8 rounded-lg object-cover shrink-0"
+                  className="w-9 h-9 rounded-xl object-cover shrink-0 border border-black/20"
                 />
                 <div>
-                  <h4 className="text-xs font-black uppercase tracking-tight line-clamp-1 max-w-[140px]">
+                  <h4 className="text-xs font-black uppercase tracking-tight line-clamp-1 max-w-[150px]">
                     {s.name}
                   </h4>
-                  <div className="flex items-center gap-1">
-                    <span className={`text-[10px] font-bold ${isSelected ? 'text-black/90' : 'text-amber-400'}`}>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className={`text-[10px] font-black ${isSelected ? 'text-black' : 'text-amber-400'}`}>
                       {s.price_per_hour.toLocaleString('uz-UZ')} so'm
                     </span>
                     {s.distanceKm && (
-                      <span className={`text-[9px] font-bold ${isSelected ? 'text-black/70' : 'text-emerald-400'}`}>
+                      <span className={`text-[9px] font-black ${isSelected ? 'text-black/80' : 'text-emerald-400'}`}>
                         • {s.distanceKm < 1 ? `${Math.round(s.distanceKm * 1000)}m` : `${s.distanceKm.toFixed(1)}km`}
                       </span>
                     )}
                   </div>
                 </div>
-              </button>
+              </motion.button>
             );
           })}
         </div>
 
       </div>
 
-      {/* 5. MODAL: NAVIGATION ROUTE (Yandex Navigator vs Google Maps) */}
+      {/* 5. MODAL: NAVIGATION ROUTE (Yandex vs Google Maps) */}
       <AnimatePresence>
         {routeModalStadium && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
@@ -532,7 +561,8 @@ export default function StadiumsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-sm rounded-2xl bg-stone-900 border border-stone-800 p-6 shadow-2xl text-white relative"
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              className="w-full max-w-sm rounded-3xl bg-stone-950 border border-amber-500/40 p-6 shadow-2xl text-white relative"
             >
               <button
                 onClick={() => setRouteModalStadium(null)}
@@ -542,7 +572,7 @@ export default function StadiumsPage() {
               </button>
 
               <div className="flex items-center gap-2 mb-2 text-amber-400 text-xs font-black uppercase tracking-wider">
-                <Navigation className="w-4 h-4" />
+                <Navigation className="w-4 h-4 text-amber-400" />
                 <span>Marshrut & Navigatsiya</span>
               </div>
 
@@ -550,7 +580,7 @@ export default function StadiumsPage() {
                 {routeModalStadium.name}
               </h3>
               
-              <p className="text-xs text-stone-400 mb-6">
+              <p className="text-xs text-stone-400 mb-6 font-medium">
                 {userCoords ? "📍 Turgan joyingizdan to'g'ridan-to'g'ri marshrut:" : "Qaysi xaritada yo'l ko'rsatilsin?"}
               </p>
 
@@ -562,10 +592,10 @@ export default function StadiumsPage() {
                     : `https://yandex.com/maps/?rtext=~${routeModalStadium.latitude},${routeModalStadium.longitude}&rtt=auto`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[48px] w-full px-4 py-3 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-300 hover:text-white font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors"
+                  className="min-h-[50px] w-full px-4 py-3 rounded-2xl bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 text-red-300 hover:text-white font-black text-xs uppercase tracking-wider flex items-center justify-between transition-colors shadow-lg"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                     <span>Yandex Xarita / Navigator</span>
                   </div>
                   <ExternalLink className="w-4 h-4" />
@@ -578,10 +608,10 @@ export default function StadiumsPage() {
                     : `https://www.google.com/maps/dir/?api=1&destination=${routeModalStadium.latitude},${routeModalStadium.longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[48px] w-full px-4 py-3 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 hover:text-white font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors"
+                  className="min-h-[50px] w-full px-4 py-3 rounded-2xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/40 text-blue-300 hover:text-white font-black text-xs uppercase tracking-wider flex items-center justify-between transition-colors shadow-lg"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
                     <span>Google Maps</span>
                   </div>
                   <ExternalLink className="w-4 h-4" />
