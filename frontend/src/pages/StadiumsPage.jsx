@@ -159,13 +159,17 @@ export default function StadiumsPage() {
     // Custom Zoom Control top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Tile Layer: CartoDB Dark Matter / Voyager
-    const darkTiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    const lightTiles = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    // Free 100% API-Key-Free Tile Layer (OpenStreetMap & Esri Satellite)
+    const TILE_URLS = {
+      street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      dark: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    };
 
-    const tiles = L.tileLayer(mapTheme === 'dark' ? darkTiles : lightTiles, {
+    const initialUrl = TILE_URLS[mapTheme] || TILE_URLS.dark;
+    const tiles = L.tileLayer(initialUrl, {
       maxZoom: 19,
-      subdomains: 'abcd'
+      subdomains: ['a', 'b', 'c']
     }).addTo(map);
 
     tileLayerRef.current = tiles;
@@ -178,12 +182,15 @@ export default function StadiumsPage() {
     };
   }, []);
 
-  // Update Tile Theme
+  // Update Tile Theme (Dark, Street, Satellite)
   useEffect(() => {
     if (!mapInstanceRef.current || !tileLayerRef.current) return;
-    const darkTiles = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    const lightTiles = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-    tileLayerRef.current.setUrl(mapTheme === 'dark' ? darkTiles : lightTiles);
+    const TILE_URLS = {
+      street: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      dark: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    };
+    tileLayerRef.current.setUrl(TILE_URLS[mapTheme] || TILE_URLS.dark);
   }, [mapTheme]);
 
   // Update Region Map FlyTo
@@ -332,14 +339,27 @@ export default function StadiumsPage() {
             </span>
           </button>
 
-          {/* Map Style Toggle (Dark vs Light Street) */}
-          <button
-            onClick={() => setMapTheme(mapTheme === 'dark' ? 'light' : 'dark')}
-            title={mapTheme === 'dark' ? "Yorug' xaritaga o'tish" : "Qorong'u xaritaga o'tish"}
-            className="min-h-[38px] w-9 rounded-lg bg-stone-900 border border-stone-700 text-stone-300 hover:text-white flex items-center justify-center transition-colors"
-          >
-            {mapTheme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-400" />}
-          </button>
+          {/* Map Layer Switcher: Dark, Street, Satellite */}
+          <div className="flex items-center rounded-lg bg-stone-900 border border-stone-800 p-0.5">
+            <button
+              onClick={() => setMapTheme('dark')}
+              className={`px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-wider transition-colors ${mapTheme === 'dark' ? 'bg-amber-500 text-black shadow' : 'text-stone-400 hover:text-white'}`}
+            >
+              🌙 Qorong'u
+            </button>
+            <button
+              onClick={() => setMapTheme('street')}
+              className={`px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-wider transition-colors ${mapTheme === 'street' ? 'bg-amber-500 text-black shadow' : 'text-stone-400 hover:text-white'}`}
+            >
+              ☀️ Ko'cha
+            </button>
+            <button
+              onClick={() => setMapTheme('satellite')}
+              className={`px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-wider transition-colors ${mapTheme === 'satellite' ? 'bg-amber-500 text-black shadow' : 'text-stone-400 hover:text-white'}`}
+            >
+              🛰️ Sun'iy Yo'ldosh
+            </button>
+          </div>
         </div>
       </header>
 
@@ -347,7 +367,20 @@ export default function StadiumsPage() {
       <div className="relative flex-1 w-full h-full overflow-hidden">
         
         {/* LEAFLET REAL MAP CONTAINER */}
-        <div ref={mapContainerRef} className="w-full h-full z-10" />
+        <div 
+          ref={mapContainerRef} 
+          className={`w-full h-full z-10 ${mapTheme === 'dark' ? 'dark-tiles' : ''}`} 
+        />
+
+        {/* Custom CSS for 100% Free Watermark-Free Dark Tiles */}
+        <style>{`
+          .dark-tiles .leaflet-tile-pane {
+            filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%);
+          }
+          .dark-tiles .leaflet-container {
+            background: #050505;
+          }
+        `}</style>
 
         {/* GPS Status Floating Notice */}
         {geoStatus && (
