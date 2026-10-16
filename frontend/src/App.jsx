@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { ShieldHalf, Menu, Activity, Flame, Home, Users, Search, Target, ShoppingBag, User } from 'lucide-react';
+import { ShieldHalf, Menu, Activity, Flame, Home, Users, Search, Target, ShoppingBag, User, MapPin } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
 import ProtectedRoute from './components/ProtectedRoute';
@@ -26,6 +26,7 @@ import ProfilePage from './pages/ProfilePage';
 import MatchCenterPage from './pages/MatchCenterPage';
 import ReelsPage from './pages/ReelsPage';
 import ManifestoPage from './pages/ManifestoPage';
+import StadiumsPage from './pages/StadiumsPage';
 
 // Public layout wrapper for normal pages (like Home, News, etc.)
 function PublicLayout({ children }) {
@@ -50,6 +51,7 @@ function PublicLayout({ children }) {
               <nav className="hidden xl:flex items-center space-x-6">
                   <Link to="/" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Bosh sahifa</Link>
                   <Link to="/players" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">O'yinchilar</Link>
+                  <Link to="/stadiums" className="text-[11px] font-bold uppercase tracking-widest text-amber-400 hover:text-white transition-colors flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-amber-500"/> Maydonlar</Link>
                   <Link to="/rankings" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Reyting</Link>
                   <Link to="/tournaments" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Turnirlar</Link>
                   <Link to="/live" className="text-[11px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors animate-pulse flex items-center gap-1"><Activity className="w-3 h-3"/> Live Center</Link>
@@ -101,9 +103,9 @@ function PublicLayout({ children }) {
           <Activity className="w-5 h-5 animate-pulse" />
           <span>Live</span>
         </Link>
-        <Link to="/reels" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-amber-500 p-2">
-          <Flame className="w-5 h-5" />
-          <span>Reels</span>
+        <Link to="/stadiums" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-400 hover:text-white p-2">
+          <MapPin className="w-5 h-5 text-amber-500" />
+          <span>Maydonlar</span>
         </Link>
         <Link to={user ? `/${user.role}/dashboard` : "/login"} className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-amber-500 p-2">
           <User className="w-5 h-5" />
@@ -162,6 +164,7 @@ function App() {
         
         {/* Public Routes */}
         <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+        <Route path="/stadiums" element={<PublicLayout><StadiumsPage /></PublicLayout>} />
         <Route path="/manifesto" element={<PublicLayout><ManifestoPage /></PublicLayout>} />
         <Route path="/live" element={<PublicLayout><MatchCenterPage /></PublicLayout>} />
         <Route path="/players" element={<PublicLayout><PlayersPage /></PublicLayout>} />

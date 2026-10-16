@@ -1,6 +1,6 @@
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import React, { useRef, useState, useEffect } from 'react';
-import { ArrowRight, PlayCircle, ChevronRight, Activity, TrendingUp, Trophy, Sparkles, Globe, Shield } from 'lucide-react';
+import { ArrowRight, PlayCircle, ChevronRight, Activity, TrendingUp, Trophy, Sparkles, Globe, Shield, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 import LegendModal from '../components/LegendModal';
@@ -123,15 +123,20 @@ const HomePage = ({ openModal }) => {
                 AI tahlillar, premium kartalar va to'g'ridan-to'g'ri klublar bilan aloqa.
               </p>
               
-              <div className="flex flex-wrap items-center gap-5">
-                <Link to="/players" className="group relative px-8 py-5 bg-gradient-to-r from-amber-600 to-amber-500 text-white font-black text-sm uppercase tracking-widest overflow-hidden rounded-md flex items-center gap-3 shadow-[0_0_40px_rgba(217,119,6,0.4)] hover:shadow-[0_0_60px_rgba(217,119,6,0.6)] hover:-translate-y-1 transition-all duration-300">
+              <div className="flex flex-wrap items-center gap-4">
+                <Link to="/players" className="group relative px-7 py-4 bg-gradient-to-r from-amber-600 to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-widest overflow-hidden rounded-md flex items-center gap-2.5 shadow-[0_0_40px_rgba(217,119,6,0.4)] hover:shadow-[0_0_60px_rgba(217,119,6,0.6)] hover:-translate-y-0.5 transition-all duration-300">
                   <div className="absolute inset-0 w-full h-full bg-white/20 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out z-0"></div>
                   <span className="relative z-10">Kashf Etish</span>
-                  <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-2 transition-transform" />
+                  <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+                </Link>
+
+                <Link to="/stadiums" className="px-6 py-4 bg-stone-900/80 backdrop-blur-md border border-amber-500/40 hover:border-amber-400 text-amber-400 hover:text-white font-black text-xs sm:text-sm uppercase tracking-widest transition-all duration-300 rounded-md flex items-center gap-2 shadow-lg">
+                  <MapPin className="w-4 h-4 text-amber-500" />
+                  <span>Maydonlar (3D)</span>
                 </Link>
                 
-                <button onClick={() => openModal && openModal('register')} className="px-8 py-5 bg-stone-900/50 backdrop-blur-md border border-stone-700 hover:border-white text-white font-bold text-sm uppercase tracking-widest hover:bg-white hover:text-stone-950 transition-all duration-300 rounded-md flex items-center group">
-                  <Globe className="w-5 h-5 mr-3 text-stone-400 group-hover:text-stone-950 transition-colors" /> Klublar uchun
+                <button onClick={() => openModal && openModal('register')} className="px-6 py-4 bg-stone-900/50 backdrop-blur-md border border-stone-700 hover:border-white text-stone-300 hover:text-white font-bold text-xs sm:text-sm uppercase tracking-widest hover:bg-stone-800 transition-all duration-300 rounded-md flex items-center group">
+                  <Globe className="w-4 h-4 mr-2 text-stone-400 group-hover:text-amber-400 transition-colors" /> Klublar uchun
                 </button>
               </div>
             </motion.div>

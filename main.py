@@ -1471,3 +1471,195 @@ def delete_match_callout(
     db.delete(callout)
     db.commit()
     return {"message": "E'lon muvaffaqiyatli o'chirildi"}
+
+
+# --- STADIUMS & UZBEKISTAN MAP EXPLORER API ---
+from models import Stadium
+from schemas import StadiumCreate, StadiumOut
+
+DEFAULT_STADIUMS = [
+    {
+        "name": "Istiqlol Arena (Farg'ona Markaziy)",
+        "region": "Farg'ona",
+        "district": "Farg'ona sh.",
+        "address": "Al-Farg'oniy ko'chasi 45",
+        "latitude": 40.3864,
+        "longitude": 71.7843,
+        "price_per_hour": 200000,
+        "turf_type": "FIFA 2-Star Sun'iy maysa",
+        "has_lights": True,
+        "is_indoor": False,
+        "phone_number": "+998901234567",
+        "image_url": "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+        "rating": 4.9,
+        "features": "Dush, Kiyinish xonasi, Pro-yoritgichlar, Avtoturargoh"
+    },
+    {
+        "name": "Neftchi Mashg'ulot Maydoni",
+        "region": "Farg'ona",
+        "district": "Farg'ona sh.",
+        "address": "Mustaqillik shoh ko'chasi",
+        "latitude": 40.3721,
+        "longitude": 71.7955,
+        "price_per_hour": 150000,
+        "turf_type": "Tabiiy maysa",
+        "has_lights": True,
+        "is_indoor": False,
+        "phone_number": "+998912345678",
+        "image_url": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80",
+        "rating": 4.8,
+        "features": "Kiyinish xonasi, Tribuna, Kafe"
+    },
+    {
+        "name": "Qo'qon 1912 Arena",
+        "region": "Farg'ona",
+        "district": "Qo'qon sh.",
+        "address": "Turkiston ko'chasi 12",
+        "latitude": 40.5283,
+        "longitude": 70.9426,
+        "price_per_hour": 180000,
+        "turf_type": "FIFA Quality Sun'iy",
+        "has_lights": True,
+        "is_indoor": False,
+        "phone_number": "+998933456789",
+        "image_url": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80",
+        "rating": 4.9,
+        "features": "Avtoturargoh, Dush, LED hisoblagich"
+    },
+    {
+        "name": "Marg'ilon Yopiq Sport Majmuasi",
+        "region": "Farg'ona",
+        "district": "Marg'ilon sh.",
+        "address": "Buyuk Ipak Yo'li",
+        "latitude": 40.4722,
+        "longitude": 71.7144,
+        "price_per_hour": 140000,
+        "turf_type": "Sun'iy maysa",
+        "has_lights": True,
+        "is_indoor": True,
+        "phone_number": "+998974567890",
+        "image_url": "https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=800&q=80",
+        "rating": 4.7,
+        "features": "Yopiq arena (qishda issiq), Dush"
+    },
+    {
+        "name": "Bunyodkor Milliy Arena",
+        "region": "Toshkent",
+        "district": "Chilonzor",
+        "address": "Bunyodkor shoh ko'chasi 47",
+        "latitude": 41.2789,
+        "longitude": 69.2148,
+        "price_per_hour": 350000,
+        "turf_type": "Gibrid tabiiy maysa",
+        "has_lights": True,
+        "is_indoor": False,
+        "phone_number": "+998712000011",
+        "image_url": "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=800&q=80",
+        "rating": 5.0,
+        "features": "FIFA Elite, VIP tribuna, Fitnes markaz, Dush"
+    },
+    {
+        "name": "Jar Sport Majmuasi",
+        "region": "Toshkent",
+        "district": "Shayxontohur",
+        "address": "Navoiy ko'chasi 30",
+        "latitude": 41.3267,
+        "longitude": 69.2289,
+        "price_per_hour": 250000,
+        "turf_type": "FIFA Quality Sun'iy",
+        "has_lights": True,
+        "is_indoor": False,
+        "phone_number": "+998712411223",
+        "image_url": "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80",
+        "rating": 4.8,
+        "features": "Dush, Kiyinish xonasi, Kafe, Yoritgichlar"
+    },
+    {
+        "name": "Bobur Arena",
+        "region": "Andijon",
+        "district": "Andijon sh.",
+        "address": "Bobur shoh ko'chasi",
+        "latitude": 40.7821,
+        "longitude": 72.3442,
+        "price_per_hour": 160000,
+        "turf_type": "Sun'iy maysa",
+        "has_lights": True,
+        "is_indoor": False,
+        "phone_number": "+998742233445",
+        "image_url": "https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=800&q=80",
+        "rating": 4.8,
+        "features": "Pro-yoritish, Dush, Kiyinish xonasi"
+    },
+    {
+        "name": "Navbahor Markaziy Stadioni",
+        "region": "Namangan",
+        "district": "Namangan sh.",
+        "address": "Amir Temur ko'chasi",
+        "latitude": 41.0058,
+        "longitude": 71.6436,
+        "price_per_hour": 180000,
+        "turf_type": "FIFA Quality",
+        "has_lights": True,
+        "is_indoor": False,
+        "phone_number": "+998692271122",
+        "image_url": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80",
+        "rating": 4.9,
+        "features": "22 000 muxlis, Pro-maysa, Kafe"
+    },
+    {
+        "name": "Dinamo Samarqand Stadioni",
+        "region": "Samarqand",
+        "district": "Samarqand sh.",
+        "address": "Mirzo Ulug'bek ko'chasi 7",
+        "latitude": 39.6542,
+        "longitude": 66.9597,
+        "price_per_hour": 190000,
+        "turf_type": "Tabiiy maysa",
+        "has_lights": True,
+        "is_indoor": False,
+        "phone_number": "+998662310099",
+        "image_url": "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+        "rating": 4.8,
+        "features": "Tarixiy maydon, Dush, Kiyinish xonasi"
+    }
+]
+
+def seed_stadiums_if_empty(db: Session):
+    count = db.query(Stadium).count()
+    if count == 0:
+        for s_data in DEFAULT_STADIUMS:
+            db.add(Stadium(**s_data))
+        db.commit()
+
+@app.get("/api/stadiums", response_model=list[StadiumOut])
+def get_stadiums(
+    region: str | None = None,
+    search: str | None = None,
+    db: Session = Depends(get_db)
+):
+    seed_stadiums_if_empty(db)
+    query = db.query(Stadium)
+    if region and region.lower() != "barchasi":
+        query = query.filter(Stadium.region.ilike(f"%{region}%"))
+    if search:
+        query = query.filter(
+            (Stadium.name.ilike(f"%{search}%")) |
+            (Stadium.district.ilike(f"%{search}%")) |
+            (Stadium.address.ilike(f"%{search}%"))
+        )
+    return query.order_by(Stadium.rating.desc(), Stadium.name.asc()).all()
+
+@app.post("/api/stadiums", response_model=StadiumOut)
+def create_stadium(
+    data: StadiumCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Faqat administrator stadion qo'sha oladi")
+    stadium = Stadium(**data.model_dump())
+    db.add(stadium)
+    db.commit()
+    db.refresh(stadium)
+    return stadium
+

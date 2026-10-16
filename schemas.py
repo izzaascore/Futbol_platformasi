@@ -538,3 +538,42 @@ class MatchCalloutOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class StadiumCreate(BaseModel):
+    name: str
+    region: str = "Farg'ona"
+    district: str | None = None
+    address: str | None = None
+    latitude: float
+    longitude: float
+    price_per_hour: int = 150000
+    turf_type: str = "Sun'iy maysa (FIFA Quality)"
+    has_lights: bool = True
+    is_indoor: bool = False
+    phone_number: str
+    image_url: str | None = None
+    rating: float = 4.8
+    features: str | None = "Dush, Kiyinish xonasi, Avtoturargoh, Qahvaxona"
+
+
+class StadiumOut(BaseModel):
+    id: int
+    name: str
+    region: str
+    district: str | None = None
+    address: str | None = None
+    latitude: float
+    longitude: float
+    price_per_hour: int
+    turf_type: str
+    has_lights: bool
+    is_indoor: bool
+    phone_number: str
+    image_url: str | None = None
+    rating: float
+    features: str | None = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

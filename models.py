@@ -489,3 +489,24 @@ class CalloutResponse(Base):
 
     callout: Mapped["MatchCallout"] = relationship(back_populates="responses")
     user: Mapped["User"] = relationship()
+
+
+class Stadium(Base):
+    __tablename__ = "stadiums"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    region: Mapped[str] = mapped_column(String(100), nullable=False, default="Farg'ona")
+    district: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    latitude: Mapped[float] = mapped_column(Float, nullable=False)
+    longitude: Mapped[float] = mapped_column(Float, nullable=False)
+    price_per_hour: Mapped[int] = mapped_column(Integer, default=150000)
+    turf_type: Mapped[str] = mapped_column(String(100), default="Sun'iy maysa (FIFA Quality)")
+    has_lights: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_indoor: Mapped[bool] = mapped_column(Boolean, default=False)
+    phone_number: Mapped[str] = mapped_column(String(50), nullable=False)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    rating: Mapped[float] = mapped_column(Float, default=4.8)
+    features: Mapped[str | None] = mapped_column(String(255), default="Dush, Kiyinish xonasi, Avtoturargoh, Kafeterya")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
