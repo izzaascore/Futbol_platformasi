@@ -289,7 +289,7 @@ const HomePage = ({ openModal }) => {
               <div className="w-full lg:w-1/2 relative perspective-[1000px]">
                 <TiltCard className="relative w-full h-[600px] rounded-2xl overflow-hidden cursor-pointer shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-stone-800/50 hover:border-amber-500/30 transition-colors">
                   <img 
-                    src="https://images.unsplash.com/photo-1614632537423-1e6c2e7e0aab?q=80&w=1500&auto=format&fit=crop" 
+                    src="/images/general/general_1614632537423-1e6c2e.jpg" 
                     alt="Legend Portrait" 
                     className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
                   />

@@ -152,7 +152,7 @@ export default function MatchCenterPage() {
         <div className="relative h-[36vh] min-h-[300px] w-full flex items-end pb-10 z-10">
           <div className="absolute inset-0">
             <img 
-              src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=2500&auto=format&fit=crop" 
+              src="/images/general/general_1518609878373-06d740.jpg" 
               alt="Match Center" 
               className="w-full h-full object-cover opacity-35 grayscale"
             />
@@ -638,8 +638,8 @@ export default function MatchCenterPage() {
           {activeTab === 'tournaments' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { name: "O'zbekiston Yoshlar Kubogi", teams: 16, status: "Pley-off bosqichi", img: "https://images.unsplash.com/photo-1574629810360-7efbb6b667cb?q=80&w=600&auto=format&fit=crop" },
-                { name: "Toshkent Chempionati U-18", teams: 12, status: "3-Tur", img: "https://images.unsplash.com/photo-1518605368461-1ee7e5241416?q=80&w=600&auto=format&fit=crop" }
+                { name: "O'zbekiston Yoshlar Kubogi", teams: 16, status: "Pley-off bosqichi", img: "/images/stadiums/stadiums_1574629810360-7efbb6.jpg" },
+                { name: "Toshkent Chempionati U-18", teams: 12, status: "3-Tur", img: "/images/players/players_1518605368461-1ee7e5.jpg" }
               ].map((t, i) => (
                 <div key={i} className="relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-stone-800">
                   <img src={t.img} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" alt="Tournament"/>

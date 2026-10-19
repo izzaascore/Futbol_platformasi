@@ -44,7 +44,7 @@ export default function ProfilePage() {
       setUser(u);
     } else {
       // Mock user for testing the UI if not logged in
-      setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent', email: 'umidjon@example.com', profile_image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop', discipline_score: 95, streak: 12, hardcore_mode: false });
+      setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent', email: 'umidjon@example.com', profile_image: '/images/players/players_1506794778202-cad84c.jpg', discipline_score: 95, streak: 12, hardcore_mode: false });
     }
   }, []);
 
@@ -319,8 +319,8 @@ export default function ProfilePage() {
 
                 {/* Library items */}
                 {[
-                  { title: "Individual Mashg'ulot", duration: "05:20", views: 342, img: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=600&auto=format&fit=crop" },
-                  { title: "U-19 Liga: Eng yaxshi Gollar", duration: "03:15", views: 890, img: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=600&auto=format&fit=crop" }
+                  { title: "Individual Mashg'ulot", duration: "05:20", views: 342, img: "/images/players/players_1517466787929-bc9095.jpg" },
+                  { title: "U-19 Liga: Eng yaxshi Gollar", duration: "03:15", views: 890, img: "/images/stadiums/stadiums_1522778119026-d647f0.jpg" }
                 ].map((vid, i) => (
                   <div key={i} className="bg-stone-900 border border-stone-800 rounded-sm overflow-hidden group cursor-pointer relative">
                     <div className="h-48 relative overflow-hidden">

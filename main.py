@@ -1490,7 +1490,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": False,
         "phone_number": "+998901234567",
-        "image_url": "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1522778119026-d647f0.jpg",
         "rating": 4.9,
         "features": "Dush, Kiyinish xonasi, Pro-yoritgichlar, Avtoturargoh"
     },
@@ -1506,7 +1506,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": False,
         "phone_number": "+998912345678",
-        "image_url": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1574629810360-7efbbe.jpg",
         "rating": 4.8,
         "features": "Kiyinish xonasi, Tribuna, Kafe"
     },
@@ -1522,7 +1522,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": False,
         "phone_number": "+998933456789",
-        "image_url": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1508098682722-e99c43.jpg",
         "rating": 4.9,
         "features": "Avtoturargoh, Dush, LED hisoblagich"
     },
@@ -1538,7 +1538,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": True,
         "phone_number": "+998974567890",
-        "image_url": "https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1459865264687-595d65.jpg",
         "rating": 4.7,
         "features": "Yopiq arena (qishda issiq), Dush"
     },
@@ -1554,7 +1554,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": False,
         "phone_number": "+998712000011",
-        "image_url": "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1518091043644-c1d445.jpg",
         "rating": 5.0,
         "features": "FIFA Elite, VIP tribuna, Fitnes markaz, Dush"
     },
@@ -1570,7 +1570,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": False,
         "phone_number": "+998712411223",
-        "image_url": "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1529900748604-07564a.jpg",
         "rating": 4.8,
         "features": "Dush, Kiyinish xonasi, Kafe, Yoritgichlar"
     },
@@ -1586,7 +1586,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": False,
         "phone_number": "+998742233445",
-        "image_url": "https://images.unsplash.com/photo-1577223625816-7546f13df25d?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1577223625816-7546f1.jpg",
         "rating": 4.8,
         "features": "Pro-yoritish, Dush, Kiyinish xonasi"
     },
@@ -1602,7 +1602,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": False,
         "phone_number": "+998692271122",
-        "image_url": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1508098682722-e99c43.jpg",
         "rating": 4.9,
         "features": "22 000 muxlis, Pro-maysa, Kafe"
     },
@@ -1618,7 +1618,7 @@ DEFAULT_STADIUMS = [
         "has_lights": True,
         "is_indoor": False,
         "phone_number": "+998662310099",
-        "image_url": "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+        "image_url": "/images/stadiums/stadiums_1522778119026-d647f0.jpg",
         "rating": 4.8,
         "features": "Tarixiy maydon, Dush, Kiyinish xonasi"
     }

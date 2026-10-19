@@ -9,15 +9,15 @@ const NewsPage = () => {
     title: "Yangi avlod yulduzlari: O'zbekiston yoshlar terma jamoasi Qatarga yo'l olmoqda",
     date: "20 May, 2026",
     category: "Terma Jamoa",
-    image: "https://images.unsplash.com/photo-1551280857-2b9ebf241ac7?q=80&w=2500&auto=format&fit=crop",
+    image: "/images/news/news_1551280857-2b9ebf241.jpg",
     excerpt: "Osiyo Kubogi arafasida bosh murabbiy jamoa tarkibini e'lon qildi. Tarkibda kutilmagan, ammo iqtidorli yoshlar bor."
   };
 
   const news = [
-    { id: 2, title: "FootballRise ekotizimi O'zbekiston PFL bilan rasmiy hamkorlikni boshladi", date: '18 May, 2026', category: 'Platforma', image: 'https://images.unsplash.com/photo-1518605368461-1eb5d0506eb3?q=80&w=1500&auto=format&fit=crop', excerpt: "Endilikda rasmiy o'yinlar statistikasi to'g'ridan-to'g'ri profilga ulanadi." },
-    { id: 3, title: "Evropaning top skautlari qanday videolarga ko'proq e'tibor qaratadi?", date: '15 May, 2026', category: 'Scouting Tips', image: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=1500&auto=format&fit=crop', excerpt: "Uzoq muddatli tahlillar shuni ko'rsatmoqdaki, qaror qabul qilish tezligi eng muhim faktor." },
-    { id: 4, title: 'Yosh iqtidorlarni izlab: "Nasaf" akademiyasi yangi yig\'inga start berdi', date: '12 May, 2026', category: 'Akademiyalar', image: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?q=80&w=1500&auto=format&fit=crop', excerpt: 'Markaziy hujumchilar va pleymeykerlar uchun ochiq eshiklar kuni e\'lon qilindi.' },
-    { id: 5, title: 'FootballRise Cam taqdimoti: Endi video yozib olish yanada oson', date: '10 May, 2026', category: 'Texnologiya', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1500&auto=format&fit=crop', excerpt: 'Avto-sinxronizatsiya funksiyasiga ega birinchi portativ futbol kamerasi namoyish etildi.' },
+    { id: 2, title: "FootballRise ekotizimi O'zbekiston PFL bilan rasmiy hamkorlikni boshladi", date: '18 May, 2026', category: 'Platforma', image: '/images/news/news_1518605368461-1eb5d0.jpg', excerpt: "Endilikda rasmiy o'yinlar statistikasi to'g'ridan-to'g'ri profilga ulanadi." },
+    { id: 3, title: "Evropaning top skautlari qanday videolarga ko'proq e'tibor qaratadi?", date: '15 May, 2026', category: 'Scouting Tips', image: '/images/stadiums/stadiums_1522778119026-d647f0.jpg', excerpt: "Uzoq muddatli tahlillar shuni ko'rsatmoqdaki, qaror qabul qilish tezligi eng muhim faktor." },
+    { id: 4, title: 'Yosh iqtidorlarni izlab: "Nasaf" akademiyasi yangi yig\'inga start berdi', date: '12 May, 2026', category: 'Akademiyalar', image: '/images/tournaments/tournaments_1589487391730-58f20e.jpg', excerpt: 'Markaziy hujumchilar va pleymeykerlar uchun ochiq eshiklar kuni e\'lon qilindi.' },
+    { id: 5, title: 'FootballRise Cam taqdimoti: Endi video yozib olish yanada oson', date: '10 May, 2026', category: 'Texnologiya', image: '/images/news/news_1516035069371-29a1b2.jpg', excerpt: 'Avto-sinxronizatsiya funksiyasiga ega birinchi portativ futbol kamerasi namoyish etildi.' },
   ];
 
   return (

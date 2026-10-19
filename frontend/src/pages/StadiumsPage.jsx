@@ -422,7 +422,7 @@ export default function StadiumsPage() {
               {/* Stadium Photo & Badges */}
               <div className="relative h-36 w-full rounded-2xl overflow-hidden mb-3 bg-stone-900 shadow-inner">
                 <img
-                  src={selectedStadium.image_url || "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80"}
+                  src={selectedStadium.image_url || "/images/stadiums/stadiums_1522778119026-d647f0.jpg"}
                   alt={selectedStadium.name}
                   className="w-full h-full object-cover"
                 />
@@ -527,7 +527,7 @@ export default function StadiumsPage() {
                 }`}
               >
                 <img
-                  src={s.image_url || "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=120&q=80"}
+                  src={s.image_url || "/images/stadiums/stadiums_1522778119026-d647f0.jpg"}
                   alt={s.name}
                   className="w-9 h-9 rounded-xl object-cover shrink-0 border border-black/20"
                 />

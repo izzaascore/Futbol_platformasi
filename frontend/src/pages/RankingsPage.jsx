@@ -19,18 +19,18 @@ import PageTransition from '../components/PageTransition';
 import { API_URL } from '../config';
 
 const INITIAL_RANKINGS = [
-  { id: 1, name: 'Umidjon Erkinov', club: 'Buxoro U-16', position: 'FW', rating: 91, trend: 'up', points: 2840, image: 'https://images.unsplash.com/photo-1614632537190-23e414c77c0c?q=80&w=600&auto=format&fit=crop' },
-  { id: 2, name: 'Azizbek Karimov', club: 'Pakhtakor U-19', position: 'FW', rating: 89, trend: 'same', points: 2750, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop' },
-  { id: 3, name: 'Sardor Rashidov', club: 'Andijon FC', position: 'DF', rating: 88, trend: 'up', points: 2610, image: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=600&auto=format&fit=crop' },
-  { id: 4, name: 'Doston Hamdamov', club: 'Neftchi', position: 'MF', rating: 86, trend: 'down', points: 2590, image: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=600&auto=format&fit=crop' },
-  { id: 5, name: 'Jasur Hasanov', club: 'Dinamo', position: 'MF', rating: 85, trend: 'up', points: 2480, image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop' },
-  { id: 6, name: 'Otabek Shukurov', club: 'Xorazm Academy', position: 'DF', rating: 84, trend: 'up', points: 2410, image: 'https://images.unsplash.com/photo-1531885420367-172551e180d5?q=80&w=600&auto=format&fit=crop' },
-  { id: 7, name: 'Alisher Jalilov', club: 'Nasaf', position: 'GK', rating: 82, trend: 'same', points: 2350, image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=600&auto=format&fit=crop' },
-  { id: 8, name: 'Bobur Davlatov', club: 'Qizilqum', position: 'FW', rating: 81, trend: 'down', points: 2280, image: 'https://images.unsplash.com/photo-1518605368461-1ee7e5241416?q=80&w=600&auto=format&fit=crop' },
-  { id: 9, name: 'Javohir Toqhiry', club: 'Lokomotiv', position: 'MF', rating: 80, trend: 'up', points: 2190, image: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=600&auto=format&fit=crop' },
-  { id: 10, name: 'Shohruz Norkhonov', club: 'Sogdiana', position: 'FW', rating: 79, trend: 'same', points: 2100, image: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?q=80&w=600&auto=format&fit=crop' },
-  { id: 11, name: 'Eldor Shomurodov', club: 'Bunyodkor U-21', position: 'FW', rating: 78, trend: 'up', points: 2050, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop' },
-  { id: 12, name: 'Abbosbek Fayzullaev', club: 'Paxtakor U-19', position: 'MF', rating: 77, trend: 'up', points: 1980, image: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=600&auto=format&fit=crop' }
+  { id: 1, name: 'Umidjon Erkinov', club: 'Buxoro U-16', position: 'FW', rating: 91, trend: 'up', points: 2840, image: '/images/players/players_1614632537190-23e414.jpg' },
+  { id: 2, name: 'Azizbek Karimov', club: 'Pakhtakor U-19', position: 'FW', rating: 89, trend: 'same', points: 2750, image: '/images/players/players_1506794778202-cad84c.jpg' },
+  { id: 3, name: 'Sardor Rashidov', club: 'Andijon FC', position: 'DF', rating: 88, trend: 'up', points: 2610, image: '/images/players/players_1517466787929-bc9095.jpg' },
+  { id: 4, name: 'Doston Hamdamov', club: 'Neftchi', position: 'MF', rating: 86, trend: 'down', points: 2590, image: '/images/players/players_1552374196-1ab2a1c59.jpg' },
+  { id: 5, name: 'Jasur Hasanov', club: 'Dinamo', position: 'MF', rating: 85, trend: 'up', points: 2480, image: '/images/players/players_1534438327276-14e530.jpg' },
+  { id: 6, name: 'Otabek Shukurov', club: 'Xorazm Academy', position: 'DF', rating: 84, trend: 'up', points: 2410, image: '/images/players/players_1531885420367-172551.jpg' },
+  { id: 7, name: 'Alisher Jalilov', club: 'Nasaf', position: 'GK', rating: 82, trend: 'same', points: 2350, image: '/images/players/players_1579952363873-27f3ba.jpg' },
+  { id: 8, name: 'Bobur Davlatov', club: 'Qizilqum', position: 'FW', rating: 81, trend: 'down', points: 2280, image: '/images/players/players_1518605368461-1ee7e5.jpg' },
+  { id: 9, name: 'Javohir Toqhiry', club: 'Lokomotiv', position: 'MF', rating: 80, trend: 'up', points: 2190, image: '/images/stadiums/stadiums_1522778119026-d647f0.jpg' },
+  { id: 10, name: 'Shohruz Norkhonov', club: 'Sogdiana', position: 'FW', rating: 79, trend: 'same', points: 2100, image: '/images/players/players_1431324155629-1a6deb.jpg' },
+  { id: 11, name: 'Eldor Shomurodov', club: 'Bunyodkor U-21', position: 'FW', rating: 78, trend: 'up', points: 2050, image: '/images/players/players_1506794778202-cad84c.jpg' },
+  { id: 12, name: 'Abbosbek Fayzullaev', club: 'Paxtakor U-19', position: 'MF', rating: 77, trend: 'up', points: 1980, image: '/images/players/players_1517466787929-bc9095.jpg' }
 ];
 
 // Helper to normalize position names
@@ -64,7 +64,7 @@ export default function RankingsPage() {
             rating: p.rating || 75,
             trend: idx % 3 === 0 ? 'up' : idx % 3 === 1 ? 'same' : 'down',
             points: (p.rating || 75) * 30 + (p.goals || 0) * 15,
-            image: p.image || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop'
+            image: p.image || '/images/players/players_1506794778202-cad84c.jpg'
           })).sort((a, b) => b.rating - a.rating);
           setRankings(formatted);
         } else {
@@ -138,7 +138,7 @@ export default function RankingsPage() {
                       src={filteredRankings[1].image} 
                       alt="Silver" 
                       className="w-full h-full rounded-full object-cover"
-                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop'; }}
+                      onError={(e) => { e.target.src = '/images/players/players_1506794778202-cad84c.jpg'; }}
                     />
                   </div>
                   <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 bg-stone-300 text-stone-950 font-black text-lg flex items-center justify-center rounded-full border-4 border-stone-950 shadow-lg">2</div>
@@ -165,7 +165,7 @@ export default function RankingsPage() {
                       src={filteredRankings[0].image} 
                       alt="Gold" 
                       className="w-full h-full rounded-full object-cover" 
-                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1614632537190-23e414c77c0c?q=80&w=600&auto=format&fit=crop'; }}
+                      onError={(e) => { e.target.src = '/images/players/players_1614632537190-23e414.jpg'; }}
                     />
                   </div>
                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-12 bg-amber-400 text-stone-950 font-black text-2xl flex items-center justify-center rounded-full border-4 border-stone-950 shadow-[0_0_20px_rgba(251,191,36,0.8)]">
@@ -195,7 +195,7 @@ export default function RankingsPage() {
                       src={filteredRankings[2].image} 
                       alt="Bronze" 
                       className="w-full h-full rounded-full object-cover" 
-                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=600&auto=format&fit=crop'; }}
+                      onError={(e) => { e.target.src = '/images/players/players_1517466787929-bc9095.jpg'; }}
                     />
                   </div>
                   <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 bg-amber-700 text-white font-black text-lg flex items-center justify-center rounded-full border-4 border-stone-950 shadow-lg">3</div>
@@ -301,7 +301,7 @@ export default function RankingsPage() {
                       src={player.image} 
                       alt={player.name} 
                       className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover border-2 border-stone-700 group-hover:border-amber-500 transition-colors mr-4 sm:mr-6 shrink-0" 
-                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop'; }}
+                      onError={(e) => { e.target.src = '/images/players/players_1506794778202-cad84c.jpg'; }}
                     />
                     
                     {/* Name & Club */}

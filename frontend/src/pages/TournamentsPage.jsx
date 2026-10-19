@@ -12,8 +12,8 @@ const TournamentsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fallbackTournaments = [
-    { id: 1, name: "Qashqadaryo BOSM Kubogi 2026", description: "Viloyatning eng kuchli bolalar va o'smirlar futbol maktablari (BOSM) o'rtasidagi yozgi musobaqa. 'Nasaf' akademiyasi skautlari kuzatuvida.", prize: "Nasaf akademiyasi ko'rigi", status: "Aktiv", image: "https://images.unsplash.com/photo-1518602164578-cd0074062767?q=80&w=2500&auto=format&fit=crop", teams_count: 16, start_date: "15 Iyun, 2026", location: "Qarshi, Markaziy Stadion" },
-    { id: 2, name: "U-16 Respublika SSOR Ligasi", description: "O'zbekiston Respublikasi miqyosidagi ixtisoslashtirilgan sport maktablari (SSOR) va xususiy akademiyalar o'rtasidagi asosiy turnir.", prize: "Professional Shartnomalar", status: "Tez kunda", image: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=2500&auto=format&fit=crop", teams_count: 32, start_date: "10 Avgust, 2026", location: "Toshkent, Paxtakor Stadioni" },
+    { id: 1, name: "Qashqadaryo BOSM Kubogi 2026", description: "Viloyatning eng kuchli bolalar va o'smirlar futbol maktablari (BOSM) o'rtasidagi yozgi musobaqa. 'Nasaf' akademiyasi skautlari kuzatuvida.", prize: "Nasaf akademiyasi ko'rigi", status: "Aktiv", image: "/images/tournaments/tournaments_1518602164578-cd0074.jpg", teams_count: 16, start_date: "15 Iyun, 2026", location: "Qarshi, Markaziy Stadion" },
+    { id: 2, name: "U-16 Respublika SSOR Ligasi", description: "O'zbekiston Respublikasi miqyosidagi ixtisoslashtirilgan sport maktablari (SSOR) va xususiy akademiyalar o'rtasidagi asosiy turnir.", prize: "Professional Shartnomalar", status: "Tez kunda", image: "/images/stadiums/stadiums_1522778119026-d647f0.jpg", teams_count: 32, start_date: "10 Avgust, 2026", location: "Toshkent, Paxtakor Stadioni" },
   ];
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const TournamentsPage = () => {
         <div className="relative h-[50vh] min-h-[450px] w-full flex items-center justify-center">
           <div className="absolute inset-0">
             <img 
-              src="https://images.unsplash.com/photo-1589487391730-58f20eb2c308?q=80&w=2500&auto=format&fit=crop" 
+              src="/images/tournaments/tournaments_1589487391730-58f20e.jpg" 
               alt="Football Tournament" 
               className="w-full h-full object-cover filter grayscale"
             />
@@ -90,7 +90,7 @@ const TournamentsPage = () => {
                     <div className="relative h-1/2 lg:h-full lg:w-3/5 overflow-hidden">
                       <img 
                         loading="lazy"
-                        src={tournament.image || "https://images.unsplash.com/photo-1518602164578-cd0074062767?q=80&w=2500&auto=format&fit=crop"} 
+                        src={tournament.image || "/images/tournaments/tournaments_1518602164578-cd0074.jpg"} 
                         alt={tournament.name}
                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
                       />

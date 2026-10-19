@@ -127,7 +127,7 @@ export default function ScoutsPage() {
                   <div className="w-full lg:w-1/3 flex flex-col items-center">
                      <div className="relative w-48 h-48 mb-6">
                         <div className="absolute inset-0 bg-amber-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-                        <img src="https://images.unsplash.com/photo-1614632537190-23e414c77c0c?q=80&w=600&auto=format&fit=crop" className="w-full h-full rounded-full object-cover border-4 border-stone-800 relative z-10" alt="Prospect" />
+                        <img src="/images/players/players_1614632537190-23e414.jpg" className="w-full h-full rounded-full object-cover border-4 border-stone-800 relative z-10" alt="Prospect" />
                      </div>
                      <h2 className="text-3xl font-black text-white uppercase tracking-tighter text-center">Umidjon Erkinov</h2>
                      <p className="text-amber-500 font-bold text-xs uppercase tracking-widest mt-1">Buxoro U-16 • Hujumchi</p>
@@ -166,7 +166,7 @@ export default function ScoutsPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {[1, 2, 3, 4].map((item, i) => (
                     <div key={i} className="flex bg-stone-900/50 border border-stone-800 rounded-2xl p-4 gap-4 items-center hover:border-amber-500/50 transition-colors group">
-                      <img src={`https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop&sig=${i}`} className="w-20 h-20 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all" alt="Player" />
+                      <img src={`/images/players/players_1506794778202-cad84c.jpg&sig=${i}`} className="w-20 h-20 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all" alt="Player" />
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <div>

@@ -67,12 +67,12 @@ const PlayersPage = () => {
   });
 
   const fallbackPlayers = [
-    { id: 1, full_name: 'Azizbek Karimov', position: 'hujumchi', city: 'Toshkent', rating: 84, age: 18, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop', club: 'Pakhtakor U-19' },
-    { id: 2, full_name: 'Jasur Hasanov', position: 'yarimhimoyachi', city: 'Samarqand', rating: 79, age: 16, image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop', club: 'Dinamo' },
-    { id: 3, full_name: 'Sardor Rashidov', position: 'himoyachi', city: 'Andijon', rating: 81, age: 20, image: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=600&auto=format&fit=crop', club: 'Andijon FC' },
-    { id: 4, full_name: 'Umidjon Erkinov', position: 'hujumchi', city: 'Buxoro', rating: 88, age: 15, image: 'https://images.unsplash.com/photo-1614632537190-23e414c77c0c?q=80&w=600&auto=format&fit=crop', club: 'Buxoro U-16' },
-    { id: 5, full_name: 'Doston Hamdamov', position: 'yarimhimoyachi', city: 'Farg\'ona', rating: 76, age: 19, image: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=600&auto=format&fit=crop', club: 'Neftchi' },
-    { id: 6, full_name: 'Otabek Shukurov', position: 'himoyachi', city: 'Xorazm', rating: 85, age: 14, image: 'https://images.unsplash.com/photo-1531885420367-172551e180d5?q=80&w=600&auto=format&fit=crop', club: 'Xorazm Academy' },
+    { id: 1, full_name: 'Azizbek Karimov', position: 'hujumchi', city: 'Toshkent', rating: 84, age: 18, image: '/images/players/players_1506794778202-cad84c.jpg', club: 'Pakhtakor U-19' },
+    { id: 2, full_name: 'Jasur Hasanov', position: 'yarimhimoyachi', city: 'Samarqand', rating: 79, age: 16, image: '/images/players/players_1534438327276-14e530.jpg', club: 'Dinamo' },
+    { id: 3, full_name: 'Sardor Rashidov', position: 'himoyachi', city: 'Andijon', rating: 81, age: 20, image: '/images/players/players_1517466787929-bc9095.jpg', club: 'Andijon FC' },
+    { id: 4, full_name: 'Umidjon Erkinov', position: 'hujumchi', city: 'Buxoro', rating: 88, age: 15, image: '/images/players/players_1614632537190-23e414.jpg', club: 'Buxoro U-16' },
+    { id: 5, full_name: 'Doston Hamdamov', position: 'yarimhimoyachi', city: 'Farg\'ona', rating: 76, age: 19, image: '/images/players/players_1552374196-1ab2a1c59.jpg', club: 'Neftchi' },
+    { id: 6, full_name: 'Otabek Shukurov', position: 'himoyachi', city: 'Xorazm', rating: 85, age: 14, image: '/images/players/players_1531885420367-172551.jpg', club: 'Xorazm Academy' },
   ];
 
   useEffect(() => {
@@ -152,7 +152,7 @@ const PlayersPage = () => {
         <div className="relative h-[45vh] min-h-[400px] w-full flex items-end pb-12 z-10">
           <div className="absolute inset-0">
             <img 
-              src="https://images.unsplash.com/photo-1431324155629-1a6d0a11f486?q=80&w=2500&auto=format&fit=crop" 
+              src="/images/players/players_1431324155629-1a6d0a.jpg" 
               alt="Scouting Field" 
               className="w-full h-full object-cover opacity-30 grayscale"
             />
@@ -354,7 +354,7 @@ const PlayersPage = () => {
 
                       {/* Background Image full card */}
                       <img 
-                        src={player.image || "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=600&auto=format&fit=crop"} 
+                        src={player.image || "/images/players/players_1579952363873-27f3ba.jpg"} 
                         alt={player.full_name} 
                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
                       />
