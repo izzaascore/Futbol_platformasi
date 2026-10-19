@@ -40,6 +40,9 @@ export default function AdminPage() {
                     localStorage.setItem('adminToken', data.access_token);
                     localStorage.setItem('token', data.access_token);
                     localStorage.setItem('role', 'admin');
+                    if (data.user) {
+                        localStorage.setItem('talaqCurrentUser', JSON.stringify(data.user));
+                    }
                 }
                 setIsAuthenticated(true);
                 setError('');

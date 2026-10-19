@@ -85,8 +85,11 @@ function PublicLayout({ children }) {
           {children}
       </main>
 
-      <footer className="bg-stone-950 py-8 text-center text-stone-500 text-xs font-bold uppercase tracking-widest pb-24 md:pb-8">
-        FootballRise &copy; {new Date().getFullYear()}
+      <footer className="bg-stone-950 py-8 text-center text-stone-500 text-xs font-bold uppercase tracking-widest pb-24 md:pb-8 flex flex-col items-center justify-center gap-2">
+        <div>FootballRise &copy; {new Date().getFullYear()}</div>
+        <Link to="/admin" className="text-[10px] text-stone-700 hover:text-amber-500 transition-colors flex items-center gap-1 font-mono lowercase tracking-normal">
+          <span>🔒 Boshqaruv (Admin Terminal)</span>
+        </Link>
       </footer>
 
       {/* Mobile & Telegram Mini App Bottom Navigation */}
@@ -176,10 +179,9 @@ function App() {
         <Route path="/news" element={<PublicLayout><NewsPage /></PublicLayout>} />
         
         {/* Admin Routes */}
-        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-            <Route path="/admin" element={<AdminLayout />}>
-                <Route path="dashboard" element={<AdminDashboard />} />
-            </Route>
+        <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
         </Route>
 
         {/* Scout Routes */}

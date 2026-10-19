@@ -4,10 +4,25 @@ import { ShieldHalf, LogOut, LayoutDashboard, Users, Video } from 'lucide-react'
 
 const AdminLayout = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const userStr = localStorage.getItem('talaqCurrentUser');
+  let user = null;
+  try { user = userStr ? JSON.parse(userStr) : null; } catch(e) {}
+  const isAuthenticated = token && (role === 'admin' || user?.role === 'admin');
+
   const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
     localStorage.removeItem('talaqCurrentUser');
-    navigate('/login');
+    navigate('/admin');
+    window.location.reload();
   };
+
+  if (!isAuthenticated) {
+    return <Outlet />;
+  }
 
   return (
     <div className="min-h-screen bg-stone-950 flex font-sans text-stone-200">
