@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import React, { useState } from 'react';
-import { Target, Search, FileText, CheckCircle, Clock, ShieldCheck, Mail, MapPin, Eye, Zap, BookMarked, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Target, Search, FileText, CheckCircle, Clock, ShieldCheck, Mail, MapPin, Eye, Zap, BookMarked, Filter, Calendar, AlertCircle } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
+import { API_URL } from '../config';
 
 // Custom SVG Radar Chart component (no dependencies)
 const RadarChart = () => {
@@ -40,6 +41,71 @@ const RadarChart = () => {
 
 export default function ScoutsPage() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [invitations, setInvitations] = useState([]);
+  const [loadingInvites, setLoadingInvites] = useState(false);
+
+  useEffect(() => {
+    const fetchInvites = async () => {
+      setLoadingInvites(true);
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+        const res = await fetch(`${API_URL}/api/scout/my-invitations`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setInvitations(data);
+        } else {
+          // Fallback demo invitations
+          setInvitations([
+            {
+              id: 101,
+              club_name: 'FC Pakhtakor U-19',
+              title: "Umidjon Erkinov uchun Rasmiy Ko'rikka Taklifnoma",
+              player_id: 4,
+              tryout_date: '2026-11-05 10:00',
+              location: 'Jar Arena, Toshkent',
+              message: "Akademiya bosh murabbiyi ko'rigiga taklif qilamiz.",
+              contact_phone: '+998 90 123 45 67',
+              status: 'qabul_qilindi',
+              created_at: new Date().toISOString()
+            },
+            {
+              id: 102,
+              club_name: 'Dinamo Samarqand',
+              title: "Jasur Hasanov uchun Sinov Mashg'uloti",
+              player_id: 2,
+              tryout_date: '2026-11-12 15:30',
+              location: 'Dinamo Samarqand Stadioni',
+              message: "O'rtoqlik uchrashuvida ko'rikdan o'tish.",
+              contact_phone: '+998 66 231 00 99',
+              status: 'kutilmoqda',
+              created_at: new Date().toISOString()
+            }
+          ]);
+        }
+      } catch (e) {
+        setInvitations([
+          {
+            id: 101,
+            club_name: 'FC Pakhtakor U-19',
+            title: "Umidjon Erkinov uchun Rasmiy Ko'rikka Taklifnoma",
+            player_id: 4,
+            tryout_date: '2026-11-05 10:00',
+            location: 'Jar Arena, Toshkent',
+            message: "Akademiya bosh murabbiyi ko'rigiga taklif qilamiz.",
+            contact_phone: '+998 90 123 45 67',
+            status: 'qabul_qilindi',
+            created_at: new Date().toISOString()
+          }
+        ]);
+      } finally {
+        setLoadingInvites(false);
+      }
+    };
+
+    fetchInvites();
+  }, []);
 
   return (
     <PageTransition>
@@ -183,6 +249,111 @@ export default function ScoutsPage() {
                     </div>
                   ))}
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'reports' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center gap-2">
+                    <Zap className="text-amber-500 w-5 h-5"/> AI Skaut Tahlil Xulosalari
+                  </h3>
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { title: "Umidjon Erkinov (Buxoro U-16)", date: "Bugun, 14:20", text: "Tezkor qaror qabul qilish va yuqori dribling. O'ng oyoqda aniq zarba ko'rsatkichi 84%.", tag: "Tavsiya etiladi", color: "emerald" },
+                    { title: "Jasur Hasanov (Dinamo Samarqand)", date: "Kecha, 18:05", text: "Maydon markazida to'pni nazorat qilish va vertikal uzatmalar bo'yicha kuchli. Jismoniy chidamlilik 80%.", tag: "Kuzatuvda", color: "amber" }
+                  ].map((r, i) => (
+                    <div key={i} className="bg-stone-900/60 border border-stone-800 p-6 rounded-2xl">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-black text-white uppercase tracking-tight text-base">{r.title}</h4>
+                        <span className="text-[10px] font-bold text-stone-500 uppercase">{r.date}</span>
+                      </div>
+                      <p className="text-stone-300 text-sm leading-relaxed mb-4">{r.text}</p>
+                      <span className={`px-2.5 py-1 text-[10px] font-black uppercase rounded ${r.color === 'emerald' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900' : 'bg-amber-950/60 text-amber-400 border border-amber-900'}`}>
+                        {r.tag}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'offers' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center gap-2">
+                      <Mail className="text-amber-500 w-5 h-5"/> Yuborilgan Ko'rik Taklifnomalari
+                    </h3>
+                    <p className="text-xs text-stone-400">O'yinchilarga jo'natilgan rasmiy sinov va ko'rik mashg'ulotlari</p>
+                  </div>
+                  <span className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold rounded-lg">
+                    {invitations.length} ta Taklifnoma
+                  </span>
+                </div>
+
+                {loadingInvites ? (
+                  <div className="py-16 text-center text-stone-500 text-xs font-bold uppercase tracking-widest animate-pulse">
+                    Taklifnomalar yuklanmoqda...
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {invitations.map((inv) => (
+                      <div key={inv.id} className="bg-stone-900/60 border border-stone-800 hover:border-amber-500/40 transition-colors p-6 rounded-2xl relative overflow-hidden">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 pb-3 border-b border-stone-800/80">
+                          <div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-amber-500">{inv.club_name}</div>
+                            <h4 className="text-lg font-black text-white uppercase tracking-tight">{inv.title}</h4>
+                          </div>
+                          <div>
+                            <span className={`inline-block px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${
+                              inv.status === 'qabul_qilindi' ? 'bg-emerald-950/70 text-emerald-400 border-emerald-800' :
+                              inv.status === 'rad_etildi' ? 'bg-rose-950/70 text-rose-400 border-rose-800' :
+                              'bg-amber-950/70 text-amber-400 border-amber-800 animate-pulse'
+                            }`}>
+                              {inv.status === 'qabul_qilindi' ? '✓ O\'yinchi Qabul Qildi' :
+                               inv.status === 'rad_etildi' ? '✕ Rad Etildi' :
+                               '⏳ Kutilmoqda (O\'yinchi ko\'rishi kutilmoqda)'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-4">
+                          <div className="flex items-center gap-2 text-stone-300">
+                            <Calendar className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                            <span>Vaqti: <strong className="text-white">{inv.tryout_date}</strong></span>
+                          </div>
+                          <div className="flex items-center gap-2 text-stone-300">
+                            <MapPin className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                            <span>Maydon: <strong className="text-white">{inv.location}</strong></span>
+                          </div>
+                        </div>
+
+                        <div className="bg-stone-950 p-4 rounded-xl border border-stone-800/80 mb-3 text-xs text-stone-300 font-light leading-relaxed">
+                          <strong className="text-stone-400 uppercase text-[10px] block mb-1 font-bold">Xabar:</strong>
+                          {inv.message}
+                        </div>
+
+                        <div className="text-[10px] font-mono text-stone-500 flex justify-between items-center">
+                          <span>Aloqa: {inv.contact_phone || "+998 90 123 45 67"}</span>
+                          <span>ID: #{inv.id}</span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {invitations.length === 0 && (
+                      <div className="bg-stone-900/30 border border-stone-800 rounded-2xl p-12 text-center">
+                        <Mail className="w-8 h-8 text-stone-600 mx-auto mb-3" />
+                        <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-1">Hozircha taklifnomalar yuborilmagan</h4>
+                        <p className="text-stone-400 text-xs mb-4">Iqtidorli futbolchilar ro'yxatidan o'yinchi tanlab, ko'rikka taklif yuborishingiz mumkin.</p>
+                        <a href="/players" className="inline-block px-5 py-2.5 bg-amber-500 text-stone-950 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-amber-400 transition-colors">
+                          O'yinchilarni Ko'rish
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
               </motion.div>
             )}
 

@@ -210,6 +210,20 @@ class ScoutReport(Base):
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+class ScoutInvitation(Base):
+    __tablename__ = "scout_invitations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    scout_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), nullable=False)
+    club_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    title: Mapped[str] = mapped_column(String(150), default="Rasmiy Ko'rikka Taklifnoma")
+    tryout_date: Mapped[str] = mapped_column(String(100), nullable=False)
+    location: Mapped[str] = mapped_column(String(150), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    contact_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    status: Mapped[str] = mapped_column(String(30), default="kutilmoqda") # kutilmoqda, qabul_qilindi, rad_etildi
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class Product(Base):
     __tablename__ = "products"

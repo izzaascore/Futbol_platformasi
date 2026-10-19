@@ -877,6 +877,73 @@ def create_shop_order(order_data: ShopOrderCreate, db: Session = Depends(get_db)
 def get_shop_orders(db: Session = Depends(get_db)):
     return db.query(ShopOrder).order_by(ShopOrder.created_at.desc()).all()
 
+@app.patch("/api/shop/orders/{order_id}/status", response_model=ShopOrderOut, dependencies=[Depends(RequireRole(["admin"]))])
+def update_shop_order_status(order_id: int, status_data: dict, db: Session = Depends(get_db)):
+    order = db.query(ShopOrder).filter(ShopOrder.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Buyurtma topilmadi")
+    new_status = status_data.get("status")
+    if new_status:
+        order.status = new_status
+        db.commit()
+        db.refresh(order)
+    return order
+
+# --- SCOUT INVITATION (TRYOUT) ENDPOINTS ---
+from models import ScoutInvitation
+from schemas import ScoutInvitationCreate, ScoutInvitationOut
+
+@app.post("/api/scout/invitations", response_model=ScoutInvitationOut)
+def create_scout_invitation(
+    data: ScoutInvitationCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    player = db.query(Player).filter(Player.id == data.player_id).first()
+    if not player:
+        raise HTTPException(status_code=404, detail="Futbolchi topilmadi")
+
+    invitation = ScoutInvitation(
+        scout_id=current_user.id,
+        player_id=data.player_id,
+        club_name=data.club_name,
+        title=data.title,
+        tryout_date=data.tryout_date,
+        location=data.location,
+        message=data.message,
+        contact_phone=data.contact_phone or getattr(current_user, 'phone', None) or "+998 90 000 00 00",
+        status="kutilmoqda"
+    )
+    db.add(invitation)
+    db.commit()
+    db.refresh(invitation)
+    return invitation
+
+@app.get("/api/player/{player_id}/invitations", response_model=list[ScoutInvitationOut])
+def get_player_invitations(player_id: int, db: Session = Depends(get_db)):
+    return db.query(ScoutInvitation).filter(ScoutInvitation.player_id == player_id).order_by(ScoutInvitation.created_at.desc()).all()
+
+@app.get("/api/scout/my-invitations", response_model=list[ScoutInvitationOut])
+def get_scout_invitations(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return db.query(ScoutInvitation).filter(ScoutInvitation.scout_id == current_user.id).order_by(ScoutInvitation.created_at.desc()).all()
+
+@app.patch("/api/player/invitations/{invitation_id}/respond", response_model=ScoutInvitationOut)
+def respond_to_invitation(
+    invitation_id: int,
+    data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    inv = db.query(ScoutInvitation).filter(ScoutInvitation.id == invitation_id).first()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Taklifnoma topilmadi")
+    status = data.get("status")
+    if status in ["qabul_qilindi", "rad_etildi"]:
+        inv.status = status
+        db.commit()
+        db.refresh(inv)
+    return inv
+
 # --- TOURNAMENT ENDPOINTS ---
 from schemas import TournamentCreate, TournamentOut, TournamentParticipantCreate, TournamentParticipantOut
 from models import Tournament, TournamentParticipant

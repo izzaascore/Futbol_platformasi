@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { 
     ShieldAlert, Users, Video, AlertOctagon, Trophy, LogOut, CheckCircle, XCircle, Search, Activity, 
     Lock, Key, LineChart, FileText, ShieldCheck, BadgeCheck, UserX, BarChart2, Database, Wrench, 
-    FileClock, MessageSquareWarning, DollarSign, MessageCircle, ShieldX, ChevronDown, ChevronRight
+    FileClock, MessageSquareWarning, DollarSign, MessageCircle, ShieldX, ChevronDown, ChevronRight,
+    ShoppingBag, Truck, Package
 } from 'lucide-react';
 
 import { API_URL } from '../../config';
@@ -139,6 +140,7 @@ export default function AdminPage() {
                     {/* Category: CONTENT & ENTITIES */}
                     <div>
                         <div className="px-6 text-[10px] font-bold uppercase tracking-widest text-[#444] mb-2">Content & Entities</div>
+                        <NavBtn icon={<ShoppingBag />} label="Shop Orders Manager" active={activeTab==='shop_orders'} onClick={() => setActiveTab('shop_orders')} />
                         <NavBtn icon={<Trophy />} label="Tournament Creator" active={activeTab==='tournaments'} onClick={() => setActiveTab('tournaments')} />
                         <NavBtn icon={<FileText />} label="News & Broadcast" active={activeTab==='news'} onClick={() => setActiveTab('news')} />
                         <NavBtn icon={<ShieldCheck />} label="Pro Club Auth" active={activeTab==='clubs'} onClick={() => setActiveTab('clubs')} />
@@ -191,6 +193,7 @@ export default function AdminPage() {
                     <div className="relative z-10 max-w-6xl mx-auto">
                         {activeTab === 'analytics' && <PlaceholderPanel title="Analytics Dashboard" desc="Platforma faolligi statistikasi va real vaqt analitikasi" icon={<LineChart className="w-16 h-16 text-[#333] mb-4" />} />}
                         {activeTab === 'users' && <UsersMonitor />}
+                        {activeTab === 'shop_orders' && <ShopOrdersMonitor />}
                         {activeTab === 'videos' && <ModerationQueue />}
                         {activeTab === 'chat_mod' && <PlaceholderPanel title="Chat Moderation" desc="Skautlar va futbolchilar o'rtasidagi yopiq chatlar nazorati (AI filtrlash)" icon={<MessageCircle className="w-16 h-16 text-[#333] mb-4" />} />}
                         {activeTab === 'disputes' && <DisputeCenter />}
@@ -520,6 +523,172 @@ function TournamentsHub() {
                             <tr>
                                 <td colSpan="5" className="px-6 py-8 text-center text-[#555] text-xs font-bold uppercase tracking-widest">
                                     Mavjud turnirlar yo'q
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </motion.div>
+    );
+}
+
+function ShopOrdersMonitor() {
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const loadOrders = () => {
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+        fetch(`${API_URL}/api/shop/orders`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
+            .then(res => res.json())
+            .then(data => setOrders(Array.isArray(data) ? data : []))
+            .catch(err => {
+                console.error(err);
+                setOrders([]);
+            })
+            .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        loadOrders();
+    }, []);
+
+    const updateStatus = async (orderId, newStatus) => {
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+        try {
+            const res = await fetch(`${API_URL}/api/shop/orders/${orderId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.ok) {
+                loadOrders();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.total_price || 0), 0);
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="flex justify-between items-end mb-8 border-b border-[#1f1f1f] pb-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-white uppercase tracking-tighter flex items-center gap-2">
+                        <ShoppingBag className="w-6 h-6 text-amber-500" /> Do'kon Buyurtmalari Nazorati
+                    </h2>
+                    <p className="text-[#666] text-xs uppercase tracking-widest mt-1">
+                        Saytdan Click, Payme, Uzum va naqd to'lov orqali tushgan xaridlar
+                    </p>
+                </div>
+                <div className="flex gap-4">
+                    <div className="bg-[#111] border border-[#222] px-4 py-2 text-right">
+                        <span className="text-[10px] text-[#666] uppercase tracking-widest block">Jami Tushum</span>
+                        <span className="text-amber-400 font-bold text-sm font-mono">{totalRevenue.toLocaleString('uz-UZ')} UZS</span>
+                    </div>
+                    <div className="bg-[#111] border border-[#222] px-4 py-2 text-right">
+                        <span className="text-[10px] text-[#666] uppercase tracking-widest block">Buyurtmalar</span>
+                        <span className="text-cyan-400 font-bold text-sm font-mono">{orders.length} ta</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-[#0a0a0a] border border-[#1f1f1f]">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-[#111] text-[10px] font-bold text-[#666] uppercase tracking-widest border-b border-[#1f1f1f]">
+                        <tr>
+                            <th className="px-6 py-4">ID</th>
+                            <th className="px-6 py-4">Mijoz / Telefon</th>
+                            <th className="px-6 py-4">Shahar & Manzil</th>
+                            <th className="px-6 py-4">Mahsulotlar</th>
+                            <th className="px-6 py-4">To'lov / Summa</th>
+                            <th className="px-6 py-4 text-center">Status</th>
+                            <th className="px-6 py-4 text-right">Holatni Boshqarish</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#1f1f1f]">
+                        {orders.map(o => {
+                            let items = [];
+                            try { items = JSON.parse(o.items_json); } catch {}
+                            return (
+                                <tr key={o.id} className="hover:bg-[#111] transition-colors">
+                                    <td className="px-6 py-4 font-bold text-amber-500">#{o.id}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="font-bold text-white">{o.customer_name}</div>
+                                        <div className="text-xs text-[#888] font-mono">{o.customer_phone}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-white font-bold">{o.shipping_city}</div>
+                                        <div className="text-xs text-[#777] max-w-[200px] truncate">{o.shipping_address}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="space-y-1">
+                                            {items.map((it, idx) => (
+                                                <div key={idx} className="text-xs text-stone-300">
+                                                    • {it.name} <span className="text-amber-400">({it.qty} dona)</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-amber-400 font-bold font-mono">{o.total_price.toLocaleString('uz-UZ')} UZS</div>
+                                        <span className="text-[10px] uppercase font-bold text-[#666] px-1.5 py-0.5 rounded bg-[#181818] border border-[#222]">{o.payment_method}</span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest border rounded ${
+                                            o.status === 'yetkazildi' ? 'bg-emerald-950/60 text-emerald-400 border-emerald-900' :
+                                            o.status === 'yetkazilmoqda' ? 'bg-sky-950/60 text-sky-400 border-sky-900' :
+                                            o.status === 'qabul_qilindi' ? 'bg-amber-950/60 text-amber-400 border-amber-900' :
+                                            'bg-stone-900 text-stone-400 border-stone-800'
+                                        }`}>
+                                            {o.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-right space-x-1">
+                                        {o.status === 'kutilmoqda' && (
+                                            <button 
+                                                onClick={() => updateStatus(o.id, 'qabul_qilindi')}
+                                                className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-black text-[10px] font-black uppercase tracking-wider rounded"
+                                            >
+                                                Qabul
+                                            </button>
+                                        )}
+                                        {o.status === 'qabul_qilindi' && (
+                                            <button 
+                                                onClick={() => updateStatus(o.id, 'yetkazilmoqda')}
+                                                className="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-black uppercase tracking-wider rounded"
+                                            >
+                                                Kuryerga
+                                            </button>
+                                        )}
+                                        {o.status === 'yetkazilmoqda' && (
+                                            <button 
+                                                onClick={() => updateStatus(o.id, 'yetkazildi')}
+                                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-black text-[10px] font-black uppercase tracking-wider rounded"
+                                            >
+                                                Yetkazildi ✓
+                                            </button>
+                                        )}
+                                        <button 
+                                            onClick={() => updateStatus(o.id, 'bekor_qilindi')}
+                                            className="px-2 py-1 text-red-500 hover:text-red-400 text-[10px] font-bold"
+                                        >
+                                            Bekor
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                        {orders.length === 0 && (
+                            <tr>
+                                <td colSpan="7" className="px-6 py-12 text-center text-[#555] text-xs font-bold uppercase tracking-widest">
+                                    Hozircha do'konda buyurtmalar mavjud emas
                                 </td>
                             </tr>
                         )}

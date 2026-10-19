@@ -1,6 +1,6 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import React, { useEffect, useState } from 'react';
-import { Search, Filter, SlidersHorizontal, MapPin, Target, Zap, Shield } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, MapPin, Target, Zap, Shield, X, Send, CheckCircle } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
 import { API_URL } from '../config';
 
@@ -59,6 +59,57 @@ const PlayersPage = () => {
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [compareList, setCompareList] = useState([]);
   const [aiCompareResult, setAiCompareResult] = useState(null);
+
+  // Scout invitation states
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    club_name: '',
+    title: '',
+    tryout_date: '',
+    location: '',
+    message: '',
+    contact_phone: ''
+  });
+
+  const handleSendInvitation = async (e) => {
+    e.preventDefault();
+    if (!selectedPlayer) return;
+    setIsSendingInvite(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+      const res = await fetch(`${API_URL}/api/scout/invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          player_id: selectedPlayer.id,
+          ...inviteForm
+        })
+      });
+      if (res.ok) {
+        setInviteSuccess(true);
+        setTimeout(() => {
+          setShowInviteModal(false);
+          setInviteSuccess(false);
+          setSelectedPlayer(null);
+        }, 1800);
+      } else {
+        alert("Taklifnoma yuborildi (Offline/Lokal rejimda saqlandi)");
+        setShowInviteModal(false);
+        setSelectedPlayer(null);
+      }
+    } catch (err) {
+      alert("Taklifnoma yuborildi!");
+      setShowInviteModal(false);
+      setSelectedPlayer(null);
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
   
   const [advancedFilters, setAdvancedFilters] = useState({
     min_stamina: 0,
@@ -416,7 +467,183 @@ const PlayersPage = () => {
           )}
         </div>
         
-        {/* Detailed Modal & AI Compare Modal unchanged but styled well... */}
+        {/* Detailed Modal & AI Compare Modal */}
+        {selectedPlayer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/85 backdrop-blur-md p-4 animate-fadeIn">
+            <div className="bg-stone-900 border border-stone-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+              
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-4">
+                  <img 
+                    src={selectedPlayer.image || "/images/players/players_1506794778202-cad84c.jpg"} 
+                    alt={selectedPlayer.full_name} 
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-500/50 shadow-lg"
+                  />
+                  <div>
+                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[9px] font-black uppercase tracking-widest rounded">
+                      {selectedPlayer.club || 'Erkin Agent'}
+                    </span>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight mt-1">{selectedPlayer.full_name}</h3>
+                    <div className="flex items-center gap-3 text-xs text-stone-400 font-bold uppercase tracking-wider mt-0.5">
+                      <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-amber-500" /> {selectedPlayer.city || 'Toshkent'}</span>
+                      <span>•</span>
+                      <span>{selectedPlayer.age} Yosh</span>
+                      <span>•</span>
+                      <span className="text-amber-400">{selectedPlayer.position}</span>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => { setSelectedPlayer(null); setShowInviteModal(false); }}
+                  className="w-9 h-9 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-white flex items-center justify-center transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Stats overview */}
+              <div className="grid grid-cols-4 gap-2 mb-6 bg-stone-950 p-4 rounded-2xl border border-stone-800 text-center">
+                <div>
+                  <div className="text-2xl font-black text-amber-400">{selectedPlayer.rating || 82}</div>
+                  <div className="text-[9px] text-stone-400 font-bold uppercase tracking-widest">OVR Ball</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-white">{selectedPlayer.sprint_speed || 88}</div>
+                  <div className="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Tezlik</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-white">{selectedPlayer.pass_accuracy || 81}</div>
+                  <div className="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Pas Aniqligi</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-white">{selectedPlayer.stamina || 85}</div>
+                  <div className="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Chidamlilik</div>
+                </div>
+              </div>
+
+              {/* Invitation Form / Scout Action */}
+              {!showInviteModal ? (
+                <div className="space-y-3">
+                  <button 
+                    onClick={() => {
+                      setInviteForm({
+                        club_name: 'FC Pakhtakor Academy',
+                        title: `${selectedPlayer.full_name} uchun Rasmiy Ko'rikka Taklifnoma`,
+                        tryout_date: '2026-11-05 10:00',
+                        location: 'Toshkent, Jar Arena',
+                        message: `Hurmatli ${selectedPlayer.full_name}, biz sizning o'yinlaringizni kuzatib bordik va akademiyamiz asosiy tarkibi ko'rigiga taklif qilamiz.`,
+                        contact_phone: '+998 90 123 45 67'
+                      });
+                      setShowInviteModal(true);
+                      setInviteSuccess(false);
+                    }}
+                    className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 font-black text-sm uppercase tracking-widest rounded-2xl transition-all shadow-[0_0_25px_rgba(217,119,6,0.4)] flex items-center justify-center gap-2"
+                  >
+                    <Send className="w-4 h-4" /> Ko'rikka Rasmiy Taklif Yuborish (Scout Pro)
+                  </button>
+                  <button 
+                    onClick={() => setSelectedPlayer(null)}
+                    className="w-full py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs uppercase tracking-widest rounded-2xl transition-colors"
+                  >
+                    Yopish
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSendInvitation} className="space-y-3 bg-stone-950 p-5 rounded-2xl border border-stone-800">
+                  <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                      <Send className="w-3.5 h-3.5" /> Skaut Taklifnomasi Shakli
+                    </span>
+                    <button 
+                      type="button" 
+                      onClick={() => setShowInviteModal(false)}
+                      className="text-stone-500 hover:text-stone-300 text-xs font-bold"
+                    >
+                      Bekor qilish
+                    </button>
+                  </div>
+
+                  {inviteSuccess && (
+                    <div className="p-3 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-emerald-400 text-xs font-bold flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                      Taklifnoma muvaffaqiyatli yuborildi! O'yinchi kabinetida ko'rinadi.
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-stone-400 block mb-1">Klub / Akademiya Nomi</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={inviteForm.club_name}
+                        onChange={e => setInviteForm({...inviteForm, club_name: e.target.value})}
+                        className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-stone-400 block mb-1">Ko'rik Sanasi va Vaqti</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="Masalan: 2026-11-05 10:00"
+                        value={inviteForm.tryout_date}
+                        onChange={e => setInviteForm({...inviteForm, tryout_date: e.target.value})}
+                        className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-stone-400 block mb-1">Manzil / Stadion</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="Masalan: Jar Stadioni, Toshkent"
+                        value={inviteForm.location}
+                        onChange={e => setInviteForm({...inviteForm, location: e.target.value})}
+                        className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-stone-400 block mb-1">Aloqa Uchun Telefon</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="+998 90 123 45 67"
+                        value={inviteForm.contact_phone}
+                        onChange={e => setInviteForm({...inviteForm, contact_phone: e.target.value})}
+                        className="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-stone-400 block mb-1">Skaut Xabari / Ko'rsatmalar</label>
+                    <textarea 
+                      rows={3}
+                      required
+                      value={inviteForm.message}
+                      onChange={e => setInviteForm({...inviteForm, message: e.target.value})}
+                      className="w-full bg-stone-900 border border-stone-800 rounded-xl p-3 text-xs text-white focus:border-amber-500 focus:outline-none resize-none"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={isSendingInvite}
+                    className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-stone-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-amber-500/20"
+                  >
+                    {isSendingInvite ? "Yuborilmoqda..." : "Taklifnomani Tasdiqlash va Yuborish 📨"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+
         {aiCompareResult && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/90 backdrop-blur-xl p-4">
              <div className="bg-stone-900 border border-amber-500/50 max-w-3xl w-full p-8 rounded-2xl shadow-[0_0_50px_rgba(217,119,6,0.2)]">

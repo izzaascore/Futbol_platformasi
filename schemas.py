@@ -246,6 +246,32 @@ class ShopOrderOut(BaseModel):
     class Config:
         from_attributes = True
 
+# --- SCOUT INVITATION SCHEMAS ---
+class ScoutInvitationCreate(BaseModel):
+    player_id: int
+    club_name: str
+    title: str = "Rasmiy Ko'rikka Taklifnoma"
+    tryout_date: str
+    location: str
+    message: str
+    contact_phone: str | None = None
+
+class ScoutInvitationOut(BaseModel):
+    id: int
+    scout_id: int
+    player_id: int
+    club_name: str
+    title: str
+    tryout_date: str
+    location: str
+    message: str
+    contact_phone: str | None = None
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 # --- TOURNAMENT SCHEMAS ---
 class TournamentBase(BaseModel):
     name: str
