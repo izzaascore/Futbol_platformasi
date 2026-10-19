@@ -54,6 +54,7 @@ function PublicLayout({ children }) {
                   <Link to="/stadiums" className="text-[11px] font-bold uppercase tracking-widest text-amber-400 hover:text-white transition-colors flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-amber-500"/> Maydonlar</Link>
                   <Link to="/rankings" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Reyting</Link>
                   <Link to="/tournaments" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Turnirlar</Link>
+                  <Link to="/shop" className="text-[11px] font-bold uppercase tracking-widest text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1.5"><ShoppingBag className="w-3.5 h-3.5"/> Do'kon</Link>
                   <Link to="/live" className="text-[11px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors animate-pulse flex items-center gap-1"><Activity className="w-3 h-3"/> Live Center</Link>
                   <Link to="/manifesto" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Manifest</Link>
               </nav>

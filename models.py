@@ -217,8 +217,25 @@ class Product(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    price: Mapped[int] = mapped_column(Integer, nullable=False, default=0) # Narxi (ball yoki tangada)
+    category: Mapped[str | None] = mapped_column(String(50), default="smart") # smart, equip, kit, boots
+    price: Mapped[int] = mapped_column(Integer, nullable=False, default=0) # Narxi UZS da
     image_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    badge: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    stock: Mapped[int | None] = mapped_column(Integer, default=10)
+
+class ShopOrder(Base):
+    __tablename__ = "shop_orders"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    customer_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    customer_phone: Mapped[str] = mapped_column(String(50), nullable=False)
+    shipping_city: Mapped[str] = mapped_column(String(100), default="Toshkent")
+    shipping_address: Mapped[str] = mapped_column(Text, nullable=False)
+    payment_method: Mapped[str] = mapped_column(String(50), default="click")
+    total_price: Mapped[int] = mapped_column(Integer, nullable=False)
+    items_json: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="kutilmoqda")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class Tournament(Base):
     __tablename__ = "tournaments"

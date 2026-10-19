@@ -206,14 +206,42 @@ class ScoutOut(ScoutBase):
 class ProductBase(BaseModel):
     name: str
     description: str | None = None
+    category: str | None = "smart"
     price: int = 0
     image_url: str | None = None
+    badge: str | None = None
+    stock: int | None = 10
 
 class ProductCreate(ProductBase):
     pass
 
 class ProductOut(ProductBase):
     id: int
+
+    class Config:
+        from_attributes = True
+
+# --- SHOP ORDER SCHEMAS ---
+class ShopOrderCreate(BaseModel):
+    customer_name: str
+    customer_phone: str
+    shipping_city: str = "Toshkent"
+    shipping_address: str
+    payment_method: str = "click"
+    total_price: int
+    items_json: str
+
+class ShopOrderOut(BaseModel):
+    id: int
+    customer_name: str
+    customer_phone: str
+    shipping_city: str
+    shipping_address: str
+    payment_method: str
+    total_price: int
+    items_json: str
+    status: str
+    created_at: datetime
 
     class Config:
         from_attributes = True
