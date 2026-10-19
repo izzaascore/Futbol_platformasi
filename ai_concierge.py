@@ -397,61 +397,11 @@ async def get_sos_callouts_response(api_base_url: str) -> str:
 
 async def get_prematch_ai_response(api_base_url: str, text: str) -> str:
     """
-    Pre-Match AI ehtimollik va tahlilini olib keladi.
+    Match bashorati / stavka so'ralganda to'g'ri futbol etikasi bilan javob beradi.
     """
-    matches = []
-    try:
-        async with httpx.AsyncClient(timeout=4.0) as client:
-            res = await client.get(f"{api_base_url}/matches")
-            if res.status_code == 200:
-                matches = res.json()
-    except Exception:
-        pass
-
-    target_match = None
-    clean = text.lower()
-    for m in matches:
-        if m.get("home_team", "").lower() in clean or m.get("away_team", "").lower() in clean:
-            target_match = m
-            break
-
-    if not target_match and matches:
-        target_match = matches[0]
-
-    if not target_match:
-        return (
-            "🧠 <b>AI Pre-Match Ehtimollik Markazi:</b>\n\n"
-            "Hozirda rejalashtirilgan o'yinlar topilmadi. "
-            "Mini App ichidagi 'Live Center' bo'limi orqali yangi o'yinlarni kuzatishingiz mumkin!"
-        )
-
-    m_id = target_match.get("id")
-    try:
-        async with httpx.AsyncClient(timeout=4.0) as client:
-            res = await client.get(f"{api_base_url}/matches/{m_id}/prematch-ai")
-            if res.status_code == 200:
-                data = res.json()
-                h_team = data.get("home_team")
-                a_team = data.get("away_team")
-                win_h = data.get("win_probability_home")
-                draw = data.get("draw_probability")
-                win_a = data.get("win_probability_away")
-                tactical = data.get("ai_tactical_breakdown", "")
-                comm = data.get("community_votes", {})
-
-                return (
-                    f"🔮 <b>AI Pre-Match Ehtimollik Tahlili:</b>\n\n"
-                    f"⚔️ <b>{h_team} vs {a_team}</b>\n\n"
-                    f"📊 <b>G'alaba Ehtimolligi:</b>\n"
-                    f"🟢 {h_team}: <b>{win_h}%</b>\n"
-                    f"🟡 Durang: <b>{draw}%</b>\n"
-                    f"🔴 {a_team}: <b>{win_a}%</b>\n\n"
-                    f"{tactical}\n\n"
-                    f"👥 <i>Muxlislar ovozi: {comm.get('total_votes', 0)} ta bashorat "
-                    f"({comm.get('home_pct', win_h)}% {h_team} g'alabasiga ishonmoqda).</i>\n\n"
-                    f"👉 <i>O'z hisobingizni bashorat qilish uchun Mini App'dagi 'Match Center'ga o'ting!</i>"
-                )
-    except Exception:
-        pass
-
-    return "⚠️ AI Pre-match tahlilini yuklashda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."
+    return (
+        "⚽️ <b>FootballRise — Haqiqiy Futbol Maydoni!</b>\n\n"
+        "Platformamizda o'yinlar hisobini bashorat qilish yoki stavka tizimlari mavjud emas. "
+        "Bizning asosiy maqsadimiz — yosh iqtidorlarni kashf etish, jamoaga o'yinchi topish va haqiqiy futbol o'ynash!\n\n"
+        "👉 <i>Jonli o'yinlar va turnirlarni Mini App'dagi <b>Match Center</b> bo'limida kuzatishingiz mumkin.</i>"
+    )

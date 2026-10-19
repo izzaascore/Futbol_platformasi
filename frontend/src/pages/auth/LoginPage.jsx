@@ -178,7 +178,7 @@ const LoginPage = () => {
             <input 
               required 
               type="text" 
-              placeholder="Masalan: Sardor"
+              placeholder="Masalan: Abdulbosit"
               value={form.firstName} 
               onChange={e=>setForm({...form, firstName: e.target.value})} 
               className="w-full px-4 py-3 bg-stone-950/80 border border-stone-800 rounded-xl text-white placeholder-stone-600 focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all text-sm" 
