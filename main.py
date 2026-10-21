@@ -304,15 +304,22 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 import httpx
 import asyncio
 
+async def _send_admin_telegram_async(message: str):
+    bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
+    admin_id = os.getenv("ADMIN_TELEGRAM_ID", "").strip()
+    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and admin_id:
+        try:
+            async with httpx.AsyncClient(timeout=4.0) as client:
+                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                await client.post(url, json={"chat_id": admin_id, "text": message, "parse_mode": "HTML"})
+        except Exception:
+            pass
+
 def notify_admin_bot(message: str):
-    # Asinxron xabar yuborish
+    # Non-blocking background notification
     try:
-        # BOT_TOKEN va ADMIN_ID ni o'zgartiring
-        BOT_TOKEN = "BOT_TOKENINGIZNI_YOZING"
-        ADMIN_ID = "SIZNING_TG_ID"
-        if BOT_TOKEN != "BOT_TOKENINGIZNI_YOZING":
-            url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-            httpx.post(url, json={"chat_id": ADMIN_ID, "text": message})
+        loop = asyncio.get_running_loop()
+        loop.create_task(_send_admin_telegram_async(message))
     except Exception:
         pass
 

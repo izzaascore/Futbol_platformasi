@@ -58,8 +58,7 @@ const LegendModal = ({ legendId, onClose }) => {
   if (!legend) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div 
+    <motion.div 
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
         exit={{ opacity: 0 }} 
@@ -168,7 +167,6 @@ const LegendModal = ({ legendId, onClose }) => {
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
   );
 };
 

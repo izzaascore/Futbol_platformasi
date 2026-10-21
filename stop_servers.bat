@@ -1,9 +1,9 @@
 @echo off
-echo Barcha serverlar to'xtatilmoqda...
-powershell -Command "Get-Process | Where-Object {$_.ProcessName -eq 'python' -or $_.ProcessName -eq 'node'} | Stop-Process -Force"
-powershell -Command "netstat -ano | findstr :8000 | ForEach-Object { $pid = $_.Split(' ')[-1]; if($pid -ne '0') { Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue } }"
+echo FootballRise serverlari (port 8000 va 5173) to'xtatilmoqda...
+powershell -Command "8000, 5173 | ForEach-Object { $p = $_; Get-NetTCPConnection -LocalPort $p -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue; Write-Host \"Port $p (PID $($_.OwningProcess)) to'xtatildi.\" } }"
 echo ============================================
-echo Barcha serverlar to'xtatildi!
-echo Endi start.bat ni bosib toza ishga tushiring.
+echo FootballRise serverlari to'xtatildi!
+echo Boshqa Python va Node dasturlaringizga tegilmadi.
+echo Endi start.bat orqali toza ishga tushirishingiz mumkin.
 echo ============================================
 pause

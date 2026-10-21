@@ -191,7 +191,8 @@ def auto_install_module(match: re.Match, context: dict) -> bool:
         "aiofiles": "aiofiles",
     }
     pip_package = pip_name_map.get(module_name, module_name)
-    pip_exe     = BASE_DIR / ".venv" / "Scripts" / "pip.exe"
+    venv_pip = BASE_DIR / ".venv" / ("Scripts" if os.name == "nt" else "bin") / ("pip.exe" if os.name == "nt" else "pip")
+    pip_exe = venv_pip if venv_pip.exists() else "pip"
 
     log.warning(f"[E001] '{module_name}' topilmadi. O'rnatilmoqda: {pip_package}")
 
@@ -446,7 +447,8 @@ def run_server_with_logging():
     Backend FastAPI serverni ishga tushiradi va loglarni ham faylga,
     ham real vaqtda skanerga yo'naltiradi.
     """
-    python_exe = BASE_DIR / ".venv" / "Scripts" / "python.exe"
+    venv_py = BASE_DIR / ".venv" / ("Scripts" if os.name == "nt" else "bin") / ("python.exe" if os.name == "nt" else "python")
+    python_exe = venv_py if venv_py.exists() else sys.executable
     cmd = [
         str(python_exe), "-m", "uvicorn", "main:app",
         "--reload", "--port", "8000",

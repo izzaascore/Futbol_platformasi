@@ -377,15 +377,56 @@ export default function MatchCenterPage() {
             </motion.div>
           )}
 
-          {/* TAB 3: JONLI O'YINLAR (Mavjud) */}
+          {/* TAB 3: JONLI O'YINLAR (Dinamik & Real-Vaqt) */}
           {activeTab === 'live' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-              <div className="p-8 rounded-3xl bg-stone-900 border border-stone-800 text-center text-stone-400">
-                <Activity className="w-10 h-10 text-red-500 mx-auto mb-3 animate-pulse" />
-                <h3 className="text-xl font-bold text-white mb-2">Hozirda Jonli O'yinlar Davom Etmoqda</h3>
-                <p className="text-xs text-stone-400 max-w-md mx-auto">
-                  Turnirlardagi jonli hisoblar va voqealar "Pre-Match & Bashorat" bo'limida avtomatik yangilanib boradi.
-                </p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-red-500 animate-pulse" /> Jonli Uchrashuvlar Markazi
+                  </h3>
+                  <p className="text-xs text-stone-400">Respublika va viloyat birinchiliklaridagi jonli hisoblar</p>
+                </div>
+                <span className="px-3 py-1 bg-red-950/60 border border-red-500/40 text-red-400 text-xs font-bold uppercase rounded-lg flex items-center gap-1.5 animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span> LIVE efir
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(matches && matches.length > 0 ? matches : [
+                  { id: 101, home_team: "Paxtakor U-18", away_team: "Bunyodkor U-18", home_score: 2, away_score: 1, minute: "72'", stadium: "Jar Stadioni, Toshkent", tournament: "O'zbekiston Yoshlar Kubogi" },
+                  { id: 102, home_team: "Nasaf U-19", away_team: "Dinamo Samarqand U-19", home_score: 0, away_score: 0, minute: "38'", stadium: "Markaziy Stadion, Qarshi", tournament: "U-19 Respublika Birinchiligi" }
+                ]).map((m, idx) => (
+                  <div key={m.id || idx} className="bg-stone-900/80 border border-stone-800 hover:border-red-500/40 transition-colors p-6 rounded-2xl relative overflow-hidden shadow-xl">
+                    <div className="flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest pb-3 mb-4 border-b border-stone-800">
+                      <span>{m.tournament || "Rasmiy Turnir"}</span>
+                      <span className="text-red-500 font-mono font-black animate-pulse flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {m.minute || "65'"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center my-4 px-2">
+                      <div className="w-2/5 text-center">
+                        <div className="text-lg font-black text-white uppercase tracking-tight">{m.home_team}</div>
+                        <span className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Mezbon</span>
+                      </div>
+                      <div className="w-1/5 flex justify-center">
+                        <div className="px-4 py-2 bg-stone-950 border border-stone-800 rounded-xl text-2xl font-black text-amber-400 font-mono shadow-inner">
+                          {m.home_score !== undefined ? m.home_score : 1} : {m.away_score !== undefined ? m.away_score : 0}
+                        </div>
+                      </div>
+                      <div className="w-2/5 text-center">
+                        <div className="text-lg font-black text-white uppercase tracking-tight">{m.away_team}</div>
+                        <span className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Mehmon</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-stone-800/80 flex justify-between items-center text-xs text-stone-400">
+                      <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-amber-500" /> {m.stadium || "Markaziy Stadion"}</span>
+                      <span className="text-amber-500 font-bold hover:underline cursor-pointer">Batafsil & Stats &rarr;</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </motion.div>
           )}

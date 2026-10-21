@@ -4,9 +4,9 @@ import { Heart, MessageCircle, Share2, MoreVertical, Play, Pause, ChevronLeft, A
 import { Link } from 'react-router-dom';
 
 const FAKE_REELS = [
-  { id: 1, videoUrl: 'https://cdn.pixabay.com/vimeo/328224345/football-22684.mp4?width=1080&hash=8f8101a91e5e670415302302e260bcba7f9b8c0d', player: 'Umidjon Erkinov', avatar: '/images/players/players_1614632537190-23e414.jpg', club: 'Buxoro U-16', likes: '12.4K', comments: 342, description: "Ajoyib jarima zarbasi! OVR 88 ga bejizga berilmagan 🚀🔥 #football #freekick #talents", ovr: 88, ratingType: 'gold' },
-  { id: 2, videoUrl: 'https://cdn.pixabay.com/vimeo/347454848/soccer-25004.mp4?width=1080&hash=365a6f238b69324d852a4e21a3674681f08f8dd6', player: 'Azizbek Karimov', avatar: '/images/players/players_1506794778202-cad84c.jpg', club: 'Pakhtakor U-19', likes: '8.1K', comments: 120, description: "Mashg'ulotdagi tezlik va aniqlik. Hujumchi pozitsiyasiga moslashuv ⚽️💪", ovr: 84, ratingType: 'silver' },
-  { id: 3, videoUrl: 'https://cdn.pixabay.com/vimeo/154448557/football-2157.mp4?width=1080&hash=a6d45dd6d3f23bb1d33190dfebccfa15cff67b5e', player: 'Jasur Hasanov', avatar: '/images/players/players_1534438327276-14e530.jpg', club: 'Dinamo', likes: '4.5K', comments: 85, description: "Haqiqiy jangchi maydonda! To'pni olib qo'yish bo'yicha mahorat darsi 🛡️", ovr: 79, ratingType: 'bronze' }
+  { id: 1, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-player-kicking-a-football-in-a-stadium-42999-large.mp4', player: 'Umidjon Erkinov', avatar: '/images/players/players_1614632537190-23e414.jpg', club: 'Buxoro U-16', likes: '12.4K', comments: 342, description: "Ajoyib jarima zarbasi! OVR 88 ga bejizga berilmagan 🚀🔥 #football #freekick #talents", ovr: 88, ratingType: 'gold' },
+  { id: 2, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-legs-of-a-soccer-player-controlling-the-ball-43003-large.mp4', player: 'Azizbek Karimov', avatar: '/images/players/players_1506794778202-cad84c.jpg', club: 'Pakhtakor U-19', likes: '8.1K', comments: 120, description: "Mashg'ulotdagi tezlik va aniqlik. Hujumchi pozitsiyasiga moslashuv ⚽️💪", ovr: 84, ratingType: 'silver' },
+  { id: 3, videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-soccer-player-running-on-the-grass-43004-large.mp4', player: 'Jasur Hasanov', avatar: '/images/players/players_1534438327276-14e530.jpg', club: 'Dinamo', likes: '4.5K', comments: 85, description: "Haqiqiy jangchi maydonda! To'pni olib qo'yish bo'yicha mahorat darsi 🛡️", ovr: 79, ratingType: 'bronze' }
 ];
 
 const ReelItem = ({ reel, isActive }) => {
@@ -37,15 +37,24 @@ const ReelItem = ({ reel, isActive }) => {
 
   return (
     <div className="relative w-full h-[100dvh] snap-start bg-black flex justify-center items-center overflow-hidden">
-      {/* Video Element */}
+      {/* Video Element with Poster & Fallback Protection */}
+      <img 
+        src={reel.avatar} 
+        alt={reel.player} 
+        className="absolute inset-0 w-full h-full object-cover blur-sm opacity-50 pointer-events-none" 
+      />
       <video
         ref={videoRef}
         src={reel.videoUrl}
-        className="absolute inset-0 w-full h-full object-cover"
+        poster={reel.avatar}
+        className="absolute inset-0 w-full h-full object-cover z-10"
         loop
         playsInline
         muted={false}
         onClick={togglePlay}
+        onError={(e) => {
+          e.target.style.opacity = '0';
+        }}
       />
       
       {/* Dark Overlay for Text */}
