@@ -39,8 +39,8 @@ const RadarChart = () => {
   );
 };
 
-export default function ScoutsPage() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+export default function ScoutsPage({ initialTab = 'dashboard' }) {
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [invitations, setInvitations] = useState([]);
   const [loadingInvites, setLoadingInvites] = useState(false);
 

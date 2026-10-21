@@ -27,6 +27,45 @@ from security import (
 
 Base.metadata.create_all(bind=engine)
 
+def auto_migrate_db():
+    """
+    Self-healing database schema synchronizer.
+    Ensures existing SQLite / Postgres tables contain newly added model columns
+    without data loss or crashes.
+    """
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        
+        # 1. Products table columns
+        if 'products' in tables:
+            product_cols = [c['name'] for c in inspector.get_columns('products')]
+            with engine.begin() as conn:
+                if 'category' not in product_cols:
+                    conn.execute(text('ALTER TABLE products ADD COLUMN category VARCHAR(50) DEFAULT "smart"'))
+                    print("[Auto-Migration] 'products' jadvaliga 'category' ustuni qo'shildi.")
+                if 'badge' not in product_cols:
+                    conn.execute(text('ALTER TABLE products ADD COLUMN badge VARCHAR(50)'))
+                    print("[Auto-Migration] 'products' jadvaliga 'badge' ustuni qo'shildi.")
+                if 'stock' not in product_cols:
+                    conn.execute(text('ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT 10'))
+                    print("[Auto-Migration] 'products' jadvaliga 'stock' ustuni qo'shildi.")
+
+        # 2. Scout invitations check
+        if 'scout_invitations' in tables:
+            scout_cols = [c['name'] for c in inspector.get_columns('scout_invitations')]
+            with engine.begin() as conn:
+                if 'status' not in scout_cols:
+                    conn.execute(text('ALTER TABLE scout_invitations ADD COLUMN status VARCHAR(30) DEFAULT "kutilmoqda"'))
+                    print("[Auto-Migration] 'scout_invitations' jadvaliga 'status' ustuni qo'shildi.")
+
+    except Exception as e:
+        print(f"[Auto-Migration Notice] {e}")
+
+# Ishga tushganda avtomatik migratsiyani tekshirib bazani yangilab oladi
+auto_migrate_db()
+
 # Production rejimida ichki arxitekturani (Swagger / OpenAPI xaritasini) yashirish (OWASP A05)
 IS_PRODUCTION = (
     os.getenv("ENVIRONMENT", "development").lower() == "production"
@@ -41,8 +80,8 @@ import asyncio
 async def lifespan(app: FastAPI):
     # 24/7 Bulutli Bot: Agar BOT_TOKEN mavjud bo'lsa, botni bitta serverda fonda yurgizamiz!
     bot_task = None
-    bot_token = os.getenv("BOT_TOKEN", "").strip()
-    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890"):
+    bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
+    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and bot_token != "your_bot_token_here":
         try:
             from bot import bot, dp
             print("🚀 Bulutda 24/7 Telegram Bot avtomatik ishga tushirilmoqda...")
@@ -143,8 +182,8 @@ def home():
 @app.post("/api/auth/telegram-webapp")
 def telegram_webapp_auth(tg_data: TelegramAuthRequest, db: Session = Depends(get_db)):
     # 1. Telegram Kriptografik imzo (HMAC-SHA256) tekshiruvi — Soxtalashtirishdan himoya
-    bot_token = os.getenv("BOT_TOKEN", "").strip()
-    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890"):
+    bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
+    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and bot_token != "your_bot_token_here":
         if not tg_data.init_data or not verify_telegram_init_data(tg_data.init_data, bot_token):
             raise HTTPException(
                 status_code=401,
@@ -297,8 +336,7 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(admin_user)
             
-        if admin_user.is_logged_in:
-            raise HTTPException(status_code=403, detail="Boshqa admin tizimda faol! U log out qilmaguncha kirolmaysiz.")
+        # Agar oldingi sessiya ochiq qolgan bo\'lsa, adminni bloklamasdan sessiyani xavfsiz yangilaymiz (Override)
             
         admin_user.is_logged_in = True
         db.commit()
@@ -325,10 +363,21 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
     }
 
 @app.post("/api/auth/logout")
-def logout(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def logout(request: Request, db: Session = Depends(get_db)):
     # Tizimdan chiqish tugmasi bosilganda is_logged_in = False bo'ladi
-    current_user.is_logged_in = False
-    db.commit()
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            from security import decode_access_token
+            payload = decode_access_token(token)
+            user_id = int(payload.get("sub"))
+            user = db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.is_logged_in = False
+                db.commit()
+        except Exception:
+            pass
     return {"message": "Tizimdan muvaffaqiyatli chiqildi (Logged out)"}
 
 @app.patch("/users/{user_id}/profile-image", response_model=UserOut)
@@ -562,6 +611,8 @@ def admin_login(data: dict, db: Session = Depends(get_db)):
             db.add(admin_user)
             db.commit()
             db.refresh(admin_user)
+        admin_user.is_logged_in = True
+        db.commit()
         access_token = create_access_token(data={"sub": str(admin_user.id)})
         return {"access_token": access_token, "token_type": "bearer", "role": admin_user.role, "user": admin_user}
     raise HTTPException(status_code=401, detail="Xato login yoki maxfiy kalit")

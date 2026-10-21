@@ -1,11 +1,17 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./football.db")
+BASE_DIR = Path(__file__).resolve().parent
+DEFAULT_DB_PATH = (BASE_DIR / "football.db").as_posix()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    DATABASE_URL = f"sqlite:///{DEFAULT_DB_PATH}"
 
 # Railway yoki tashqi bulut provayderlari beradigan 'postgres://' prefiksini SQLAlchemy talabiga moslash
 if DATABASE_URL.startswith("postgres://"):

@@ -9,12 +9,18 @@ import {
 
 import { API_URL } from '../../config';
 
-export default function AdminPage() {
+export default function AdminPage({ defaultTab }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [username, setUsername] = useState('');
     const [passkey, setPasskey] = useState('');
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('users');
+    const [activeTab, setActiveTab] = useState(defaultTab || 'users');
+
+    useEffect(() => {
+        if (defaultTab) {
+            setActiveTab(defaultTab);
+        }
+    }, [defaultTab]);
 
     useEffect(() => {
         const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
@@ -52,6 +58,26 @@ export default function AdminPage() {
             }
         } catch (err) {
             setError('Server bilan ulanishda xatolik.');
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+            if (token) {
+                await fetch(`${API_URL}/api/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            }
+        } catch (err) {
+            console.warn("Logout notice:", err);
+        } finally {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('talaqCurrentUser');
+            setIsAuthenticated(false);
         }
     };
 
@@ -170,7 +196,7 @@ export default function AdminPage() {
                     <button className="w-full flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-red-600 bg-red-950/30 hover:bg-red-600 hover:text-black py-3 rounded-sm transition-all border border-red-900/50 hover:border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.2)]">
                         <AlertOctagon className="w-4 h-4" /> Global Kill-Switch
                     </button>
-                    <button onClick={() => setIsAuthenticated(false)} className="w-full flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-red-500/70 hover:bg-red-950/20 py-3 rounded-sm transition-colors border border-transparent hover:border-red-900/30">
+                    <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-red-500/70 hover:bg-red-950/20 py-3 rounded-sm transition-colors border border-transparent hover:border-red-900/30">
                         <LogOut className="w-4 h-4" /> Secure Session Kill
                     </button>
                 </div>

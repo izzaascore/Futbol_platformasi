@@ -21,9 +21,15 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
-RAW_BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
-# Aiogram validatsiyasi uchun to'g'ri formatli zaxira token:
-BOT_TOKEN = RAW_BOT_TOKEN if (RAW_BOT_TOKEN and ":" in RAW_BOT_TOKEN) else "1234567890:AAH_DUMMY_TOKEN_PLEASE_REPLACE"
+RAW_BOT_TOKEN = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
+# Haqiqiy Telegram token borligini tekshirish:
+IS_REAL_TOKEN = bool(
+    RAW_BOT_TOKEN 
+    and ":" in RAW_BOT_TOKEN 
+    and not RAW_BOT_TOKEN.startswith("1234567890") 
+    and RAW_BOT_TOKEN != "your_bot_token_here"
+)
+BOT_TOKEN = RAW_BOT_TOKEN if IS_REAL_TOKEN else "1234567890:AAH_DUMMY_TOKEN_PLEASE_REPLACE"
 # Jonli Railway API manzili:
 API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-dc0f4.up.railway.app")
 # Jonli Vercel Mini App manzili:
@@ -649,15 +655,22 @@ async def adaptive_ai_handler(message: types.Message, state: FSMContext):
 
 
 async def main():
-    print("Bot ishga tushdi...")
-    if BOT_TOKEN and BOT_TOKEN != "BOT_TOKENINGIZNI_YOZING":
-        try:
-            await bot.set_chat_menu_button(
-                menu_button=MenuButtonWebApp(text="Ilova", web_app=WebAppInfo(url=WEBAPP_URL))
-            )
-            print("Telegram Chat Menu tugmasi (Mini App) sozlandi!")
-        except Exception as e:
-            print(f"Chat Menu sozlashda ogohlantirish: {e}")
+    if not IS_REAL_TOKEN:
+        print("[Telegram Bot] Haqiqiy BOT_TOKEN kiritilmagan. Bot sokin kutish rejimida (Graceful Idle).")
+        print("[Eslatma] Botni ishga tushirish uchun .env fayliga BOT_TOKEN=<tokeningiz> ni yozing.")
+        print("[Tizim] Platformaning qolgan barcha qismlari (Backend, Frontend) xatosiz ishlashda davom etmoqda.")
+        while True:
+            await asyncio.sleep(3600)
+        return
+
+    print("[Telegram Bot] Muvaffaqiyatli ishga tushdi...")
+    try:
+        await bot.set_chat_menu_button(
+            menu_button=MenuButtonWebApp(text="Ilova", web_app=WebAppInfo(url=WEBAPP_URL))
+        )
+        print("Telegram Chat Menu tugmasi (Mini App) sozlandi!")
+    except Exception as e:
+        print(f"Chat Menu sozlashda ogohlantirish: {e}")
     await dp.start_polling(bot)
 
 

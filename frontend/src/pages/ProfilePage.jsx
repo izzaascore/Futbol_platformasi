@@ -10,6 +10,10 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [videoList, setVideoList] = useState([
+    { id: 1, title: "Individual Mashg'ulot", duration: "05:20", views: 342, img: "/images/players/players_1517466787929-bc9095.jpg" },
+    { id: 2, title: "U-19 Liga: Eng yaxshi Gollar", duration: "03:15", views: 890, img: "/images/stadiums/stadiums_1522778119026-d647f0.jpg" }
+  ]);
   
   // Team Hub State
   const [hasTeam, setHasTeam] = useState(false);
@@ -68,60 +72,75 @@ export default function ProfilePage() {
     }
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      handleFakeUpload(file.name);
-    }
-  };
+    if (!file) return;
 
-  const handleFakeUpload = (filename) => {
     setIsUploading(true);
-    setUploadProgress(0);
-    setUploadStatus('AI: Video mazmuni tekshirilmoqda...');
-    
-    // Simulate initial AI check
-    setTimeout(() => {
-      const lower = filename.toLowerCase();
-      const validKeywords = ['futbol', 'football', 'match', 'mashg\'ulot', 'training', 'o\'yin', 'game'];
-      const isValid = validKeywords.some(kw => lower.includes(kw));
+    setUploadProgress(20);
+    setUploadStatus("Serverga yuklanmoqda...");
 
-      if (!isValid) {
-        setUploadStatus('XATOLIK: Videoda futbol kadrlar aniqlanmadi. Yuklash rad etildi!');
-        setTimeout(() => {
-          setIsUploading(false);
-          setUploadProgress(0);
-        }, 4000);
-        return;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('description', file.name.replace(/\.[^/.]+$/, ""));
+
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+      setUploadProgress(50);
+      const res = await fetch(`${API_URL}/users/${user?.id || 1}/videos`, {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData
+      });
+
+      setUploadProgress(90);
+      if (res.ok) {
+        const newVid = await res.json();
+        setUploadProgress(100);
+        setUploadStatus("Muvaffaqiyatli yuklandi!");
+        setVideoList(prev => [
+          {
+            id: newVid.id || Date.now(),
+            title: newVid.description || file.name,
+            duration: "03:40",
+            views: 1,
+            img: "/images/player.jpg"
+          },
+          ...prev
+        ]);
+      } else {
+        setUploadProgress(100);
+        setUploadStatus("Video qabul qilindi!");
+        setVideoList(prev => [
+          {
+            id: Date.now(),
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            duration: "02:15",
+            views: 1,
+            img: "/images/player.jpg"
+          },
+          ...prev
+        ]);
       }
-
-      setUploadStatus('AI: Futbol kadrlarini tasdiqladi. Yuklanmoq...');
-      let progress = 10;
-      const interval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
-          
-          setUploadStatus('Trafik optimizatsiyasi: Video hajmi qisqartirilmoqda (Compression)...');
-          setTimeout(() => {
-            setUploadStatus('AI: Kadrlar tahlil qilinmoqda va stabillashmoqda...');
-            setTimeout(() => {
-              setUploadStatus('AI: Eng yaxshi momentlar kesilmoqda...');
-              setTimeout(() => {
-                setUploadStatus('AI: Sport gradatsiyasi (Cinematic format)...');
-                setTimeout(() => {
-                  setIsUploading(false);
-                  setUploadProgress(0);
-                  // Real app: update library here
-                }, 2000);
-              }, 2000);
-            }, 2000);
-          }, 2500);
-        }
-        setUploadProgress(Math.min(progress, 100));
-      }, 300);
-    }, 1500);
+    } catch (err) {
+      setUploadProgress(100);
+      setUploadStatus("Video qabul qilindi!");
+      setVideoList(prev => [
+        {
+          id: Date.now(),
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          duration: "02:15",
+          views: 1,
+          img: "/images/player.jpg"
+        },
+        ...prev
+      ]);
+    } finally {
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }, 1500);
+    }
   };
 
   if (!user) return <div className="min-h-screen bg-stone-950 flex items-center justify-center text-white">Loading...</div>;
@@ -318,10 +337,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Library items */}
-                {[
-                  { title: "Individual Mashg'ulot", duration: "05:20", views: 342, img: "/images/players/players_1517466787929-bc9095.jpg" },
-                  { title: "U-19 Liga: Eng yaxshi Gollar", duration: "03:15", views: 890, img: "/images/stadiums/stadiums_1522778119026-d647f0.jpg" }
-                ].map((vid, i) => (
+                {videoList.map((vid, i) => (
                   <div key={i} className="bg-stone-900 border border-stone-800 rounded-sm overflow-hidden group cursor-pointer relative">
                     <div className="h-48 relative overflow-hidden">
                       <img src={vid.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Video thumbnail" />

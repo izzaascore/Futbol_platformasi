@@ -53,7 +53,7 @@ const PlayersPage = () => {
   const [ageFilter, setAgeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
   
   const [isScoutPro, setIsScoutPro] = useState(false);
   const [isCompareMode, setIsCompareMode] = useState(false);
@@ -139,11 +139,7 @@ const PlayersPage = () => {
         setLoading(false);
       });
 
-    const handleGlobalMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
+
   }, []);
 
   const filteredPlayers = players.filter(p => {
@@ -417,7 +413,7 @@ const PlayersPage = () => {
                       <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-30">
                         <div className={`flex flex-col items-center justify-center w-14 h-16 rounded-xl shadow-2xl backdrop-blur-md border ${player.rating >= 85 ? 'bg-amber-500/20 border-amber-400/50' : 'bg-stone-900/60 border-stone-700/50'}`}>
                           <span className={`font-black text-2xl leading-none ${player.rating >= 85 ? 'text-amber-400' : 'text-white'}`}>
-                            {player.rating || (Math.floor(Math.random() * 20) + 70)}
+                            {player.rating || (75 + ((player.id * 7) % 15))}
                           </span>
                           <span className="text-[9px] uppercase tracking-widest text-stone-300 mt-1 font-bold">OVR</span>
                         </div>

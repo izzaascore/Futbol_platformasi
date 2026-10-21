@@ -27,6 +27,7 @@ import MatchCenterPage from './pages/MatchCenterPage';
 import ReelsPage from './pages/ReelsPage';
 import ManifestoPage from './pages/ManifestoPage';
 import StadiumsPage from './pages/StadiumsPage';
+import DailyDrillsPage from './pages/DailyDrillsPage';
 
 // Public layout wrapper for normal pages (like Home, News, etc.)
 function PublicLayout({ children }) {
@@ -35,7 +36,7 @@ function PublicLayout({ children }) {
   const user = userStr ? JSON.parse(userStr) : null;
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-talaq-light text-[#292524] overflow-x-hidden">
+    <div className="min-h-screen flex flex-col font-sans bg-[#050505] text-stone-200 overflow-x-hidden">
       <header className="bg-stone-950/90 backdrop-blur-xl sticky top-0 z-40 border-b border-stone-800 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
               <Link to="/" className="flex items-center gap-3 cursor-pointer group">
@@ -178,19 +179,22 @@ function App() {
         <Route path="/reels" element={<PublicLayout><ReelsPage /></PublicLayout>} />
         <Route path="/shop" element={<PublicLayout><ShopPage /></PublicLayout>} />
         <Route path="/news" element={<PublicLayout><NewsPage /></PublicLayout>} />
+        <Route path="/drills" element={<PublicLayout><DailyDrillsPage /></PublicLayout>} />
         
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<AdminDashboard defaultTab="users" />} />
+            <Route path="submissions" element={<AdminDashboard defaultTab="submissions" />} />
         </Route>
 
         {/* Scout Routes */}
         <Route element={<ProtectedRoute allowedRoles={['scout']} />}>
             <Route path="/scout" element={<ScoutLayout />}>
-                <Route path="dashboard" element={<ScoutDashboard />} />
+                <Route path="dashboard" element={<ScoutsPage initialTab="dashboard" />} />
                 <Route path="search" element={<PlayersPage />} />
-                <Route path="reports" element={<div className="text-white">Reports here</div>} />
+                <Route path="reports" element={<ScoutsPage initialTab="reports" />} />
             </Route>
         </Route>
 
@@ -198,6 +202,7 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['player']} />}>
             <Route path="/player" element={<PlayerLayout />}>
                 <Route path="dashboard" element={<PlayerDashboard />} />
+                <Route path="drills" element={<DailyDrillsPage />} />
                 <Route path="reels" element={<ReelsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
             </Route>

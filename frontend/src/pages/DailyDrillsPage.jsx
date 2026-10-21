@@ -17,14 +17,52 @@ export default function DailyDrillsPage() {
         fetchDrills();
     }, []);
 
+    const FALLBACK_DRILLS = [
+        {
+            id: 1,
+            title: "Konuslar orasida tezkor slalom dribling",
+            duration: "15 daqiqa",
+            description: "To'pni har ikki oyoqda ichki va tashqi tomoni bilan nazorat qilish, tor maydonda tezkor burilishlar.",
+            instructions: "5 ta konusni 1 metr oraliqda joylashtiring. To'pni maksimal tezlikda ilonizi shaklida olib o'ting. 5 seriya takrorlang.",
+            difficulty: "O'rta",
+            xp: 150
+        },
+        {
+            id: 2,
+            title: "Devor bilan 'Bir teginish' pas mashqi",
+            duration: "10 daqiqa",
+            description: "To'pni to'xtatmasdan devorga qaytarish va birinchi teginish sifatini oshirish.",
+            instructions: "Devordan 3-4 metr masofada turing. To'pni ketma-ket o'ng va chap oyoqda zarba bilan devorga bering. 100 ta aniq pas.",
+            difficulty: "Boshlang'ich",
+            xp: 100
+        },
+        {
+            id: 3,
+            title: "30 metrli portlovchi sprint va burilish",
+            duration: "20 daqiqa",
+            description: "Futbolda start tezligini va yakkama-yakka kurashda ajralib chiqish qobiliyatini rivojlantirish.",
+            instructions: "10m, 20m, 30m masofalarga maksimal tezlikda sprint qiling, qaytishda asta sekin yuring. 6 marta takrorlang.",
+            difficulty: "Yuqori",
+            xp: 200
+        }
+    ];
+
     const fetchDrills = async () => {
         try {
             const res = await fetch(`${API_URL}/drills`);
-            const data = await res.json();
-            setDrills(data);
-            if (data.length > 0) setActiveDrill(data[0]);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    setDrills(data);
+                    setActiveDrill(data[0]);
+                    return;
+                }
+            }
+            setDrills(FALLBACK_DRILLS);
+            setActiveDrill(FALLBACK_DRILLS[0]);
         } catch (error) {
-            console.error("Xato:", error);
+            setDrills(FALLBACK_DRILLS);
+            setActiveDrill(FALLBACK_DRILLS[0]);
         } finally {
             setLoading(false);
         }

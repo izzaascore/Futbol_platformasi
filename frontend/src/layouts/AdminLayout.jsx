@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { ShieldHalf, LogOut, LayoutDashboard, Users, Video } from 'lucide-react';
+import { API_URL } from '../config';
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -11,13 +12,26 @@ const AdminLayout = () => {
   try { user = userStr ? JSON.parse(userStr) : null; } catch(e) {}
   const isAuthenticated = token && (role === 'admin' || user?.role === 'admin');
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('talaqCurrentUser');
-    navigate('/admin');
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      if (token) {
+        await fetch(`${API_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Backend logout notice:", err);
+    } finally {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('talaqCurrentUser');
+      navigate('/admin');
+      window.location.reload();
+    }
   };
 
   if (!isAuthenticated) {
