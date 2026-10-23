@@ -334,10 +334,6 @@ function UsersMonitor() {
 function ModerationQueue() {
     const [subs, setSubs] = useState([]);
     
-    useEffect(() => {
-        fetchSubs();
-    }, []);
-    
     const fetchSubs = () => {
         const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
         fetch(`${API_URL}/api/admin/submissions`, {
@@ -350,6 +346,10 @@ function ModerationQueue() {
                 setSubs([]);
             });
     };
+
+    useEffect(() => {
+        fetchSubs();
+    }, []);
     
     const handleAction = async (id, action) => {
         try {

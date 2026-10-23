@@ -39,13 +39,17 @@ function PublicLayout({ children }) {
     <div className="min-h-screen flex flex-col font-sans bg-[#050505] text-stone-200 overflow-x-hidden">
       <header className="bg-stone-950/90 backdrop-blur-xl sticky top-0 z-40 border-b border-stone-800 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-3 cursor-pointer group">
-                  <div className="w-10 h-10 rounded-sm bg-stone-900 border border-stone-700 flex items-center justify-center text-amber-500 group-hover:border-amber-500 group-hover:bg-amber-500/10 transition-colors shadow-lg shadow-amber-500/20">
-                      <ShieldHalf className="w-5 h-5" />
+              <Link to="/" className="flex items-center gap-3 cursor-pointer group mr-8 lg:mr-12 flex-shrink-0">
+                  <div className="w-11 h-11 rounded-full border border-stone-700 overflow-hidden bg-black/60 p-0.5 flex items-center justify-center shadow-lg group-hover:border-emerald-500/60 transition-colors">
+                      <img src="/images/futuro_crest.jpg" alt="Futuro Logo" className="w-full h-full object-cover rounded-full" />
                   </div>
-                  <div className="hidden sm:flex flex-col justify-center">
-                      <span className="text-xl font-bold tracking-tighter text-white uppercase leading-none">Football<span className="text-amber-500">Rise</span></span>
-                      <span className="text-[9px] font-bold text-stone-500 uppercase tracking-widest mt-1">Professional Tizim</span>
+                  <div className="flex flex-col justify-center">
+                      <span className="text-xl font-extrabold tracking-tight text-white flex items-center gap-0.5 leading-none">
+                        FUTUR<span className="text-emerald-400">⚽</span>
+                      </span>
+                      <span className="text-[9px] font-semibold text-stone-400 tracking-wider mt-1 leading-tight">
+                        Your future is in your own hands
+                      </span>
                   </div>
               </Link>
 
@@ -71,7 +75,7 @@ function PublicLayout({ children }) {
                     </Link>
                   </>
                 ) : (
-                  <Link to={`/${user.role}/dashboard`} className="flex items-center gap-3 group bg-stone-900 border border-stone-800 hover:border-amber-500/50 pl-3 pr-4 py-2 rounded-sm transition-colors text-white text-xs uppercase tracking-widest font-bold">
+                  <Link to={`/${user.role || 'player'}/dashboard`} className="flex items-center gap-3 group bg-stone-900 border border-stone-800 hover:border-amber-500/50 pl-3 pr-4 py-2 rounded-sm transition-colors text-white text-xs uppercase tracking-widest font-bold">
                     Dashboard
                   </Link>
                 )}
@@ -88,7 +92,7 @@ function PublicLayout({ children }) {
       </main>
 
       <footer className="bg-stone-950 py-8 text-center text-stone-500 text-xs font-bold uppercase tracking-widest pb-24 md:pb-8 flex flex-col items-center justify-center gap-2">
-        <div>FootballRise &copy; {new Date().getFullYear()}</div>
+        <div>Futuro &copy; {new Date().getFullYear()}</div>
         <Link to="/admin" className="text-[10px] text-stone-700 hover:text-amber-500 transition-colors flex items-center gap-1 font-mono lowercase tracking-normal">
           <span>🔒 Boshqaruv (Admin Terminal)</span>
         </Link>
@@ -112,7 +116,7 @@ function PublicLayout({ children }) {
           <MapPin className="w-5 h-5 text-amber-500" />
           <span>Maydonlar</span>
         </Link>
-        <Link to={user ? `/${user.role}/dashboard` : "/login"} className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-amber-500 p-2">
+        <Link to={user ? `/${user.role || 'player'}/dashboard` : "/login"} className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-amber-500 p-2">
           <User className="w-5 h-5" />
           <span>{user ? "Profil" : "Kirish"}</span>
         </Link>

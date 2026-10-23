@@ -15,9 +15,10 @@ const TiltCard = ({ children, className, onClick }) => {
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
   
   const handleMouseMove = (e) => {
+    if (!e?.currentTarget) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
+    const width = rect.width || 1;
+    const height = rect.height || 1;
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     const xPct = mouseX / width - 0.5;
@@ -54,7 +55,7 @@ const PlayersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isScoutPro, setIsScoutPro] = useState(false);
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [compareList, setCompareList] = useState([]);
@@ -127,10 +128,18 @@ const PlayersPage = () => {
   ];
 
   useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
+  }, []);
+
+  useEffect(() => {
     fetch(`${API_URL}/players`)
       .then(res => res.json())
       .then(data => {
-        setPlayers(data.length > 0 ? data : fallbackPlayers);
+        setPlayers(Array.isArray(data) && data.length > 0 ? data : fallbackPlayers);
         setLoading(false);
       })
       .catch(err => {
@@ -138,19 +147,21 @@ const PlayersPage = () => {
         setPlayers(fallbackPlayers);
         setLoading(false);
       });
-
-
   }, []);
 
-  const filteredPlayers = players.filter(p => {
-    const matchPos = filter === 'all' || p.position === filter;
-    const matchSearch = p.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredPlayers = (players || []).filter(p => {
+    if (!p) return false;
+    const pos = (p.position || '').toLowerCase();
+    const matchPos = filter === 'all' || pos === filter || (filter === 'hujumchi' && pos.includes('hujum')) || (filter === 'yarimhimoyachi' && (pos.includes('yarim') || pos.includes('midfield'))) || (filter === 'himoyachi' && pos.includes('himoya'));
+    const name = (p.full_name || '').toLowerCase();
+    const matchSearch = !searchQuery || name.includes(searchQuery.toLowerCase());
     
     let matchAge = true;
-    if (ageFilter === 'u14') matchAge = p.age <= 14;
-    else if (ageFilter === 'u16') matchAge = p.age > 14 && p.age <= 16;
-    else if (ageFilter === 'u18') matchAge = p.age > 16 && p.age <= 18;
-    else if (ageFilter === 'u21') matchAge = p.age > 18 && p.age <= 21;
+    const age = Number(p.age) || 16;
+    if (ageFilter === 'u14') matchAge = age <= 14;
+    else if (ageFilter === 'u16') matchAge = age > 14 && age <= 16;
+    else if (ageFilter === 'u18') matchAge = age > 16 && age <= 18;
+    else if (ageFilter === 'u21') matchAge = age > 18 && age <= 21;
 
     let matchAdvanced = true;
     if (isScoutPro) {
@@ -192,7 +203,7 @@ const PlayersPage = () => {
         {/* Dynamic Glowing Follower */}
         <div 
           className="pointer-events-none fixed inset-0 z-0 opacity-10 mix-blend-screen transition-all duration-300"
-          style={{ background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(217, 119, 6, 0.2), transparent 40%)` }}
+          style={{ background: `radial-gradient(800px circle at ${mousePosition?.x ?? 0}px ${mousePosition?.y ?? 0}px, rgba(217, 119, 6, 0.2), transparent 40%)` }}
         />
 
         {/* Cinematic Header */}

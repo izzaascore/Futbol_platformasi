@@ -13,7 +13,8 @@ import {
   Filter, 
   Sparkles,
   ChevronRight,
-  Flame
+  Flame,
+  X
 } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
 import { API_URL } from '../config';

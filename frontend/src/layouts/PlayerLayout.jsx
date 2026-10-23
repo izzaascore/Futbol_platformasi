@@ -9,6 +9,9 @@ const PlayerLayout = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('talaqCurrentUser');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('adminToken');
     navigate('/login');
   };
 
