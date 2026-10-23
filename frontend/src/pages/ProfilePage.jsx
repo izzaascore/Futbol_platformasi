@@ -6,7 +6,8 @@ import { API_URL } from '../config';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('videos');
+  const [activeTab, setActiveTab] = useState('performance');
+  const [pitchFilter, setPitchFilter] = useState('shots');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
@@ -433,17 +434,338 @@ export default function ProfilePage() {
             </motion.div>
           )}
 
-          {/* OVERVIEW TAB */}
-          {activeTab === 'overview' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center items-center h-64 text-stone-500 uppercase font-bold tracking-widest">
-              Overview section details...
-            </motion.div>
-          )}
-          
-          {/* PERFORMANCE TAB */}
-          {activeTab === 'performance' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center items-center h-64 text-stone-500 uppercase font-bold tracking-widest">
-              Performance & Analytics details...
+          {/* PERFORMANCE TAB: Deep Player Stat (Inter Milan / Icardi Style) */}
+          {(activeTab === 'performance' || activeTab === 'overview') && (
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+              
+              {/* MAIN HERO CARD: Player Cutout + Numbers + Bio + 6 Circular Bubbles + Radar */}
+              <div className="bg-[#080d14] border border-cyan-500/20 rounded-3xl p-6 lg:p-10 relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 blur-[100px] pointer-events-none rounded-full" />
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                  
+                  {/* Left: Player Cutout & Number */}
+                  <div className="lg:col-span-5 flex flex-col sm:flex-row items-center gap-6">
+                    <div className="relative w-48 h-64 sm:w-56 sm:h-72 rounded-2xl overflow-hidden bg-gradient-to-b from-cyan-950/40 via-stone-900 to-black border border-cyan-500/30 flex items-end justify-center shadow-2xl">
+                      <img 
+                        src={user.profile_image || "/images/players/players_1506794778202-cad84c.jpg"} 
+                        alt="Player Portrait" 
+                        className="w-full h-full object-cover object-top filter contrast-105"
+                      />
+                      <div className="absolute top-3 left-3 px-2 py-0.5 bg-cyan-500/20 border border-cyan-400 text-cyan-300 text-[10px] font-black uppercase rounded">
+                        Capitano (C)
+                      </div>
+                    </div>
+
+                    <div className="flex-1 text-center sm:text-left">
+                      <div className="flex items-center justify-center sm:justify-start gap-2 text-cyan-400 font-black">
+                        <span className="text-6xl sm:text-7xl font-black font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-cyan-400">
+                          9
+                        </span>
+                        <span className="text-xs uppercase tracking-widest text-cyan-500 font-bold border border-cyan-500/40 px-1.5 py-0.5 rounded">
+                          PRO
+                        </span>
+                      </div>
+                      
+                      <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight leading-tight mt-1">
+                        {user.first_name} {user.last_name || ''}
+                      </h2>
+                      <div className="text-sm font-extrabold text-cyan-400 uppercase tracking-widest mt-1">
+                        ATTACCANTE / HUJUMCHI
+                      </div>
+
+                      <div className="text-xs text-stone-400 space-y-1 mt-3">
+                        <p>Millati: <span className="text-white font-semibold">O'zbekiston</span></p>
+                        <p>Tug'ilgan yili: <span className="text-white font-semibold">{user.age ? `${2026 - user.age} (${user.age} yosh)` : '2007 (19 yosh)'}</span></p>
+                        <p>Bo'yi / Vazni: <span className="text-white font-semibold">182 cm / 74 kg</span></p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-cyan-500/20 text-cyan-400 font-serif italic text-lg opacity-80">
+                        ✍️ {user.first_name} {user.last_name?.[0]}.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Center & Right: 6 Circular Stat Bubbles + Radar */}
+                  <div className="lg:col-span-7 flex flex-col gap-6">
+                    
+                    {/* 6 Circular Bubbles (Presenze, Titolare, Minuti, Gol, Assist, Cartellini) */}
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0c131f] border border-cyan-500/20 text-center shadow-lg">
+                        <span className="text-2xl font-black text-white font-mono">33</span>
+                        <span className="text-[9px] uppercase tracking-wider text-cyan-400 font-bold mt-1">O'yinlar</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0c131f] border border-cyan-500/20 text-center shadow-lg">
+                        <span className="text-2xl font-black text-white font-mono">30</span>
+                        <span className="text-[9px] uppercase tracking-wider text-cyan-400 font-bold mt-1">Asosiy</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0c131f] border border-cyan-500/20 text-center shadow-lg">
+                        <span className="text-xl font-black text-white font-mono">2,695'</span>
+                        <span className="text-[9px] uppercase tracking-wider text-cyan-400 font-bold mt-1">Daqiqalar</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-cyan-950/40 border border-cyan-400/50 text-center shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                        <span className="text-2xl font-black text-cyan-300 font-mono">16</span>
+                        <span className="text-[9px] uppercase tracking-wider text-cyan-300 font-extrabold mt-1">Gollar</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0c131f] border border-cyan-500/20 text-center shadow-lg">
+                        <span className="text-2xl font-black text-white font-mono">5</span>
+                        <span className="text-[9px] uppercase tracking-wider text-cyan-400 font-bold mt-1">Assist</span>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#0c131f] border border-cyan-500/20 text-center shadow-lg">
+                        <div className="flex gap-1 items-center">
+                          <span className="w-3 h-4 bg-yellow-400 rounded-sm inline-block"></span>
+                          <span className="text-xs font-bold text-white">3</span>
+                          <span className="w-3 h-4 bg-red-500 rounded-sm inline-block ml-1"></span>
+                          <span className="text-xs font-bold text-white">0</span>
+                        </div>
+                        <span className="text-[9px] uppercase tracking-wider text-stone-400 font-bold mt-1">Kartochka</span>
+                      </div>
+                    </div>
+
+                    {/* Pentagon Radar Chart (SVG) */}
+                    <div className="bg-[#0b121d] border border-cyan-500/20 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-6">
+                      <div className="flex-1 space-y-2">
+                        <div className="text-xs uppercase font-black tracking-widest text-cyan-400 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                          Taktik Radar Ko'rsatkichlari
+                        </div>
+                        <p className="text-xs text-stone-400 leading-relaxed">
+                          Hujumchining individual mahorati: yuqori tezlik, so'nggi zarba berish aniqligi va yakkakurashlardagi g'alaba koeffitsienti.
+                        </p>
+                        <div className="flex gap-4 pt-2 text-xs">
+                          <div><span className="text-stone-500 font-bold">OVR:</span> <span className="text-cyan-400 font-black">88</span></div>
+                          <div><span className="text-stone-500 font-bold">Tezlik:</span> <span className="text-white font-black">92%</span></div>
+                          <div><span className="text-stone-500 font-bold">Zarba:</span> <span className="text-white font-black">88%</span></div>
+                        </div>
+                      </div>
+
+                      {/* SVG Radar Polygon */}
+                      <div className="w-48 h-48 relative flex items-center justify-center flex-shrink-0">
+                        <svg viewBox="0 0 200 200" className="w-full h-full">
+                          {/* Background Grid Circles */}
+                          <polygon points="100,20 176,75 147,165 53,165 24,75" fill="none" stroke="rgba(6,182,212,0.15)" strokeWidth="1" />
+                          <polygon points="100,50 145,85 128,135 72,135 55,85" fill="none" stroke="rgba(6,182,212,0.1)" strokeWidth="1" />
+                          
+                          {/* Radial lines */}
+                          <line x1="100" y1="100" x2="100" y2="20" stroke="rgba(6,182,212,0.2)" strokeWidth="1" />
+                          <line x1="100" y1="100" x2="176" y2="75" stroke="rgba(6,182,212,0.2)" strokeWidth="1" />
+                          <line x1="100" y1="100" x2="147" y2="165" stroke="rgba(6,182,212,0.2)" strokeWidth="1" />
+                          <line x1="100" y1="100" x2="53" y2="165" stroke="rgba(6,182,212,0.2)" strokeWidth="1" />
+                          <line x1="100" y1="100" x2="24" y2="75" stroke="rgba(6,182,212,0.2)" strokeWidth="1" />
+
+                          {/* Dynamic Stat Polygon: (Pace: 92%, Shoot: 88%, Pass: 82%, Dribble: 89%, Physical: 84%) */}
+                          <polygon 
+                            points="100,26 166,83 139,155 61,155 32,83" 
+                            fill="rgba(6, 182, 212, 0.3)" 
+                            stroke="#06b6d4" 
+                            strokeWidth="2.5" 
+                          />
+                          {/* Nodes */}
+                          <circle cx="100" cy="26" r="3.5" fill="#ffffff" />
+                          <circle cx="166" cy="83" r="3.5" fill="#ffffff" />
+                          <circle cx="139" cy="155" r="3.5" fill="#ffffff" />
+                          <circle cx="61" cy="155" r="3.5" fill="#ffffff" />
+                          <circle cx="32" cy="83" r="3.5" fill="#ffffff" />
+
+                          {/* Labels */}
+                          <text x="100" y="14" fill="#a5f3fc" fontSize="9" fontWeight="bold" textAnchor="middle">TEZLIK</text>
+                          <text x="184" y="78" fill="#a5f3fc" fontSize="9" fontWeight="bold">ZARBA</text>
+                          <text x="152" y="180" fill="#a5f3fc" fontSize="9" fontWeight="bold">PAS</text>
+                          <text x="48" y="180" fill="#a5f3fc" fontSize="9" fontWeight="bold" textAnchor="end">DRIBLING</text>
+                          <text x="16" y="78" fill="#a5f3fc" fontSize="9" fontWeight="bold" textAnchor="end">KURASH</text>
+                        </svg>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+
+              {/* LOWER SECTION: 2D Pitch Event Visualizer (Left) + Detailed Tactical Metrics (Right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* 2D Pitch / Heatmap & Shots Field */}
+                <div className="lg:col-span-7 bg-[#080d14] border border-cyan-500/20 rounded-3xl p-6 shadow-xl">
+                  
+                  {/* Pitch Filter Tabs */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/5">
+                    <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
+                      <Target className="w-5 h-5 text-cyan-400" /> Maydondagi Faollik Xaritasi
+                    </h3>
+                    
+                    <div className="flex gap-1.5 bg-stone-900/90 border border-stone-800 p-1 rounded-xl text-xs font-bold">
+                      <button 
+                        onClick={() => setPitchFilter('shots')}
+                        className={`px-3 py-1.5 rounded-lg transition-all ${pitchFilter === 'shots' ? 'bg-cyan-500 text-black' : 'text-stone-400 hover:text-white'}`}
+                      >
+                        Zarbalar (16)
+                      </button>
+                      <button 
+                        onClick={() => setPitchFilter('heatmap')}
+                        className={`px-3 py-1.5 rounded-lg transition-all ${pitchFilter === 'heatmap' ? 'bg-cyan-500 text-black' : 'text-stone-400 hover:text-white'}`}
+                      >
+                        Heatmap
+                      </button>
+                      <button 
+                        onClick={() => setPitchFilter('passes')}
+                        className={`px-3 py-1.5 rounded-lg transition-all ${pitchFilter === 'passes' ? 'bg-cyan-500 text-black' : 'text-stone-400 hover:text-white'}`}
+                      >
+                        Paslar
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 2D Football Pitch Canvas */}
+                  <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-950 via-emerald-900/80 to-emerald-950 border-2 border-emerald-500/30 p-4 shadow-inner flex items-center justify-center">
+                    
+                    {/* Pitch markings (SVG) */}
+                    <svg viewBox="0 0 600 360" className="w-full h-full stroke-emerald-300/40 fill-none stroke-[2]">
+                      {/* Boundary */}
+                      <rect x="20" y="20" width="560" height="320" rx="8" />
+                      {/* Halfway line & Center Circle */}
+                      <line x1="300" y1="20" x2="300" y2="340" />
+                      <circle cx="300" cy="180" r="50" />
+                      <circle cx="300" cy="180" r="3" fill="rgba(167,243,208,0.6)" />
+                      {/* Left Goal Area */}
+                      <rect x="20" y="90" width="90" height="180" />
+                      <rect x="20" y="130" width="35" height="100" />
+                      <circle cx="85" cy="180" r="3" fill="rgba(167,243,208,0.6)" />
+                      {/* Right Goal Area */}
+                      <rect x="490" y="90" width="90" height="180" />
+                      <rect x="545" y="130" width="35" height="100" />
+                      <circle cx="515" cy="180" r="3" fill="rgba(167,243,208,0.6)" />
+                    </svg>
+
+                    {/* Dynamic Dots based on Pitch Filter */}
+                    {pitchFilter === 'shots' && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        {/* Goals inside right penalty box */}
+                        <div className="absolute top-[42%] right-[15%] w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_15px_#22d3ee] border-2 border-white animate-pulse" title="Gol 1" />
+                        <div className="absolute top-[55%] right-[18%] w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_15px_#22d3ee] border-2 border-white animate-pulse" title="Gol 2" />
+                        <div className="absolute top-[35%] right-[22%] w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_15px_#22d3ee] border-2 border-white animate-pulse" title="Gol 3" />
+                        <div className="absolute top-[62%] right-[12%] w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_15px_#22d3ee] border-2 border-white animate-pulse" title="Gol 4" />
+                        <div className="absolute top-[48%] right-[8%] w-5 h-5 rounded-full bg-yellow-400 shadow-[0_0_20px_#facc15] border-2 border-white animate-ping" title="Super Gol" />
+                        {/* Shots saved / blocked */}
+                        <div className="absolute top-[28%] right-[28%] w-3 h-3 rounded-full bg-rose-500/80 border border-white" title="Darvoza to'sini" />
+                        <div className="absolute top-[68%] right-[25%] w-3 h-3 rounded-full bg-rose-500/80 border border-white" title="Bloklangan" />
+                      </div>
+                    )}
+
+                    {pitchFilter === 'heatmap' && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute top-[35%] right-[15%] w-40 h-32 bg-amber-500/30 blur-2xl rounded-full" />
+                        <div className="absolute top-[40%] right-[25%] w-32 h-24 bg-red-500/35 blur-xl rounded-full" />
+                        <div className="absolute top-[50%] right-[35%] w-24 h-20 bg-emerald-500/25 blur-lg rounded-full" />
+                      </div>
+                    )}
+
+                    {pitchFilter === 'passes' && (
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        <div className="text-xs font-mono text-cyan-300 bg-black/60 px-4 py-2 rounded-xl border border-cyan-500/30">
+                          Pass aniqligi: 84.6% · 412 muvaffaqiyatli uzatma
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+
+                  {/* Pitch Legend */}
+                  <div className="flex items-center justify-between text-xs text-stone-400 mt-4 px-2">
+                    <div className="flex items-center gap-4">
+                      <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Gollar (16)</span>
+                      <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Noaniq zarbalar (8)</span>
+                    </div>
+                    <span className="text-cyan-400 font-mono font-bold">Hujum Yo'nalishi &rarr;</span>
+                  </div>
+
+                </div>
+
+                {/* Tactical Analytics Grid (Goal Breakdown + Pass Compass + Speed) */}
+                <div className="lg:col-span-5 flex flex-col gap-6">
+                  
+                  {/* Goal Breakdown (O'ng oyoq, Chap oyoq, Bosh) */}
+                  <div className="bg-[#080d14] border border-cyan-500/20 rounded-3xl p-6 shadow-xl">
+                    <h4 className="text-sm font-black text-white uppercase tracking-wider mb-4 flex items-center justify-between">
+                      <span>Gollar Tuzilishi</span>
+                      <span className="text-cyan-400 font-mono text-xs">Jami: 16 Gol</span>
+                    </h4>
+
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div className="bg-[#0c131f] border border-stone-800 p-3 rounded-2xl">
+                        <div className="text-2xl font-black text-white font-mono">8</div>
+                        <div className="text-[10px] uppercase font-bold text-cyan-400 mt-1">O'ng Oyoq</div>
+                        <div className="text-[9px] text-stone-500">50%</div>
+                      </div>
+                      <div className="bg-[#0c131f] border border-stone-800 p-3 rounded-2xl">
+                        <div className="text-2xl font-black text-white font-mono">4</div>
+                        <div className="text-[10px] uppercase font-bold text-cyan-400 mt-1">Chap Oyoq</div>
+                        <div className="text-[9px] text-stone-500">25%</div>
+                      </div>
+                      <div className="bg-[#0c131f] border border-stone-800 p-3 rounded-2xl">
+                        <div className="text-2xl font-black text-white font-mono">4</div>
+                        <div className="text-[10px] uppercase font-bold text-cyan-400 mt-1">Bosh bilan</div>
+                        <div className="text-[9px] text-stone-500">25%</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pass Compass & Movement */}
+                  <div className="bg-[#080d14] border border-cyan-500/20 rounded-3xl p-6 shadow-xl flex-1 flex flex-col justify-between">
+                    <h4 className="text-sm font-black text-white uppercase tracking-wider mb-4 flex items-center justify-between">
+                      <span>To'p Uzatish Yo'nalishlari</span>
+                      <span className="text-cyan-400 font-mono text-xs">Taktik Kompas</span>
+                    </h4>
+
+                    {/* Compass Grid */}
+                    <div className="relative w-40 h-40 mx-auto my-2 flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full border border-cyan-500/20 border-dashed" />
+                      <div className="absolute top-1 text-center font-mono font-bold text-xs text-cyan-300">
+                        <div>Oldinga</div>
+                        <div className="text-white font-black text-sm">34.6%</div>
+                      </div>
+                      <div className="absolute bottom-1 text-center font-mono font-bold text-xs text-stone-400">
+                        <div className="text-white font-black text-sm">14.4%</div>
+                        <div>Orqaga</div>
+                      </div>
+                      <div className="absolute left-0 text-left font-mono font-bold text-xs text-stone-300">
+                        <div>Chapga</div>
+                        <div className="text-cyan-400 font-black">24.3%</div>
+                      </div>
+                      <div className="absolute right-0 text-right font-mono font-bold text-xs text-stone-300">
+                        <div>O'ngga</div>
+                        <div className="text-cyan-400 font-black">26.6%</div>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-300 font-bold text-xs">
+                        ⚽
+                      </div>
+                    </div>
+
+                    {/* Running & Stamina Stats */}
+                    <div className="pt-4 border-t border-white/5 grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <span className="text-stone-400 block">O'rtacha Masofa:</span>
+                        <span className="text-white font-black text-sm font-mono">11.2 km / o'yin</span>
+                      </div>
+                      <div>
+                        <span className="text-stone-400 block">Maksimal Tezlik:</span>
+                        <span className="text-cyan-400 font-black text-sm font-mono">33.4 km/soat</span>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
             </motion.div>
           )}
 
