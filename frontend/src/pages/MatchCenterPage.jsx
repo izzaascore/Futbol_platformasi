@@ -10,6 +10,10 @@ import { API_URL } from '../config';
 
 export default function MatchCenterPage() {
   const [activeTab, setActiveTab] = useState('sos');
+  const userStr = localStorage.getItem('talaqCurrentUser');
+  let currentUser = null;
+  try { currentUser = userStr ? JSON.parse(userStr) : null; } catch(e) {}
+  const isAdmin = currentUser?.role === 'admin' || localStorage.getItem('role') === 'admin';
   const [matches, setMatches] = useState([]);
   const [selectedMatch, setSelectedMatch] = useState(null);
 
@@ -176,12 +180,14 @@ export default function MatchCenterPage() {
                   </p>
                 </div>
 
-                <button
-                  onClick={() => setShowCalloutModal(true)}
-                  className="px-5 py-3 bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-red-600/30 whitespace-nowrap"
-                >
-                  <PlusCircle className="w-4 h-4" /> + O'yinga E'lon Berish
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => setShowCalloutModal(true)}
+                    className="px-5 py-3 bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-red-600/30 whitespace-nowrap"
+                  >
+                    <PlusCircle className="w-4 h-4" /> + O'yinga E'lon Berish (Admin)
+                  </button>
+                )}
               </div>
 
               {calloutSuccess && (
@@ -392,11 +398,15 @@ export default function MatchCenterPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(matches && matches.length > 0 ? matches : [
-                  { id: 101, home_team: "Paxtakor U-18", away_team: "Bunyodkor U-18", home_score: 2, away_score: 1, minute: "72'", stadium: "Jar Stadioni, Toshkent", tournament: "O'zbekiston Yoshlar Kubogi" },
-                  { id: 102, home_team: "Nasaf U-19", away_team: "Dinamo Samarqand U-19", home_score: 0, away_score: 0, minute: "38'", stadium: "Markaziy Stadion, Qarshi", tournament: "U-19 Respublika Birinchiligi" }
-                ]).map((m, idx) => (
+              {(!matches || matches.length === 0) ? (
+                <div className="py-16 bg-stone-900/40 border border-stone-800 rounded-2xl text-center flex flex-col items-center justify-center p-8">
+                  <Activity className="w-12 h-12 text-stone-600 mb-4" />
+                  <h4 className="text-xl font-bold text-white mb-2">Hozirda jonli o'yinlar mavjud emas</h4>
+                  <p className="text-stone-400 text-sm max-w-md">Rasmiy uchrashuvlar boshlanganda ushbu bo'limda real-vaqt rejimida hisoblar va voqealar namoyish etiladi.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {matches.map((m, idx) => (
                   <div key={m.id || idx} className="bg-stone-900/80 border border-stone-800 hover:border-red-500/40 transition-colors p-6 rounded-2xl relative overflow-hidden shadow-xl">
                     <div className="flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest pb-3 mb-4 border-b border-stone-800">
                       <span>{m.tournament || "Rasmiy Turnir"}</span>
@@ -427,7 +437,8 @@ export default function MatchCenterPage() {
                     </div>
                   </div>
                 ))}
-              </div>
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -436,7 +447,7 @@ export default function MatchCenterPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 { name: "O'zbekiston Yoshlar Kubogi", teams: 16, status: "Pley-off bosqichi", img: "/images/stadiums/stadiums_1574629810360-7efbb6.jpg" },
-                { name: "Toshkent Chempionati U-18", teams: 12, status: "3-Tur", img: "/images/players/players_1518605368461-1ee7e5.jpg" }
+                { name: "Toshkent Chempionati U-18", teams: 12, status: "3-Tur", img: "/images/stadiums/stadiums_1522778119026-d647f0.jpg" }
               ].map((t, i) => (
                 <div key={i} className="relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-stone-800">
                   <img src={t.img} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" alt="Tournament"/>
