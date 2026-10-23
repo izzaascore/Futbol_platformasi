@@ -37,53 +37,74 @@ function PublicLayout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-[#050505] text-stone-200 overflow-x-hidden">
-      <header className="bg-stone-950/90 backdrop-blur-xl sticky top-0 z-40 border-b border-stone-800 shadow-2xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-              <Link to="/" className="flex items-center gap-3 cursor-pointer group mr-8 lg:mr-12 flex-shrink-0">
-                  <div className="w-11 h-11 rounded-full border border-stone-700 overflow-hidden bg-black/60 p-0.5 flex items-center justify-center shadow-lg group-hover:border-emerald-500/60 transition-colors">
+      <header className="bg-stone-950/95 backdrop-blur-xl sticky top-0 z-40 border-b border-stone-800/80 shadow-2xl">
+          <div className="w-full max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-10 h-20 flex items-center justify-between gap-6">
+              
+              {/* BRAND: Logo + Futuro */}
+              <Link to="/" className="flex items-center gap-3.5 cursor-pointer group flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full border border-stone-700/80 overflow-hidden bg-black/60 p-0.5 flex items-center justify-center shadow-lg group-hover:border-emerald-500/60 transition-colors">
                       <img src="/images/futuro_crest.jpg" alt="Futuro Logo" className="w-full h-full object-cover rounded-full" />
                   </div>
                   <div className="flex flex-col justify-center">
-                      <span className="text-xl font-extrabold tracking-tight text-white flex items-center gap-0.5 leading-none">
+                      <span className="text-2xl font-black tracking-tight text-white flex items-center gap-1 leading-none">
                         FUTUR<span className="text-emerald-400">⚽</span>
                       </span>
-                      <span className="text-[9px] font-semibold text-stone-400 tracking-wider mt-1 leading-tight">
+                      <span className="text-[10px] font-semibold text-stone-400 tracking-wider mt-1 leading-tight whitespace-nowrap">
                         Your future is in your own hands
                       </span>
                   </div>
               </Link>
 
-              <nav className="hidden xl:flex items-center space-x-6">
-                  <Link to="/" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Bosh sahifa</Link>
-                  <Link to="/players" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">O'yinchilar</Link>
-                  <Link to="/stadiums" className="text-[11px] font-bold uppercase tracking-widest text-amber-400 hover:text-white transition-colors flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-amber-500"/> Maydonlar</Link>
-                  <Link to="/rankings" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Reyting</Link>
-                  <Link to="/tournaments" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Turnirlar</Link>
-                  <Link to="/shop" className="text-[11px] font-bold uppercase tracking-widest text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1.5"><ShoppingBag className="w-3.5 h-3.5"/> Do'kon</Link>
-                  <Link to="/live" className="text-[11px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400 transition-colors animate-pulse flex items-center gap-1"><Activity className="w-3 h-3"/> Live Center</Link>
-                  <Link to="/manifesto" className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-white transition-colors">Manifest</Link>
+              {/* NAV: Qirrasi yo'q to'g'ri to'rtburchak kapsulalar (Rounded Rectangles) */}
+              <nav className="hidden xl:flex items-center gap-2.5 flex-wrap justify-center">
+                  <Link to="/" className="px-4 py-2 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-stone-600 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all shadow-sm">
+                    Bosh sahifa
+                  </Link>
+                  <Link to="/players" className="px-4 py-2 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-emerald-500/40 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all shadow-sm">
+                    O'yinchilar
+                  </Link>
+                  <Link to="/stadiums" className="px-4 py-2 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-amber-500/40 hover:bg-stone-800 text-amber-400 hover:text-white text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all flex items-center gap-1.5 shadow-sm">
+                    <MapPin className="w-3.5 h-3.5 text-amber-500" /> Maydonlar
+                  </Link>
+                  <Link to="/rankings" className="px-4 py-2 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-stone-600 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all shadow-sm">
+                    Reyting
+                  </Link>
+                  <Link to="/tournaments" className="px-4 py-2 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-stone-600 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all shadow-sm">
+                    Turnirlar
+                  </Link>
+                  <Link to="/shop" className="px-4 py-2 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-amber-500/40 hover:bg-stone-800 text-amber-500 hover:text-amber-400 text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all flex items-center gap-1.5 shadow-sm">
+                    <ShoppingBag className="w-3.5 h-3.5" /> Do'kon
+                  </Link>
+                  <Link to="/live" className="px-4 py-2 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-red-500/40 hover:bg-stone-800 text-red-500 hover:text-red-400 text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all flex items-center gap-1.5 shadow-sm">
+                    <Activity className="w-3 h-3 text-red-500 animate-pulse" /> Live Center
+                  </Link>
+                  <Link to="/manifesto" className="px-4 py-2 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-stone-600 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all shadow-sm">
+                    Manifest
+                  </Link>
               </nav>
 
-              <div className="flex items-center gap-4">
+              {/* AUTH BUTTONS: Rounded Rectangles */}
+              <div className="flex items-center gap-3 flex-shrink-0">
                 {!user ? (
                   <>
-                    <Link to="/login" className="px-6 py-2.5 rounded-sm text-stone-400 hover:text-white font-bold text-[11px] uppercase tracking-widest transition-all">
+                    <Link to="/login" className="px-5 py-2.5 rounded-xl border border-stone-800 hover:border-stone-600 bg-stone-900/50 hover:bg-stone-800 text-stone-300 hover:text-white font-bold text-xs uppercase tracking-wider transition-all">
                         Kirish
                     </Link>
-                    <Link to="/register" className="px-6 py-2.5 rounded-sm bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(217,119,6,0.3)] transition-all">
+                    <Link to="/register" className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(217,119,6,0.35)] transition-all">
                         Ro'yxatdan O'tish
                     </Link>
                   </>
                 ) : (
-                  <Link to={`/${user.role || 'player'}/dashboard`} className="flex items-center gap-3 group bg-stone-900 border border-stone-800 hover:border-amber-500/50 pl-3 pr-4 py-2 rounded-sm transition-colors text-white text-xs uppercase tracking-widest font-bold">
+                  <Link to={`/${user.role || 'player'}/dashboard`} className="flex items-center gap-2 bg-stone-900 border border-stone-700 hover:border-amber-500/50 px-5 py-2.5 rounded-xl transition-colors text-white text-xs uppercase tracking-wider font-bold shadow-md">
                     Dashboard
                   </Link>
                 )}
                 
-                <button className="xl:hidden p-2 text-stone-400 hover:text-white transition-colors" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                <button className="xl:hidden p-2.5 rounded-xl bg-stone-900 border border-stone-800 text-stone-400 hover:text-white transition-colors" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                     <Menu className="w-6 h-6" />
                 </button>
               </div>
+
           </div>
       </header>
 
