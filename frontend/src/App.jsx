@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { ShieldHalf, Menu, X, Activity, Flame, Home, Users, Search, Target, ShoppingBag, User, MapPin, Trophy, LogOut } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
+import FeedbackModal from './components/FeedbackModal';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
@@ -49,7 +51,6 @@ function PublicLayout({ children }) {
     { to: '/stadiums', label: 'Maydonlar', icon: <MapPin className="w-3.5 h-3.5 text-white" /> },
     { to: '/rankings', label: 'Reyting' },
     { to: '/tournaments', label: 'Turnirlar' },
-    { to: '/shop', label: "Do'kon", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
     { 
       to: '/live', 
       label: 'Jonli Efir', 
@@ -301,7 +302,7 @@ function PublicLayout({ children }) {
               </h4>
               <ul className="flex flex-col gap-2.5 text-xs text-stone-400">
                 <li><Link to="/live" className="hover:text-red-400 transition flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Jonli Efir</Link></li>
-                <li><Link to="/shop" className="hover:text-white transition">Futuro Do'koni</Link></li>
+                <li><Link to="/news" className="hover:text-white transition">Yangiliklar va Media</Link></li>
                 <li><Link to="/manifesto" className="hover:text-white transition">Bizning Manifest</Link></li>
                 <li><Link to="/drills" className="hover:text-white transition">Kunlik mashg'ulotlar</Link></li>
               </ul>
@@ -351,6 +352,9 @@ function PublicLayout({ children }) {
           <span>{user ? "Profil" : "Kirish"}</span>
         </Link>
       </nav>
+
+      {/* Reusable Floating Feedback Modal */}
+      <FeedbackModal />
 
     </div>
   );
@@ -444,6 +448,7 @@ function App() {
         </Route>
 
       </Routes>
+      <Analytics />
     </BrowserRouter>
   );
 }

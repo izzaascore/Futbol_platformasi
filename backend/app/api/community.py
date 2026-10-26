@@ -1,13 +1,13 @@
 import os
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user, RequireRole
 from app.models import (
-    ShowcaseEvent, VideoBattle, VideoBattleEntry, Referee,
-    Academy, Player, Stadium, User, UserRole
+    ShowcaseEvent, VideoBattle, VideoBattleEntry, VideoBattleVote, Referee,
+    Academy, Player, Stadium, User, UserRole, Feedback
 )
 from app.schemas import (
     ShowcaseEventCreate, ShowcaseEventOut,
@@ -15,7 +15,8 @@ from app.schemas import (
     VideoBattleEntryCreate, VideoBattleEntryOut,
     RefereeCreate, RefereeOut,
     AcademyCreate, AcademyOut,
-    StadiumCreate, StadiumOut
+    StadiumCreate, StadiumOut,
+    FeedbackCreate, FeedbackOut, FeedbackStatusUpdate
 )
 
 router = APIRouter(tags=["Community and Stadiums"])
@@ -58,7 +59,11 @@ def get_video_battles(db: Session = Depends(get_db)):
     return db.query(VideoBattle).all()
 
 @router.post("/video-battles/entries", response_model=VideoBattleEntryOut)
-def add_video_battle_entry(entry_data: VideoBattleEntryCreate, db: Session = Depends(get_db)):
+def add_video_battle_entry(
+    entry_data: VideoBattleEntryCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     entry = VideoBattleEntry(**entry_data.model_dump())
     db.add(entry)
     db.commit()
@@ -70,13 +75,35 @@ def get_video_battle_entries(battle_id: int, db: Session = Depends(get_db)):
     return db.query(VideoBattleEntry).filter(VideoBattleEntry.battle_id == battle_id).order_by(VideoBattleEntry.votes.desc()).all()
 
 @router.post("/video-battles/entries/{entry_id}/vote")
-def vote_video_battle_entry(entry_id: int, db: Session = Depends(get_db)):
+def vote_video_battle_entry(
+    entry_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     entry = db.query(VideoBattleEntry).filter(VideoBattleEntry.id == entry_id).first()
     if not entry:
-        raise HTTPException(status_code=404, detail="Entry not found")
+        raise HTTPException(status_code=404, detail="Bellashuv ishtirokchisi topilmadi")
+    
+    # Xavfsizlik: Har bir foydalanuvchi faqat 1 marta ovoz berishi mumkin
+    existing_vote = db.query(VideoBattleVote).filter(
+        VideoBattleVote.battle_id == entry.battle_id,
+        VideoBattleVote.user_id == current_user.id
+    ).first()
+    if existing_vote:
+        raise HTTPException(
+            status_code=400,
+            detail="Siz ushbu bellashuvda allaqachon ovoz bergansiz! Har bir foydalanuvchiga bitta ovoz berish imkoni beriladi."
+        )
+
+    vote_record = VideoBattleVote(
+        battle_id=entry.battle_id,
+        entry_id=entry.id,
+        user_id=current_user.id
+    )
+    db.add(vote_record)
     entry.votes += 1
     db.commit()
-    return {"message": "Voted successfully", "votes": entry.votes}
+    return {"message": "Ovozingiz muvaffaqiyatli qabul qilindi!", "votes": entry.votes}
 
 # Referees
 @router.post("/referees", response_model=RefereeOut, dependencies=[Depends(RequireRole(["admin"]))])
@@ -92,7 +119,7 @@ def get_referees(db: Session = Depends(get_db)):
     return db.query(Referee).all()
 
 @router.post("/referees/{ref_id}/rate")
-def rate_referee(ref_id: int, rating: float, db: Session = Depends(get_db)):
+def rate_referee(ref_id: int, rating: float, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     ref = db.query(Referee).filter(Referee.id == ref_id).first()
     if not ref:
         raise HTTPException(status_code=404, detail="Hakam topilmadi")
@@ -117,7 +144,7 @@ def get_academies(db: Session = Depends(get_db)):
     return db.query(Academy).all()
 
 @router.post("/academies/{acad_id}/rate")
-def rate_academy(acad_id: int, rating: float, db: Session = Depends(get_db)):
+def rate_academy(acad_id: int, rating: float, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     acad = db.query(Academy).filter(Academy.id == acad_id).first()
     if not acad:
         raise HTTPException(status_code=404, detail="Akademiya topilmadi")
@@ -348,4 +375,86 @@ def create_stadium(
     db.commit()
     db.refresh(stadium)
     return stadium
+
+# --- FOYDALANUVCHILAR FIKRI VA TAKLIFLARI (FEEDBACK API) ---
+
+@router.post("/api/feedback", response_model=FeedbackOut)
+def submit_feedback(
+    fb_data: FeedbackCreate,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    msg = fb_data.message.strip()
+    if not msg or len(msg) < 3:
+        raise HTTPException(status_code=400, detail="Fikr matni kamida 3 belgidan iborat bo'lishi kerak!")
+
+    user_id = None
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            from app.core.security import decode_access_token
+            payload = decode_access_token(token)
+            user_id = int(payload.get("sub"))
+        except Exception:
+            pass
+
+    feedback = Feedback(
+        user_id=user_id,
+        author_name=fb_data.author_name,
+        contact=fb_data.contact,
+        category=fb_data.category or "taklif",
+        page_url=fb_data.page_url,
+        message=msg,
+        status="yangi"
+    )
+    db.add(feedback)
+    db.commit()
+    db.refresh(feedback)
+
+    # Admin telegram botiga xabar yuborish
+    try:
+        from app.api.auth import notify_admin_bot
+        notify_admin_bot(
+            f"📢 <b>Yangi platforma fikri / taklifi!</b>\n\n"
+            f"<b>Tur:</b> {feedback.category.upper()}\n"
+            f"<b>Muallif:</b> {feedback.author_name or 'Anonim'}\n"
+            f"<b>Aloqa:</b> {feedback.contact or 'Kiritilmagan'}\n"
+            f"<b>Sahifa:</b> {feedback.page_url or '-'}\n"
+            f"<b>Matn:</b> {feedback.message}"
+        )
+    except Exception:
+        pass
+
+    return feedback
+
+@router.get("/api/admin/feedback", response_model=list[FeedbackOut], dependencies=[Depends(RequireRole(["admin"]))])
+def get_admin_feedbacks(
+    status: str | None = None,
+    category: str | None = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(Feedback)
+    if status and status != "all":
+        query = query.filter(Feedback.status == status)
+    if category and category != "all":
+        query = query.filter(Feedback.category == category)
+    return query.order_by(Feedback.created_at.desc()).all()
+
+@router.patch("/api/admin/feedback/{feedback_id}", response_model=FeedbackOut, dependencies=[Depends(RequireRole(["admin"]))])
+def update_feedback_status(
+    feedback_id: int,
+    update_data: FeedbackStatusUpdate,
+    db: Session = Depends(get_db)
+):
+    feedback = db.query(Feedback).filter(Feedback.id == feedback_id).first()
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Fikr topilmadi")
+    if update_data.status:
+        feedback.status = update_data.status
+    if update_data.admin_notes is not None:
+        feedback.admin_notes = update_data.admin_notes
+    db.commit()
+    db.refresh(feedback)
+    return feedback
 

@@ -91,9 +91,22 @@ def telegram_webapp_auth(tg_data: TelegramAuthRequest, db: Session = Depends(get
 @router.post("/api/auth/register", response_model=UserOut)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     if user_data.email:
-        existing_email = db.query(User).filter(User.email == user_data.email).first()
+        clean_email = user_data.email.strip().lower()
+        existing_email = db.query(User).filter(User.email == clean_email).first()
         if existing_email:
-            raise HTTPException(status_code=400, detail="Email allaqachon ro'yxatdan o'tgan")
+            raise HTTPException(status_code=400, detail="Ushbu email allaqachon ro'yxatdan o'tgan")
+
+    if user_data.username:
+        clean_username = user_data.username.strip().lower()
+        existing_username = db.query(User).filter(User.username == clean_username).first()
+        if existing_username:
+            raise HTTPException(status_code=400, detail="Ushbu foydalanuvchi nomi (username) allaqachon band!")
+
+    if user_data.phone:
+        clean_phone = user_data.phone.strip()
+        existing_phone = db.query(User).filter(User.phone == clean_phone).first()
+        if existing_phone:
+            raise HTTPException(status_code=400, detail="Ushbu telefon raqami allaqachon ro'yxatdan o'tgan!")
     
     user_dict = user_data.model_dump()
     password = user_dict.pop("password")
@@ -105,6 +118,11 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     
     # XAVFSIZLIK: Ommaviy ro'yxatdan o'tish orqali Admin roliga ega bo'lish qat'iy taqiqlanadi
     requested_role = str(user_dict.get("role", "player")).lower()
+    if requested_role in ["admin", "superadmin", "administrator"]:
+        raise HTTPException(status_code=403, detail="Admin roliga ommaviy ro'yxatdan o'tish qat'iyan taqiqlangan! Faqat server orqali o'rnatiladi.")
+    if requested_role not in ["player", "scout"]:
+        raise HTTPException(status_code=400, detail="Faqat 'player' yoki 'scout' roli bilan ro'yxatdan o'tish mumkin")
+
     if requested_role == "scout":
         user_dict["role"] = UserRole.SCOUT
         user_dict["status"] = UserStatus.PENDING
@@ -178,22 +196,63 @@ def notify_admin_bot(message: str):
 
 @router.post("/api/auth/login")
 def login(login_data: UserLogin, db: Session = Depends(get_db)):
-    # Xavfsiz avtorizatsiya: Parol hashini qat'iy tekshirish
     query = db.query(User)
-    
-    # 1. Email orqali yoki Ism + Familiya orqali qidirish
-    if login_data.email:
+    user = None
+
+    # 1. Unikal username orqali qidirish
+    if login_data.username:
+        u_term = login_data.username.strip().lower()
+        user = query.filter(User.username == u_term).first()
+        if not user:
+            user = query.filter((User.email == u_term) | (User.phone == login_data.username.strip())).first()
+
+    # 2. Email orqali qidirish
+    elif login_data.email:
         user = query.filter(User.email == login_data.email.strip().lower()).first()
-    elif login_data.firstName and login_data.lastName:
+
+    # 3. Telefon orqali qidirish
+    elif login_data.phone:
+        user = query.filter(User.phone == login_data.phone.strip()).first()
+
+    # 4. Umumiy identifikator (username / email / phone)
+    elif login_data.identifier:
+        ident = login_data.identifier.strip()
         user = query.filter(
-            User.first_name.ilike(login_data.firstName.strip()),
-            User.last_name.ilike(login_data.lastName.strip())
+            (User.username == ident.lower()) |
+            (User.email == ident.lower()) |
+            (User.phone == ident)
         ).first()
+
+    # 5. Ism + Familiya orqali qidirish (eski foydalanuvchilar va orqaga moslik uchun)
+    elif login_data.firstName and login_data.lastName:
+        fn = login_data.firstName.strip()
+        ln = login_data.lastName.strip()
+        matches = query.filter(
+            User.first_name.ilike(fn),
+            User.last_name.ilike(ln)
+        ).all()
+
+        if len(matches) == 1:
+            user = matches[0]
+        elif len(matches) > 1:
+            # Bir xil ism-familiyali to'qnashuv: paroli to'g'ri kelgan foydalanuvchini aniqlash
+            for candidate in matches:
+                if verify_password(login_data.password, candidate.password_hash):
+                    user = candidate
+                    break
+            if not user:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Bir nechta hisob topildi. Iltimos, unikal username yoki email orqali kiring."
+                )
     else:
-        raise HTTPException(status_code=400, detail="Ism va familiya yoki email kiritilishi shart!")
+        raise HTTPException(
+            status_code=400,
+            detail="Foydalanuvchi nomi (username), email, telefon yoki ism-familiya kiritilishi shart!"
+        )
 
     if not user or not verify_password(login_data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Ism, familiya yoki parol noto'g'ri!")
+        raise HTTPException(status_code=401, detail="Login yoki parol noto'g'ri!")
 
     if user.status == UserStatus.BANNED:
         raise HTTPException(status_code=403, detail="Hisobingiz ma'muriyat tomonidan bloklangan!")

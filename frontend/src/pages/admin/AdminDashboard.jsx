@@ -4,7 +4,7 @@ import {
     ShieldAlert, Users, Video, AlertOctagon, Trophy, LogOut, CheckCircle, XCircle, Search, Activity, 
     Lock, Key, LineChart, FileText, ShieldCheck, BadgeCheck, UserX, BarChart2, Database, Wrench, 
     FileClock, MessageSquareWarning, DollarSign, MessageCircle, ShieldX, ChevronDown, ChevronRight,
-    ShoppingBag, Truck, Package
+    ShoppingBag, Truck, Package, MessageSquarePlus
 } from 'lucide-react';
 
 import { API_URL } from '../../config';
@@ -160,6 +160,7 @@ export default function AdminPage({ defaultTab }) {
                         <div className="px-6 text-[10px] font-bold uppercase tracking-widest text-[#444] mb-2">Moderation</div>
                         <NavBtn icon={<Video />} label="Verification Queue" active={activeTab==='videos'} onClick={() => setActiveTab('videos')} />
                         <NavBtn icon={<MessageCircle />} label="Chat Moderation" active={activeTab==='chat_mod'} onClick={() => setActiveTab('chat_mod')} />
+                        <NavBtn icon={<MessageSquarePlus />} label="Fikrlar va Takliflar" active={activeTab==='feedback'} onClick={() => setActiveTab('feedback')} />
                         <NavBtn icon={<AlertOctagon />} label="Dispute Resolution" active={activeTab==='disputes'} onClick={() => setActiveTab('disputes')} />
                     </div>
 
@@ -221,6 +222,7 @@ export default function AdminPage({ defaultTab }) {
                         {activeTab === 'users' && <UsersMonitor />}
                         {activeTab === 'shop_orders' && <ShopOrdersMonitor />}
                         {activeTab === 'videos' && <ModerationQueue />}
+                        {activeTab === 'feedback' && <FeedbackMonitor />}
                         {activeTab === 'chat_mod' && <PlaceholderPanel title="Chat Moderation" desc="Skautlar va futbolchilar o'rtasidagi yopiq chatlar nazorati (AI filtrlash)" icon={<MessageCircle className="w-16 h-16 text-[#333] mb-4" />} />}
                         {activeTab === 'disputes' && <DisputeCenter />}
                         {activeTab === 'tournaments' && <TournamentsHub />}
@@ -721,6 +723,146 @@ function ShopOrdersMonitor() {
                     </tbody>
                 </table>
             </div>
+        </motion.div>
+    );
+}
+
+function FeedbackMonitor() {
+    const [feedbacks, setFeedbacks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [statusFilter, setStatusFilter] = useState('all');
+
+    const fetchFeedbacks = async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/api/admin/feedback`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setFeedbacks(data);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchFeedbacks();
+    }, []);
+
+    const updateFeedbackStatus = async (id, newStatus) => {
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/api/admin/feedback/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.ok) {
+                setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: newStatus } : f));
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const filtered = feedbacks.filter(f => statusFilter === 'all' || f.status === statusFilter);
+
+    return (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-[#222]">
+                <div>
+                    <h2 className="text-xl font-black uppercase tracking-wider text-white flex items-center gap-2">
+                        <MessageSquarePlus className="w-6 h-6 text-white" />
+                        Foydalanuvchilar Fikrlari & Takliflari
+                    </h2>
+                    <p className="text-xs text-[#666] mt-1">Platforma foydalanuvchilaridan kelgan takliflar, xatoliklar va mulohazalar</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    {['all', 'yangi', 'korib_chiqildi', 'bajarildi'].map(s => (
+                        <button
+                            key={s}
+                            onClick={() => setStatusFilter(s)}
+                            className={`px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition ${
+                                statusFilter === s ? 'bg-white text-black' : 'bg-[#151515] text-[#777] hover:text-white'
+                            }`}
+                        >
+                            {s === 'all' ? 'Barchasi' : s === 'yangi' ? 'Yangi' : s === 'korib_chiqildi' ? "Ko'rildi" : 'Bajarildi'}
+                        </button>
+                    ))}
+                    <button onClick={fetchFeedbacks} className="px-3 py-1.5 bg-[#151515] hover:bg-[#222] text-xs font-bold rounded text-white transition">
+                        Yangilash
+                    </button>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="py-12 text-center text-[#555] text-xs font-bold">Yuklanmoqda...</div>
+            ) : filtered.length === 0 ? (
+                <div className="py-12 text-center text-[#555] text-xs font-bold">Hech qanday fikr topilmadi</div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filtered.map(fb => (
+                        <div key={fb.id} className="p-5 rounded-xl bg-[#0c0c0c] border border-[#1f1f1f] space-y-3 relative group hover:border-[#333] transition">
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded ${
+                                        fb.category === 'xato' ? 'bg-red-950 text-red-400 border border-red-800/40' :
+                                        fb.category === 'taklif' ? 'bg-amber-950 text-amber-300 border border-amber-800/40' :
+                                        'bg-blue-950 text-blue-300 border border-blue-800/40'
+                                    }`}>
+                                        {fb.category}
+                                    </span>
+                                    <span className="text-xs text-stone-300 font-semibold">{fb.author_name || 'Anonim'}</span>
+                                    {fb.contact && (
+                                        <span className="text-[11px] text-[#777] font-mono">({fb.contact})</span>
+                                    )}
+                                </div>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                                    fb.status === 'yangi' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/40' :
+                                    fb.status === 'korib_chiqildi' ? 'bg-stone-800 text-stone-300' :
+                                    'bg-purple-950 text-purple-300'
+                                }`}>
+                                    {fb.status}
+                                </span>
+                            </div>
+
+                            <p className="text-xs text-white leading-relaxed whitespace-pre-wrap">{fb.message}</p>
+
+                            <div className="pt-2 border-t border-[#1a1a1a] flex items-center justify-between text-[10px] text-[#555]">
+                                <span>Sahifa: {fb.page_url || '-'}</span>
+                                <span>{new Date(fb.created_at).toLocaleString('uz-UZ')}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-1">
+                                {fb.status !== 'korib_chiqildi' && (
+                                    <button
+                                        onClick={() => updateFeedbackStatus(fb.id, 'korib_chiqildi')}
+                                        className="px-2.5 py-1 rounded bg-[#181818] hover:bg-[#252525] text-stone-300 text-[10px] font-bold transition"
+                                    >
+                                        Ko'rildi deb belgilash
+                                    </button>
+                                )}
+                                {fb.status !== 'bajarildi' && (
+                                    <button
+                                        onClick={() => updateFeedbackStatus(fb.id, 'bajarildi')}
+                                        className="px-2.5 py-1 rounded bg-white hover:bg-stone-200 text-black text-[10px] font-black transition"
+                                    >
+                                        Bajarildi ✓
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </motion.div>
     );
 }

@@ -117,9 +117,61 @@ def get_products(category: str | None = None, db: Session = Depends(get_db)):
         query = query.filter(Product.category == category)
     return query.all()
 
+import json
+
 @router.post("/api/shop/orders", response_model=ShopOrderOut)
 def create_shop_order(order_data: ShopOrderCreate, db: Session = Depends(get_db)):
-    order = ShopOrder(**order_data.model_dump())
+    # 1. items_json ni tahlil qilish
+    try:
+        items = json.loads(order_data.items_json)
+        if not isinstance(items, list) or len(items) == 0:
+            raise ValueError("Mahsulotlar ro'yxati bo'sh")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Noto'g'ri mahsulotlar ro'yxati (items_json)")
+
+    server_total_price = 0
+    validated_items = []
+
+    # 2. Narxni serverda bazadan hisoblash va ombor (stock) zaxirasini tekshirish
+    for item in items:
+        p_id = item.get("id") or item.get("product_id")
+        qty = item.get("quantity") or item.get("count") or 1
+        try:
+            p_id = int(p_id)
+            qty = int(qty)
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=400, detail="Mahsulot ID yoki miqdori noto'g'ri formatda")
+
+        if qty <= 0:
+            raise HTTPException(status_code=400, detail="Mahsulot miqdori 0 dan katta bo'lishi shart")
+
+        product = db.query(Product).filter(Product.id == p_id).first()
+        if not product:
+            raise HTTPException(status_code=404, detail=f"ID {p_id} bo'lgan mahsulot topilmadi")
+
+        if product.stock < qty:
+            raise HTTPException(
+                status_code=400,
+                detail=f"'{product.name}' mahsulotidan omborda yetarli qolmagan (mavjud: {product.stock} ta)"
+            )
+
+        # Ombordagi qoldiqni kamaytirish va narxni hisoblash
+        product.stock -= qty
+        server_total_price += product.price * qty
+        validated_items.append({
+            "id": product.id,
+            "name": product.name,
+            "price": product.price,
+            "quantity": qty
+        })
+
+    # 3. Buyurtmani bazaga xavfsiz saqlash (mijoz yuborgan narx inkor etiladi)
+    order_dict = order_data.model_dump()
+    order_dict["total_price"] = server_total_price
+    order_dict["items_json"] = json.dumps(validated_items, ensure_ascii=False)
+    order_dict["status"] = "kutilmoqda"
+
+    order = ShopOrder(**order_dict)
     db.add(order)
     db.commit()
     db.refresh(order)

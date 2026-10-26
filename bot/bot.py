@@ -44,7 +44,7 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-dc0f4.up.railwa
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platformasi-alpha.vercel.app")
 # Admin Telegram ID (muhim shaxsiy xabarlar uchun):
 ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "")
-MASTER_TOKEN = os.getenv("MASTER_TOKEN", "super-secret-admin-token")
+from app.core.security import create_access_token
 
 from app.services.ai_assistant import (
     classify_intent,
@@ -329,7 +329,9 @@ async def process_caption(message: types.Message, state: FSMContext):
             "video_url": video_url,
             "description": desc
         }
-        headers = {"Authorization": f"Bearer {MASTER_TOKEN}"} if MASTER_TOKEN else {}
+        user_uid = current_player.get("user_id") or current_player.get("id")
+        user_token = create_access_token(data={"sub": str(user_uid)})
+        headers = {"Authorization": f"Bearer {user_token}"}
         submit_res = await client.post(
             f"{API_BASE_URL}/players/{current_player['id']}/submit-goal",
             json=payload,
@@ -393,6 +395,52 @@ async def leave_room_handler(message: types.Message):
             pass
     else:
         await message.answer("Siz hozirda hech qanday virtual xonada emassiz.")
+
+
+# ==============================================================
+# FIKR VA TAKLIF BILDIRISH (/fikr <matn>)
+# ==============================================================
+@dp.message(Command("fikr"))
+async def feedback_command_handler(message: types.Message):
+    raw_text = message.text or ""
+    # Buyruq matnidan so'ng yozilgan taklifni ajratib olish
+    parts = raw_text.split(maxsplit=1)
+    if len(parts) < 2 or not parts[1].strip():
+        await message.answer(
+            "💬 <b>Futuro haqida o'z fikr yoki taklifingizni yuboring:</b>\n\n"
+            "Buyruqdan so'ng xabaringizni yozing.\n"
+            "<i>Masalan:</i> <code>/fikr Maydon qidirish bo'limida filterlar yanada ko'paysa yaxshi bo'lardi</code>",
+            parse_mode="HTML"
+        )
+        return
+
+    content = parts[1].strip()
+    author = message.from_user.full_name or message.from_user.first_name
+    contact = f"@{message.from_user.username}" if message.from_user.username else f"TG: {message.from_user.id}"
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.post(
+                f"{API_BASE_URL}/api/feedback",
+                json={
+                    "message": content,
+                    "category": "taklif",
+                    "author_name": author,
+                    "contact": contact,
+                    "page_url": "Telegram Bot"
+                }
+            )
+            if resp.status_code in [200, 201]:
+                await message.answer(
+                    "✅ <b>Katta rahmat!</b>\n"
+                    "Fikr va taklifingiz muvaffaqiyatli qabul qilindi. Biz har bir xabarni ko'rib chiqamiz!",
+                    parse_mode="HTML"
+                )
+            else:
+                await message.answer("✅ Fikringiz qabul qilindi. Rahmat!")
+    except Exception as e:
+        logging.error(f"Telegram /fikr xatosi: {e}")
+        await message.answer("✅ Fikringiz ma'muriyatga yetkazildi. Rahmat!")
 
 
 # ==============================================================

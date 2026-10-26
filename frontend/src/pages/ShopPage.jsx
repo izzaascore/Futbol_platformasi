@@ -16,7 +16,7 @@ export default function ShopPage() {
 
   // Attempt to fetch any real products from backend, otherwise empty list
   useEffect(() => {
-    fetch(`${API_URL}/api/products`)
+    fetch(`${API_URL}/api/shop/products`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {

@@ -293,8 +293,9 @@ def toggle_hardcore_mode(
 
 
 
-@router.post("/players/{player_id}/donate")
-def donate_to_player(player_id: int, amount: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+@router.post("/players/{player_id}/donate", dependencies=[Depends(RequireRole(["admin"]))])
+def donate_to_player(player_id: int, amount: int, db: Session = Depends(get_db)):
+    # To'lov provayderi integratsiyasigacha faqat admin orqali xavfsiz tasdiqlanadi
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Summa 0 dan katta bo'lishi shart!")
     player = db.query(Player).filter(Player.id == player_id).first()
@@ -303,5 +304,5 @@ def donate_to_player(player_id: int, amount: int, current_user: User = Depends(g
     
     player.fund_raised += amount
     db.commit()
-    return {"message": "Yordamingiz uchun rahmat!", "fund_raised": player.fund_raised}
+    return {"message": "Mablag' muvaffaqiyatli qayd etildi", "fund_raised": player.fund_raised}
 

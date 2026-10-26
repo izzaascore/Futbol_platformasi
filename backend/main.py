@@ -60,6 +60,17 @@ def auto_migrate_db():
                     conn.execute(text("ALTER TABLE scout_invitations ADD COLUMN status VARCHAR(30) DEFAULT 'kutilmoqda'"))
                     print("[Auto-Migration] 'scout_invitations' jadvaliga 'status' ustuni qo'shildi.")
 
+        # 3. Users table (unikal username va phone qo'shish)
+        if "users" in tables:
+            user_cols = [c["name"] for c in inspector.get_columns("users")]
+            with engine.begin() as conn:
+                if "username" not in user_cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR(50)"))
+                    print("[Auto-Migration] 'users' jadvaliga 'username' ustuni qo'shildi.")
+                if "phone" not in user_cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN phone VARCHAR(30)"))
+                    print("[Auto-Migration] 'users' jadvaliga 'phone' ustuni qo'shildi.")
+
     except Exception as e:
         print(f"[Auto-Migration Notice] {e}")
 

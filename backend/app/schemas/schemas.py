@@ -5,6 +5,8 @@ from app.models.models import VerificationStatus, UserRole, UserStatus
 class UserBase(BaseModel):
     first_name: str
     last_name: str
+    username: str | None = None
+    phone: str | None = None
     telegram_id: int | None = None
     age: int | None = None
     address: str | None = None
@@ -34,8 +36,12 @@ class UserCreate(UserBase):
     license_url: str | None = None
 
 class UserLogin(BaseModel):
-    firstName: str
-    lastName: str
+    firstName: str | None = None
+    lastName: str | None = None
+    username: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    identifier: str | None = None
     password: str
 
 class UserOut(UserBase):
@@ -228,7 +234,7 @@ class ShopOrderCreate(BaseModel):
     shipping_city: str = "Toshkent"
     shipping_address: str
     payment_method: str = "click"
-    total_price: int
+    total_price: int | None = None
     items_json: str
 
 class ShopOrderOut(BaseModel):
@@ -631,3 +637,30 @@ class StadiumOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+# --- FEEDBACK SCHEMAS ---
+class FeedbackCreate(BaseModel):
+    message: str
+    category: str = "taklif"
+    contact: str | None = None
+    author_name: str | None = None
+    page_url: str | None = None
+
+class FeedbackOut(BaseModel):
+    id: int
+    user_id: int | None = None
+    author_name: str | None = None
+    contact: str | None = None
+    category: str
+    page_url: str | None = None
+    message: str
+    status: str
+    admin_notes: str | None = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class FeedbackStatusUpdate(BaseModel):
+    status: str
+    admin_notes: str | None = None

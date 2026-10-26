@@ -34,6 +34,8 @@ class User(Base):
     
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    username: Mapped[str | None] = mapped_column(String(50), unique=True, index=True, nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(30), unique=True, index=True, nullable=True)
     age: Mapped[int | None] = mapped_column(Integer, nullable=True)
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email: Mapped[str | None] = mapped_column(String(100), unique=True, index=True, nullable=True)
@@ -549,3 +551,34 @@ class Stadium(Base):
     rating: Mapped[float] = mapped_column(Float, default=4.8)
     features: Mapped[str | None] = mapped_column(String(255), default="Dush, Kiyinish xonasi, Avtoturargoh, Kafeterya")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+# --- VIDEO BATTLE OVOZ BERISH (1 FOYDALANUVCHI = 1 OVOZ) ---
+class VideoBattleVote(Base):
+    __tablename__ = "video_battle_votes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    battle_id: Mapped[int] = mapped_column(ForeignKey("video_battles.id"), nullable=False, index=True)
+    entry_id: Mapped[int] = mapped_column(ForeignKey("video_battle_entries.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    battle: Mapped["VideoBattle"] = relationship()
+    entry: Mapped["VideoBattleEntry"] = relationship()
+    user: Mapped["User"] = relationship()
+
+# --- FOYDALANUVCHILAR FIKRI VA TAKLIFLARI (FEEDBACK) ---
+class Feedback(Base):
+    __tablename__ = "feedbacks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    author_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    contact: Mapped[str | None] = mapped_column(String(100), nullable=True) # Telefon yoki telegram
+    category: Mapped[str] = mapped_column(String(50), default="taklif") # taklif, xato, fikr, boshqa
+    page_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="yangi") # yangi, korib_chiqildi, bajarildi
+    admin_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user: Mapped["User"] = relationship()

@@ -21,20 +21,18 @@ load_dotenv()
 logger = logging.getLogger("security")
 
 # Xavfsizlik kalitlari (.env dan o'qiladi)
-import secrets
 SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY or SECRET_KEY == "FOOTBALL_RISE_ULTIMATE_SECRET_KEY_PROD":
-    if os.getenv("ENVIRONMENT", "").lower() == "production":
-        raise RuntimeError("XAVFSIZLIK XATOSI: Production muhitida SECRET_KEY .env da o'rnatilishi shart!")
-    SECRET_KEY = os.getenv("JWT_SECRET") or secrets.token_hex(32)
+if not SECRET_KEY:
+    raise RuntimeError("XAVFSIZLIK XATOSI: SECRET_KEY .env faylida o'rnatilishi shart!")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", str(60 * 24 * 7)))
-# MASTER_TOKEN removed for security
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 
-# Admin boshqaruv kalitlari
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "erkin_master")
-ADMIN_PASSKEY = os.getenv("ADMIN_PASSKEY", "X@9f#vL$2!qP")
+# Admin boshqaruv kalitlari (.env da majburiy)
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSKEY = os.getenv("ADMIN_PASSKEY")
+if not ADMIN_PASSKEY:
+    raise RuntimeError("XAVFSIZLIK XATOSI: ADMIN_PASSKEY .env faylida o'rnatilishi shart!")
 
 import bcrypt
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")

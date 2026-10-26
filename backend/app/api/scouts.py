@@ -16,7 +16,7 @@ router = APIRouter(tags=["Scouts and Tryouts"])
 from app.schemas import ScoutCreate, ScoutOut
 from app.models import Scout
 
-@router.post("/scouts", response_model=ScoutOut)
+@router.post("/scouts", response_model=ScoutOut, dependencies=[Depends(RequireRole(["admin"]))])
 def create_scout(scout_data: ScoutCreate, db: Session = Depends(get_db)):
     scout = Scout(**scout_data.model_dump())
     db.add(scout)
@@ -31,7 +31,7 @@ def get_scouts(db: Session = Depends(get_db)):
 from app.models import ScoutReport
 from app.schemas import ScoutReportCreate, ScoutReportOut
 
-@router.post("/scouts/{scout_id}/reports", response_model=ScoutReportOut)
+@router.post("/scouts/{scout_id}/reports", response_model=ScoutReportOut, dependencies=[Depends(RequireRole(["scout", "admin"]))])
 def create_scout_report(scout_id: int, report_data: ScoutReportCreate, db: Session = Depends(get_db)):
     scout = db.query(Scout).filter(Scout.id == scout_id).first()
     if not scout or not scout.is_pro:
@@ -53,7 +53,7 @@ def get_scout_reports(scout_id: int, db: Session = Depends(get_db)):
 from app.models import ScoutInvitation
 from app.schemas import ScoutInvitationCreate, ScoutInvitationOut
 
-@router.post("/api/scout/invitations", response_model=ScoutInvitationOut)
+@router.post("/api/scout/invitations", response_model=ScoutInvitationOut, dependencies=[Depends(RequireRole(["scout", "admin"]))])
 def create_scout_invitation(
     data: ScoutInvitationCreate,
     current_user: User = Depends(get_current_user),
