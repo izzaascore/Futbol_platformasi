@@ -112,7 +112,7 @@ const ReelItem = ({ reel, isActive }) => {
         {/* Music Tag */}
         <div className="flex items-center gap-2 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full w-max border border-white/10 shadow-lg">
           <svg className="w-3 h-3 text-white animate-spin" style={{animationDuration: '3s'}} fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-          <span className="text-xs text-white uppercase tracking-widest font-bold">FootballRise Original Sound</span>
+          <span className="text-xs text-white uppercase tracking-widest font-bold">Futuro Original Sound</span>
         </div>
       </div>
 

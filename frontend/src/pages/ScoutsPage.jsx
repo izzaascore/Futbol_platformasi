@@ -109,10 +109,10 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
 
   return (
     <PageTransition>
-      <div className="w-full bg-stone-950 min-h-screen font-sans text-stone-200 relative selection:bg-amber-500/30 overflow-hidden">
+      <div className="w-full bg-[#030303] min-h-screen font-sans text-stone-200 relative selection:bg-amber-500/30 overflow-hidden">
         
         {/* Dashboard Top Navigation (Specific to Scout) */}
-        <div className="sticky top-0 z-40 bg-stone-950/80 backdrop-blur-xl border-b border-stone-800 px-4 sm:px-6 lg:px-8 py-4">
+        <div className="sticky top-0 z-40 bg-[#030303]/80 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 lg:px-8 py-4">
           <div className="max-w-7xl mx-auto flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(217,119,6,0.5)]">
@@ -125,7 +125,7 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
             </div>
             
             <div className="flex gap-2">
-              <button className="hidden md:flex px-4 py-2 bg-stone-900 border border-stone-800 rounded-md text-xs font-bold uppercase text-white items-center gap-2 hover:border-amber-500 transition-colors">
+              <button className="hidden md:flex px-4 py-2 bg-stone-900 border border-white/10 rounded-md text-xs font-bold uppercase text-white items-center gap-2 hover:border-amber-500 transition-colors">
                 <Search className="w-4 h-4 text-stone-400"/> Global Qidiruv
               </button>
               <button className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-500 rounded-md text-xs font-black uppercase text-white shadow-[0_0_15px_rgba(217,119,6,0.4)]">
@@ -172,8 +172,8 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
                     { label: "Shartnoma Yuborildi", val: "3", icon: <Mail className="text-amber-500"/>, color: 'amber' },
                     { label: "Yangi AI Analiz", val: "7", icon: <Zap className="text-purple-500"/>, color: 'purple' }
                   ].map((stat, i) => (
-                    <div key={i} className="bg-stone-900/50 p-6 rounded-2xl border border-stone-800 flex items-center gap-6 backdrop-blur-md">
-                      <div className={`p-4 bg-stone-950 rounded-xl border border-stone-800 shadow-inner`}>
+                    <div key={i} className="bg-stone-900/50 p-6 rounded-2xl border border-white/10 flex items-center gap-6 backdrop-blur-md">
+                      <div className={`p-4 bg-[#030303] rounded-xl border border-white/10 shadow-inner`}>
                         {stat.icon}
                       </div>
                       <div>
@@ -186,14 +186,14 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
 
                 {/* Hot Prospect Spotlight */}
                 <h3 className="text-lg font-black text-white uppercase tracking-widest mb-4 mt-8 flex items-center gap-2"><Target className="text-amber-500 w-5 h-5"/> Hafta Iqtidori</h3>
-                <div className="bg-gradient-to-r from-stone-900 to-stone-950 border border-stone-800 rounded-3xl p-8 flex flex-col lg:flex-row gap-12 relative overflow-hidden shadow-2xl">
+                <div className="bg-gradient-to-r from-stone-900 to-stone-950 border border-white/10 rounded-3xl p-8 flex flex-col lg:flex-row gap-12 relative overflow-hidden shadow-2xl">
                   {/* Decorative */}
                   <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-[100px] rounded-full pointer-events-none"></div>
 
                   <div className="w-full lg:w-1/3 flex flex-col items-center">
                      <div className="relative w-48 h-48 mb-6">
                         <div className="absolute inset-0 bg-amber-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-                        <img src="/images/players/players_1614632537190-23e414.jpg" className="w-full h-full rounded-full object-cover border-4 border-stone-800 relative z-10" alt="Prospect" />
+                        <img src="/images/players/players_1614632537190-23e414.jpg" className="w-full h-full rounded-full object-cover border-4 border-white/10 relative z-10" alt="Prospect" />
                      </div>
                      <h2 className="text-3xl font-black text-white uppercase tracking-tighter text-center">Umidjon Erkinov</h2>
                      <p className="text-amber-500 font-bold text-xs uppercase tracking-widest mt-1">Buxoro U-16 • Hujumchi</p>
@@ -204,7 +204,7 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
                   </div>
 
                   <div className="w-full lg:w-1/3 flex flex-col justify-center space-y-6">
-                    <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 shadow-inner">
+                    <div className="bg-[#030303] p-4 rounded-xl border border-white/10 shadow-inner">
                       <div className="text-[10px] uppercase font-bold text-stone-500 tracking-widest mb-2">AI Skaut Xulosasi</div>
                       <p className="text-sm text-stone-300 font-light leading-relaxed">
                         Yuqori tezlik (PAC 91) va ajoyib dribling (DRI 85). Jarima maydonchasida qaror qabul qilish tezligi o'z yosh toifasida eng yaxshilardan biri. Jismoniy tayyorgarligi (PHY) ustida ishlashi kerak.
@@ -213,7 +213,7 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
                     <button className="w-full py-4 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors shadow-[0_0_20px_rgba(217,119,6,0.4)]">
                       Kuzatuvga Qo'shish
                     </button>
-                    <button className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors border border-stone-700">
+                    <button className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors border border-white/20">
                       To'liq Profil
                     </button>
                   </div>
@@ -226,12 +226,12 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center gap-2"><BookMarked className="text-amber-500 w-5 h-5"/> Kuzatuv Ro'yxati (Shortlist)</h3>
-                  <button className="px-4 py-2 bg-stone-900 border border-stone-800 rounded-md text-xs font-bold uppercase text-stone-400 flex items-center gap-2"><Filter className="w-4 h-4"/> Filtrlar</button>
+                  <button className="px-4 py-2 bg-stone-900 border border-white/10 rounded-md text-xs font-bold uppercase text-stone-400 flex items-center gap-2"><Filter className="w-4 h-4"/> Filtrlar</button>
                 </div>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {[1, 2, 3, 4].map((item, i) => (
-                    <div key={i} className="flex bg-stone-900/50 border border-stone-800 rounded-2xl p-4 gap-4 items-center hover:border-amber-500/50 transition-colors group">
+                    <div key={i} className="flex bg-stone-900/50 border border-white/10 rounded-2xl p-4 gap-4 items-center hover:border-amber-500/50 transition-colors group">
                       <img src={`/images/players/players_1506794778202-cad84c.jpg&sig=${i}`} className="w-20 h-20 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all" alt="Player" />
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
@@ -239,7 +239,7 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
                             <h4 className="font-black text-white uppercase tracking-tight text-lg">Azizbek Karimov</h4>
                             <span className="text-[10px] text-amber-500 font-bold uppercase tracking-widest">Markaziy Himoyachi</span>
                           </div>
-                          <div className="bg-stone-950 px-2 py-1 rounded border border-stone-800 text-lg font-black text-white">84</div>
+                          <div className="bg-[#030303] px-2 py-1 rounded border border-white/10 text-lg font-black text-white">84</div>
                         </div>
                         <div className="flex gap-2 mt-3">
                           <span className="px-2 py-1 bg-green-500/10 text-green-500 border border-green-500/30 text-[9px] font-bold uppercase rounded">Texnik</span>
@@ -264,7 +264,7 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
                     { title: "Umidjon Erkinov (Buxoro U-16)", date: "Bugun, 14:20", text: "Tezkor qaror qabul qilish va yuqori dribling. O'ng oyoqda aniq zarba ko'rsatkichi 84%.", tag: "Tavsiya etiladi", color: "emerald" },
                     { title: "Jasur Hasanov (Dinamo Samarqand)", date: "Kecha, 18:05", text: "Maydon markazida to'pni nazorat qilish va vertikal uzatmalar bo'yicha kuchli. Jismoniy chidamlilik 80%.", tag: "Kuzatuvda", color: "amber" }
                   ].map((r, i) => (
-                    <div key={i} className="bg-stone-900/60 border border-stone-800 p-6 rounded-2xl">
+                    <div key={i} className="bg-stone-900/60 border border-white/10 p-6 rounded-2xl">
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-black text-white uppercase tracking-tight text-base">{r.title}</h4>
                         <span className="text-[10px] font-bold text-stone-500 uppercase">{r.date}</span>
@@ -300,8 +300,8 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
                 ) : (
                   <div className="space-y-4">
                     {invitations.map((inv) => (
-                      <div key={inv.id} className="bg-stone-900/60 border border-stone-800 hover:border-amber-500/40 transition-colors p-6 rounded-2xl relative overflow-hidden">
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 pb-3 border-b border-stone-800/80">
+                      <div key={inv.id} className="bg-stone-900/60 border border-white/10 hover:border-amber-500/40 transition-colors p-6 rounded-2xl relative overflow-hidden">
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 pb-3 border-b border-white/10/80">
                           <div>
                             <div className="text-[10px] font-black uppercase tracking-widest text-amber-500">{inv.club_name}</div>
                             <h4 className="text-lg font-black text-white uppercase tracking-tight">{inv.title}</h4>
@@ -330,7 +330,7 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
                           </div>
                         </div>
 
-                        <div className="bg-stone-950 p-4 rounded-xl border border-stone-800/80 mb-3 text-xs text-stone-300 font-light leading-relaxed">
+                        <div className="bg-[#030303] p-4 rounded-xl border border-white/10/80 mb-3 text-xs text-stone-300 font-light leading-relaxed">
                           <strong className="text-stone-400 uppercase text-[10px] block mb-1 font-bold">Xabar:</strong>
                           {inv.message}
                         </div>
@@ -343,7 +343,7 @@ export default function ScoutsPage({ initialTab = 'dashboard' }) {
                     ))}
 
                     {invitations.length === 0 && (
-                      <div className="bg-stone-900/30 border border-stone-800 rounded-2xl p-12 text-center">
+                      <div className="bg-stone-900/30 border border-white/10 rounded-2xl p-12 text-center">
                         <Mail className="w-8 h-8 text-stone-600 mx-auto mb-3" />
                         <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-1">Hozircha taklifnomalar yuborilmagan</h4>
                         <p className="text-stone-400 text-xs mb-4">Iqtidorli futbolchilar ro'yxatidan o'yinchi tanlab, ko'rikka taklif yuborishingiz mumkin.</p>

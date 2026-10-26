@@ -94,21 +94,21 @@ export default function DailyDrillsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-white uppercase tracking-tight flex items-center gap-3">
-                        FootballRise <span className="text-amber-500">Daily</span> <Dumbbell className="w-6 h-6 text-amber-500"/>
+                        Futuro <span className="text-amber-500">Daily</span> <Dumbbell className="w-6 h-6 text-amber-500"/>
                     </h1>
                     <p className="text-stone-400 text-sm font-light">Anjomlarsiz kundalik mashg'ulotlar tizimi</p>
                 </div>
 
                 {user && (
                     <div className="flex gap-4">
-                        <div className="bg-stone-900 border border-stone-800 px-4 py-2 rounded-sm flex items-center gap-2">
+                        <div className="bg-stone-900 border border-white/10 px-4 py-2 rounded-sm flex items-center gap-2">
                             <Flame className={`w-5 h-5 ${user.streak > 0 ? 'text-amber-500' : 'text-stone-600'}`} />
                             <div>
                                 <span className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest">Streak</span>
                                 <span className="text-lg font-black text-white leading-none">{user.streak} kun</span>
                             </div>
                         </div>
-                        <div className="bg-stone-900 border border-stone-800 px-4 py-2 rounded-sm flex items-center gap-2">
+                        <div className="bg-stone-900 border border-white/10 px-4 py-2 rounded-sm flex items-center gap-2">
                             <ShieldAlert className={`w-5 h-5 ${user.discipline_score >= 80 ? 'text-emerald-500' : user.discipline_score >= 50 ? 'text-amber-500' : 'text-red-500'}`} />
                             <div>
                                 <span className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest">Intizom</span>
@@ -141,10 +141,10 @@ export default function DailyDrillsPage() {
                         <div 
                             key={drill.id} 
                             onClick={() => setActiveDrill(drill)}
-                            className={`p-4 rounded-sm border cursor-pointer transition-all ${activeDrill?.id === drill.id ? 'bg-amber-600/10 border-amber-500' : 'bg-stone-900 border-stone-800 hover:border-amber-500/50'}`}
+                            className={`p-4 rounded-sm border cursor-pointer transition-all ${activeDrill?.id === drill.id ? 'bg-amber-600/10 border-amber-500' : 'bg-stone-900 border-white/10 hover:border-amber-500/50'}`}
                         >
                             <div className="flex justify-between items-start mb-2">
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-sm bg-stone-950 text-stone-400 uppercase tracking-widest">{drill.duration}</span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-sm bg-[#030303] text-stone-400 uppercase tracking-widest">{drill.duration}</span>
                                 <span className="text-stone-600 text-xs font-bold">#{idx+1}</span>
                             </div>
                             <h4 className={`font-bold ${activeDrill?.id === drill.id ? 'text-amber-500' : 'text-white'}`}>{drill.title}</h4>
@@ -155,9 +155,9 @@ export default function DailyDrillsPage() {
                 {/* Drill Detail & Animation */}
                 <div className="lg:col-span-2">
                     {activeDrill ? (
-                        <div className="bg-stone-900 border border-stone-800 rounded-sm overflow-hidden">
+                        <div className="bg-stone-900 border border-white/10 rounded-sm overflow-hidden">
                             {/* Animation Placeholder / Loop */}
-                            <div className="w-full aspect-video bg-stone-950 flex flex-col items-center justify-center relative border-b border-stone-800 overflow-hidden group">
+                            <div className="w-full aspect-video bg-[#030303] flex flex-col items-center justify-center relative border-b border-white/10 overflow-hidden group">
                                 <div className="absolute inset-0 bg-stone-900/50 flex items-center justify-center z-10">
                                     <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <PlayCircle className="w-8 h-8 text-amber-500" />
@@ -198,7 +198,7 @@ export default function DailyDrillsPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-stone-900 border border-stone-800 p-12 text-center rounded-sm">
+                        <div className="bg-stone-900 border border-white/10 p-12 text-center rounded-sm">
                             <p className="text-stone-500">Mashqni tanlang</p>
                         </div>
                     )}

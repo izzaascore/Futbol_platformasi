@@ -168,7 +168,7 @@ export default function ShopPage() {
 
   return (
     <PageTransition>
-      <div className="w-full bg-stone-950 min-h-screen font-sans text-stone-200 relative selection:bg-amber-500/30 overflow-hidden pb-32">
+      <div className="w-full bg-[#030303] min-h-screen font-sans text-stone-200 relative selection:bg-amber-500/30 overflow-hidden pb-32">
         
         {/* Dynamic Global Background Gradient */}
         <div className="pointer-events-none absolute inset-0 z-0">
@@ -180,7 +180,7 @@ export default function ShopPage() {
         {/* 1. CINEMATIC HERO: SMART TECH SHOWCASE */}
         {/* ============================================================== */}
         <section className="relative pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 bg-gradient-to-b from-stone-900/90 to-stone-950/90 border border-stone-800/80 rounded-3xl p-6 sm:p-10 lg:p-14 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 bg-gradient-to-b from-stone-900/90 to-stone-950/90 border border-white/10/80 rounded-3xl p-6 sm:p-10 lg:p-14 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
             
             {/* Ambient Background Glow */}
             <div className="absolute -top-32 -left-32 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -190,7 +190,7 @@ export default function ShopPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full mb-6">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
                 <span className="text-[11px] font-black uppercase tracking-widest text-amber-400">
-                  FootballRise Official Store
+                  Futuro Official Store
                 </span>
               </div>
 
@@ -214,7 +214,7 @@ export default function ShopPage() {
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </a>
 
-                <div className="flex items-center gap-3 px-4 py-2 bg-stone-950/60 border border-stone-800 rounded-xl text-xs text-stone-400 font-bold">
+                <div className="flex items-center gap-3 px-4 py-2 bg-[#030303]/60 border border-white/10 rounded-xl text-xs text-stone-400 font-bold">
                   <Truck className="w-4 h-4 text-emerald-400" />
                   <span>24 soatda O'zbekiston bo'ylab yetkazish</span>
                 </div>
@@ -226,13 +226,13 @@ export default function ShopPage() {
               <div className="relative w-full max-w-[420px] aspect-[4/3] rounded-3xl overflow-hidden border border-amber-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.9)] group">
                 <img 
                   src="/images/camera.jpg" 
-                  alt="FootballRise Cam Pro 4K"
+                  alt="Futuro Cam Pro 4K"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/30 to-transparent" />
                 
                 {/* Floating Specs Pill */}
-                <div className="absolute top-4 left-4 flex items-center gap-2 bg-stone-950/90 border border-stone-700 px-3 py-1.5 rounded-full text-[10px] font-black uppercase text-amber-400 backdrop-blur-md">
+                <div className="absolute top-4 left-4 flex items-center gap-2 bg-[#030303]/90 border border-white/20 px-3 py-1.5 rounded-full text-[10px] font-black uppercase text-amber-400 backdrop-blur-md">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   <span>AI Tracking 4K 60FPS</span>
                 </div>
@@ -247,7 +247,7 @@ export default function ShopPage() {
                     onClick={() => {
                       const cam = products.find(p => p.name.includes("Cam")) || {
                         id: 1,
-                        name: "FootballRise Cam Pro 4K (AI Tracking)",
+                        name: "Futuro Cam Pro 4K (AI Tracking)",
                         price: 3450000,
                         image_url: "/images/camera.jpg"
                       };
@@ -280,7 +280,7 @@ export default function ShopPage() {
                   className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1.5 ${
                     activeCategory === cat.id
                       ? 'bg-amber-500 text-stone-950 shadow-lg shadow-amber-500/25 scale-105'
-                      : 'bg-stone-900/90 text-stone-400 hover:text-white border border-stone-800'
+                      : 'bg-white/[0.04]/90 text-stone-400 hover:text-white border border-white/10'
                   }`}
                 >
                   <span>{cat.label}</span>
@@ -302,7 +302,7 @@ export default function ShopPage() {
                 placeholder="Mahsulotlarni izlash..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2.5 bg-stone-900 border border-stone-800 rounded-xl text-xs text-white placeholder-stone-500 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs text-white placeholder-stone-500 focus:outline-none focus:border-amber-500 transition-colors"
               />
               {searchQuery && (
                 <button 
@@ -327,7 +327,7 @@ export default function ShopPage() {
               </p>
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-24 bg-stone-900/40 rounded-3xl border border-stone-800">
+            <div className="text-center py-24 bg-white/[0.04]/40 rounded-3xl border border-white/10">
               <ShoppingBag className="w-12 h-12 text-stone-600 mx-auto mb-3" />
               <p className="text-stone-400 text-sm font-bold">Ushbu toifada hozircha mahsulot topilmadi.</p>
             </div>
@@ -339,7 +339,7 @@ export default function ShopPage() {
                   whileHover={{ y: -6 }}
                   transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                   onClick={() => setQuickViewProduct(product)}
-                  className="bg-stone-900/90 hover:bg-stone-900 border border-stone-800/80 hover:border-amber-500/50 rounded-3xl p-4 flex flex-col justify-between transition-all shadow-xl hover:shadow-[0_15px_40px_rgba(245,158,11,0.15)] group cursor-pointer relative"
+                  className="bg-white/[0.04]/90 hover:bg-white/[0.04] border border-white/10/80 hover:border-amber-500/50 rounded-3xl p-4 flex flex-col justify-between transition-all shadow-xl hover:shadow-[0_15px_40px_rgba(245,158,11,0.15)] group cursor-pointer relative"
                 >
                   {/* Badge */}
                   {product.badge && (
@@ -349,12 +349,12 @@ export default function ShopPage() {
                   )}
 
                   {/* Stock Tag */}
-                  <div className="absolute top-6 right-6 z-10 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[9px] font-black uppercase text-stone-400 border border-stone-800">
+                  <div className="absolute top-6 right-6 z-10 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[9px] font-black uppercase text-stone-400 border border-white/10">
                     {product.stock ? `${product.stock} dona qoldi` : 'Mavjud'}
                   </div>
 
                   {/* Image Container */}
-                  <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-4 bg-stone-950 flex items-center justify-center shadow-inner">
+                  <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-4 bg-[#030303] flex items-center justify-center shadow-inner">
                     <img
                       src={product.image_url || "/images/camera.jpg"}
                       alt={product.name}
@@ -386,7 +386,7 @@ export default function ShopPage() {
                   </div>
 
                   {/* Footer & Buttons */}
-                  <div className="pt-3 border-t border-stone-800/80 flex items-center justify-between">
+                  <div className="pt-3 border-t border-white/10/80 flex items-center justify-between">
                     <div>
                       <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">
                         {product.price.toLocaleString('uz-UZ')}
@@ -419,7 +419,7 @@ export default function ShopPage() {
               initial={{ y: 80, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 80, opacity: 0 }}
-              className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92vw] max-w-xl bg-stone-900/95 border border-amber-500/60 rounded-2xl p-3 sm:p-4 backdrop-blur-2xl shadow-[0_15px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(245,158,11,0.25)] flex items-center justify-between text-white"
+              className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92vw] max-w-xl bg-white/[0.04]/95 border border-amber-500/60 rounded-2xl p-3 sm:p-4 backdrop-blur-2xl shadow-[0_15px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(245,158,11,0.25)] flex items-center justify-between text-white"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-stone-950 font-black relative">
@@ -481,11 +481,11 @@ export default function ShopPage() {
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[440px] bg-stone-950 border-l border-stone-800 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto"
+                className="fixed top-0 right-0 bottom-0 z-50 w-full sm:w-[440px] bg-[#030303] border-l border-white/10 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto"
               >
                 <div>
                   {/* Drawer Header */}
-                  <div className="flex items-center justify-between pb-4 border-b border-stone-800 mb-6">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
                     <div className="flex items-center gap-2">
                       <ShoppingBag className="w-5 h-5 text-amber-500" />
                       <h3 className="text-lg font-black uppercase tracking-tight text-white">Savatchangiz</h3>
@@ -496,14 +496,14 @@ export default function ShopPage() {
 
                     <button
                       onClick={() => setIsCartOpen(false)}
-                      className="w-8 h-8 rounded-full bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-white flex items-center justify-center transition-colors"
+                      className="w-8 h-8 rounded-full bg-white/[0.04] hover:bg-stone-800 text-stone-400 hover:text-white flex items-center justify-center transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
                   {/* Free Shipping Alert */}
-                  <div className="p-3 bg-stone-900 border border-stone-800 rounded-xl mb-6 flex items-center gap-3">
+                  <div className="p-3 bg-white/[0.04] border border-white/10 rounded-xl mb-6 flex items-center gap-3">
                     <Truck className="w-5 h-5 text-emerald-400 shrink-0" />
                     <div className="text-xs">
                       {isFreeShipping ? (
@@ -527,12 +527,12 @@ export default function ShopPage() {
                       {cart.map(item => (
                         <div
                           key={item.id}
-                          className="flex items-center gap-3 bg-stone-900/80 p-3 rounded-2xl border border-stone-800/80"
+                          className="flex items-center gap-3 bg-white/[0.04]/80 p-3 rounded-2xl border border-white/10/80"
                         >
                           <img
                             src={item.image_url || "/images/camera.jpg"}
                             alt={item.name}
-                            className="w-16 h-16 rounded-xl object-cover bg-stone-950 shrink-0"
+                            className="w-16 h-16 rounded-xl object-cover bg-[#030303] shrink-0"
                           />
                           <div className="flex-1 min-w-0">
                             <h5 className="text-white text-xs font-bold truncate">{item.name}</h5>
@@ -574,7 +574,7 @@ export default function ShopPage() {
 
                 {/* Drawer Footer */}
                 {cart.length > 0 && (
-                  <div className="pt-6 border-t border-stone-800">
+                  <div className="pt-6 border-t border-white/10">
                     <div className="flex justify-between items-center text-sm font-bold text-stone-400 mb-2">
                       <span>Yetkazib berish:</span>
                       <span className={isFreeShipping ? "text-emerald-400" : "text-white"}>
@@ -616,7 +616,7 @@ export default function ShopPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-stone-900 border border-stone-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-white shadow-2xl relative overflow-hidden"
+                className="bg-white/[0.04] border border-white/10 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-white shadow-2xl relative overflow-hidden"
               >
                 {/* Close Button */}
                 <button
@@ -649,7 +649,7 @@ export default function ShopPage() {
                           placeholder="Masalan: Abdulbosit Erkinov"
                           value={orderForm.customer_name}
                           onChange={e => setOrderForm({ ...orderForm, customer_name: e.target.value })}
-                          className="w-full px-4 py-3 bg-stone-950 border border-stone-800 rounded-xl text-xs text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
+                          className="w-full px-4 py-3 bg-[#030303] border border-white/10 rounded-xl text-xs text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
                         />
                       </div>
 
@@ -664,7 +664,7 @@ export default function ShopPage() {
                             placeholder="+998 90 123 45 67"
                             value={orderForm.customer_phone}
                             onChange={e => setOrderForm({ ...orderForm, customer_phone: e.target.value })}
-                            className="w-full px-4 py-3 bg-stone-950 border border-stone-800 rounded-xl text-xs text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
+                            className="w-full px-4 py-3 bg-[#030303] border border-white/10 rounded-xl text-xs text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
                           />
                         </div>
 
@@ -675,7 +675,7 @@ export default function ShopPage() {
                           <select
                             value={orderForm.shipping_city}
                             onChange={e => setOrderForm({ ...orderForm, shipping_city: e.target.value })}
-                            className="w-full px-3 py-3 bg-stone-950 border border-stone-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                            className="w-full px-3 py-3 bg-[#030303] border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
                           >
                             <option value="Toshkent">Toshkent shahri</option>
                             <option value="Farg'ona">Farg'ona</option>
@@ -699,7 +699,7 @@ export default function ShopPage() {
                           placeholder="Tuman, ko'cha, uy raqami yoki mo'ljal"
                           value={orderForm.shipping_address}
                           onChange={e => setOrderForm({ ...orderForm, shipping_address: e.target.value })}
-                          className="w-full px-4 py-3 bg-stone-950 border border-stone-800 rounded-xl text-xs text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
+                          className="w-full px-4 py-3 bg-[#030303] border border-white/10 rounded-xl text-xs text-white placeholder-stone-600 focus:outline-none focus:border-amber-500"
                         />
                       </div>
 
@@ -722,7 +722,7 @@ export default function ShopPage() {
                               className={`p-3 rounded-xl border text-left transition-all ${
                                 orderForm.payment_method === pay.id
                                   ? 'border-amber-500 bg-amber-500/10 text-white'
-                                  : 'border-stone-800 bg-stone-950 text-stone-400 hover:border-stone-700'
+                                  : 'border-white/10 bg-[#030303] text-stone-400 hover:border-white/20'
                               }`}
                             >
                               <div className="text-xs font-bold text-white">{pay.label}</div>
@@ -753,7 +753,7 @@ export default function ShopPage() {
                       Buyurtmangiz raqami: <b className="text-amber-400">#{confirmedOrder?.id || 1042}</b>. Kuryerimiz tez orada siz bilan telefon orqali bog'lanadi.
                     </p>
 
-                    <div className="bg-stone-950 p-4 rounded-2xl border border-stone-800 text-left text-xs space-y-2 mb-6">
+                    <div className="bg-[#030303] p-4 rounded-2xl border border-white/10 text-left text-xs space-y-2 mb-6">
                       <div className="flex justify-between">
                         <span className="text-stone-400">Qabul qiluvchi:</span>
                         <span className="font-bold text-white">{confirmedOrder?.customer_name}</span>
@@ -766,7 +766,7 @@ export default function ShopPage() {
                         <span className="text-stone-400">To'lov usuli:</span>
                         <span className="font-bold text-amber-400 uppercase">{confirmedOrder?.payment_method}</span>
                       </div>
-                      <div className="flex justify-between border-t border-stone-800 pt-2 text-sm font-black">
+                      <div className="flex justify-between border-t border-white/10 pt-2 text-sm font-black">
                         <span>Jami summa:</span>
                         <span className="text-emerald-400">{confirmedOrder?.total_price?.toLocaleString('uz-UZ')} UZS</span>
                       </div>
@@ -798,7 +798,7 @@ export default function ShopPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-stone-900 border border-stone-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full text-white shadow-2xl relative overflow-hidden"
+                className="bg-white/[0.04] border border-white/10 rounded-3xl p-6 sm:p-8 max-w-2xl w-full text-white shadow-2xl relative overflow-hidden"
               >
                 <button
                   onClick={() => setQuickViewProduct(null)}
@@ -808,7 +808,7 @@ export default function ShopPage() {
                 </button>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  <div className="aspect-square rounded-2xl overflow-hidden bg-stone-950 border border-stone-800 shadow-inner">
+                  <div className="aspect-square rounded-2xl overflow-hidden bg-[#030303] border border-white/10 shadow-inner">
                     <img 
                       src={quickViewProduct.image_url || "/images/camera.jpg"} 
                       alt={quickViewProduct.name}
@@ -835,7 +835,7 @@ export default function ShopPage() {
                       {quickViewProduct.description}
                     </p>
 
-                    <div className="space-y-2 border-t border-stone-800 pt-4 mb-6 text-xs text-stone-400">
+                    <div className="space-y-2 border-t border-white/10 pt-4 mb-6 text-xs text-stone-400">
                       <div className="flex items-center gap-2">
                         <ShieldCheck className="w-4 h-4 text-emerald-400" />
                         <span>12 oy rasmiy ishlab chiqaruvchi kafolati</span>

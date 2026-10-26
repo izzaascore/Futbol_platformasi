@@ -103,21 +103,21 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-stone-950 flex flex-col items-center justify-center p-4 font-sans text-stone-200 relative overflow-hidden">
+    <div className="min-h-screen bg-[#030303] bg-stadium bg-grid flex flex-col items-center justify-center p-4 font-sans text-stone-200 relative overflow-hidden">
       {/* Background neon ambient lights */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-amber-500/10 blur-[120px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-10 right-10 w-[300px] h-[200px] bg-sky-500/10 blur-[100px] rounded-full pointer-events-none"></div>
 
-      <div className="w-full max-w-md bg-stone-900/80 backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-stone-800 relative z-10">
+      <div className="w-full max-w-md bg-white/[0.04] backdrop-blur-2xl p-8 rounded-2xl shadow-2xl border border-white/10 relative z-10">
         
         {/* Header Icon */}
         <div className="flex justify-center mb-6">
-          <Link to="/" className="w-14 h-14 rounded-2xl bg-gradient-to-br from-stone-900 to-stone-950 border border-stone-700/80 flex items-center justify-center text-amber-500 shadow-xl hover:scale-105 transition-transform">
-            <ShieldHalf className="w-7 h-7" />
+          <Link to="/" className="w-14 h-14 rounded-2xl bg-gradient-to-br from-stone-900 to-stone-950 border border-white/20/80 flex items-center justify-center text-amber-500 shadow-xl hover:scale-105 transition-transform">
+            <img src="/images/futuro_crest.jpg" alt="Futuro" className="w-full h-full object-cover rounded-xl" />
           </Link>
         </div>
 
-        <h2 className="text-2xl font-black text-white text-center mb-1 uppercase tracking-tight">FootballRise</h2>
+        <h2 className="text-2xl font-black text-white text-center mb-1 uppercase tracking-tight">FUTURO</h2>
         <p className="text-stone-400 text-xs text-center uppercase tracking-widest font-bold mb-6">Tizimga kirish</p>
         
         {error && (
@@ -164,9 +164,9 @@ const LoginPage = () => {
 
         {/* Divider */}
         <div className="flex items-center my-6">
-          <div className="flex-1 border-t border-stone-800"></div>
+          <div className="flex-1 border-t border-white/10"></div>
           <span className="px-3 text-[10px] font-bold uppercase tracking-widest text-stone-500">yoki parol orqali</span>
-          <div className="flex-1 border-t border-stone-800"></div>
+          <div className="flex-1 border-t border-white/10"></div>
         </div>
 
         {/* ============================================================== */}
@@ -181,7 +181,7 @@ const LoginPage = () => {
               placeholder="Masalan: Abdulbosit"
               value={form.firstName} 
               onChange={e=>setForm({...form, firstName: e.target.value})} 
-              className="w-full px-4 py-3 bg-stone-950/80 border border-stone-800 rounded-xl text-white placeholder-stone-600 focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all text-sm" 
+              className="w-full px-4 py-3 bg-[#030303] bg-stadium bg-grid/80 border border-white/10 rounded-xl text-white placeholder-stone-600 focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all text-sm" 
             />
           </div>
           <div>
@@ -192,7 +192,7 @@ const LoginPage = () => {
               placeholder="Masalan: Rashidov"
               value={form.lastName} 
               onChange={e=>setForm({...form, lastName: e.target.value})} 
-              className="w-full px-4 py-3 bg-stone-950/80 border border-stone-800 rounded-xl text-white placeholder-stone-600 focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all text-sm" 
+              className="w-full px-4 py-3 bg-[#030303] bg-stadium bg-grid/80 border border-white/10 rounded-xl text-white placeholder-stone-600 focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all text-sm" 
             />
           </div>
           <div>
@@ -203,21 +203,21 @@ const LoginPage = () => {
               placeholder="••••••••"
               value={form.password} 
               onChange={e=>setForm({...form, password: e.target.value})} 
-              className="w-full px-4 py-3 bg-stone-950/80 border border-stone-800 rounded-xl text-white placeholder-stone-600 focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all text-sm" 
+              className="w-full px-4 py-3 bg-[#030303] bg-stadium bg-grid/80 border border-white/10 rounded-xl text-white placeholder-stone-600 focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all text-sm" 
             />
           </div>
 
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-stone-700 flex justify-center items-center gap-2 mt-4 hover:border-amber-500/50"
+            className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-white/20 flex justify-center items-center gap-2 mt-4 hover:border-amber-500/50"
           >
             <Key className="w-4 h-4 text-amber-500"/> {loading ? "Kirilmoqda..." : "Kirish"}
           </button>
         </form>
 
         {/* Footer Link to Register */}
-        <div className="mt-8 pt-6 border-t border-stone-800/80 text-center">
+        <div className="mt-8 pt-6 border-t border-white/10/80 text-center">
           <p className="text-xs text-stone-400 font-medium">
             Profilingiz yo'qmi?{' '}
             <Link to="/register" className="text-amber-500 hover:text-amber-400 font-bold uppercase tracking-wider ml-1 inline-flex items-center gap-1">

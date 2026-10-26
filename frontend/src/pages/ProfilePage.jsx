@@ -144,11 +144,11 @@ export default function ProfilePage() {
     }
   };
 
-  if (!user) return <div className="min-h-screen bg-stone-950 flex items-center justify-center text-white">Loading...</div>;
+  if (!user) return <div className="min-h-screen bg-[#030303] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <PageTransition>
-      <div className="w-full bg-stone-950 min-h-screen font-sans text-stone-200">
+      <div className="w-full bg-[#030303] min-h-screen font-sans text-stone-200">
         
         {/* Profile Header (Cinematic) */}
         <div className="relative w-full h-[40vh] min-h-[350px]">
@@ -182,7 +182,7 @@ export default function ProfilePage() {
 
               <div className="flex-1 pb-2">
                 <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <div className="px-3 py-1 bg-stone-900 border border-stone-700 text-[10px] font-bold uppercase tracking-widest text-amber-500 rounded-sm">
+                  <div className="px-3 py-1 bg-stone-900 border border-white/20 text-[10px] font-bold uppercase tracking-widest text-amber-500 rounded-sm">
                     Tasdiqlangan Profil
                   </div>
                   <ShieldCheck className="w-5 h-5 text-amber-500" />
@@ -208,7 +208,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex gap-4 pb-2 w-full md:w-auto mt-6 md:mt-0">
-                <div className="flex flex-col items-center bg-stone-900/80 backdrop-blur-sm border border-stone-800 px-6 py-3 rounded-sm">
+                <div className="flex flex-col items-center bg-stone-900/80 backdrop-blur-sm border border-white/10 px-6 py-3 rounded-sm">
                   <span className="text-3xl font-bold text-white">{mockStats.scoutViews}</span>
                   <span className="text-[9px] uppercase tracking-widest text-stone-500 mt-1">Scout Views</span>
                 </div>
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                   <span className="text-3xl font-bold text-amber-500">{mockStats.videos}</span>
                   <span className="text-[9px] uppercase tracking-widest text-amber-600 mt-1">Videolar</span>
                 </div>
-                <div className="flex flex-col items-center bg-stone-900/80 backdrop-blur-sm border border-stone-800 px-6 py-3 rounded-sm cursor-pointer group" onClick={handleHardcoreToggle}>
+                <div className="flex flex-col items-center bg-stone-900/80 backdrop-blur-sm border border-white/10 px-6 py-3 rounded-sm cursor-pointer group" onClick={handleHardcoreToggle}>
                   <div className={`w-10 h-5 rounded-full p-1 flex items-center transition-colors mb-2 ${user.hardcore_mode ? 'bg-amber-500' : 'bg-stone-700'}`}>
                     <div className={`w-3 h-3 rounded-full bg-white transition-transform ${user.hardcore_mode ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
@@ -229,7 +229,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Navigation */}
-        <div className="border-b border-stone-800 sticky top-24 z-30 bg-stone-950/90 backdrop-blur-md">
+        <div className="border-b border-white/10 sticky top-24 z-30 bg-[#030303]/90 backdrop-blur-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex gap-8 overflow-x-auto scrollbar-hide">
               {['overview', 'videos', 'performance', 'team', 'devices'].map((tab) => (
@@ -258,15 +258,15 @@ export default function ProfilePage() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
               
               {/* Featured Video */}
-              <div className="bg-stone-900 border border-stone-800 p-2 rounded-sm shadow-2xl relative overflow-hidden group">
+              <div className="bg-stone-900 border border-white/10 p-2 rounded-sm shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-6 left-6 z-20 flex gap-2">
                   <span className="px-3 py-1 bg-amber-600 text-[10px] font-bold uppercase tracking-widest text-white rounded-sm">Asosiy Video</span>
-                  <span className="px-3 py-1 bg-stone-950/80 border border-stone-700 text-[10px] font-bold uppercase tracking-widest text-white rounded-sm backdrop-blur-md">Scout Pick</span>
+                  <span className="px-3 py-1 bg-[#030303]/80 border border-white/20 text-[10px] font-bold uppercase tracking-widest text-white rounded-sm backdrop-blur-md">Scout Pick</span>
                 </div>
                 
-                <div className="relative w-full h-[400px] md:h-[600px] bg-stone-950 overflow-hidden cursor-pointer">
+                <div className="relative w-full h-[400px] md:h-[600px] bg-[#030303] overflow-hidden cursor-pointer">
                   <img src="/images/player.jpg" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000 ease-out" alt="Featured Match" />
-                  <div className="absolute inset-0 bg-stone-950/40 group-hover:bg-stone-950/20 transition-colors"></div>
+                  <div className="absolute inset-0 bg-[#030303]/40 group-hover:bg-[#030303]/20 transition-colors"></div>
                   
                   {/* Play Button */}
                   <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -291,7 +291,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* Upload Experience */}
-                <div className="md:col-span-1 bg-stone-900 border border-stone-800 rounded-sm p-6 flex flex-col justify-between">
+                <div className="md:col-span-1 bg-stone-900 border border-white/10 rounded-sm p-6 flex flex-col justify-between">
                   <div>
                     <h3 className="text-xl font-bold text-white uppercase tracking-tight mb-2">Yangi Video</h3>
                     <p className="text-sm font-light text-stone-400 mb-6">Match yozuvlari yoki mashg'ulotlarni yuklang. Skautlar sizni kuzatishmoqda.</p>
@@ -304,13 +304,13 @@ export default function ProfilePage() {
                       accept="video/mp4,video/quicktime" 
                     />
                     {!isUploading ? (
-                      <div onClick={() => fileInputRef.current.click()} className="border-2 border-dashed border-stone-700 bg-stone-950/50 hover:bg-stone-800 hover:border-amber-500 transition-all cursor-pointer rounded-sm p-8 flex flex-col items-center justify-center text-center h-48">
+                      <div onClick={() => fileInputRef.current.click()} className="border-2 border-dashed border-white/20 bg-[#030303]/50 hover:bg-stone-800 hover:border-amber-500 transition-all cursor-pointer rounded-sm p-8 flex flex-col items-center justify-center text-center h-48">
                         <Upload className="w-8 h-8 text-stone-500 mb-3" />
                         <span className="text-sm font-bold text-stone-300">Videoni tanlash</span>
                         <span className="text-[10px] text-stone-500 uppercase tracking-widest mt-2">Fayl menejerini ochish (MP4, MOV)</span>
                       </div>
                     ) : (
-                      <div className="bg-stone-950/80 border border-stone-700 rounded-sm p-6 flex flex-col items-center justify-center text-center h-48 relative overflow-hidden">
+                      <div className="bg-[#030303]/80 border border-white/20 rounded-sm p-6 flex flex-col items-center justify-center text-center h-48 relative overflow-hidden">
                         <Activity className="w-8 h-8 text-amber-500 mb-3 animate-spin relative z-10" />
                         <span className="text-xs font-bold text-white mb-3 h-8 flex items-center justify-center relative z-10">{uploadStatus}</span>
                         <div className="w-full h-1 bg-stone-800 rounded-full overflow-hidden relative z-10">
@@ -330,23 +330,23 @@ export default function ProfilePage() {
                     )}
                   </div>
                   
-                  <div className="mt-6 pt-6 border-t border-stone-800">
+                  <div className="mt-6 pt-6 border-t border-white/10">
                     <button className="w-full flex items-center justify-center gap-2 py-3 bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs uppercase tracking-widest rounded-sm transition-colors">
-                      <Camera className="w-4 h-4" /> FootballRise Cam orqali yozish
+                      <Camera className="w-4 h-4" /> Futuro Cam orqali yozish
                     </button>
                   </div>
                 </div>
 
                 {/* Library items */}
                 {videoList.map((vid, i) => (
-                  <div key={i} className="bg-stone-900 border border-stone-800 rounded-sm overflow-hidden group cursor-pointer relative">
+                  <div key={i} className="bg-stone-900 border border-white/10 rounded-sm overflow-hidden group cursor-pointer relative">
                     <div className="h-48 relative overflow-hidden">
                       <img src={vid.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Video thumbnail" />
-                      <div className="absolute inset-0 bg-stone-950/50 group-hover:bg-stone-950/30 transition-colors"></div>
+                      <div className="absolute inset-0 bg-[#030303]/50 group-hover:bg-[#030303]/30 transition-colors"></div>
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <PlayCircle className="w-12 h-12 text-white" />
                       </div>
-                      <div className="absolute bottom-3 right-3 bg-stone-950/80 backdrop-blur-sm px-2 py-1 text-[10px] font-bold text-white rounded-sm">{vid.duration}</div>
+                      <div className="absolute bottom-3 right-3 bg-[#030303]/80 backdrop-blur-sm px-2 py-1 text-[10px] font-bold text-white rounded-sm">{vid.duration}</div>
                     </div>
                     <div className="p-5">
                       <h4 className="font-bold text-white text-lg tracking-tight mb-2 truncate">{vid.title}</h4>
@@ -369,7 +369,7 @@ export default function ProfilePage() {
           {activeTab === 'devices' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               
-              <div className="bg-stone-900 border border-stone-800 p-8 rounded-sm relative overflow-hidden">
+              <div className="bg-stone-900 border border-white/10 p-8 rounded-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
                   <Camera className="w-full h-full object-cover transform translate-x-1/4 -translate-y-1/4" />
                 </div>
@@ -378,7 +378,7 @@ export default function ProfilePage() {
                 
                 <div className="flex flex-col md:flex-row gap-8">
                   {/* Connected Camera Card */}
-                  <div className="flex-1 bg-stone-950 border border-stone-700 p-6 rounded-sm flex items-start gap-6 relative">
+                  <div className="flex-1 bg-[#030303] border border-white/20 p-6 rounded-sm flex items-start gap-6 relative">
                     <div className="absolute top-4 right-4 flex items-center gap-2">
                       <span className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -387,12 +387,12 @@ export default function ProfilePage() {
                       <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-widest">Connected</span>
                     </div>
                     
-                    <div className="w-24 h-24 bg-stone-900 rounded-sm border border-stone-800 flex items-center justify-center p-2 overflow-hidden">
-                      <img src="/images/camera.jpg" alt="FootballRise Cam" className="w-full h-full object-cover rounded-sm filter grayscale hover:grayscale-0 transition-all" />
+                    <div className="w-24 h-24 bg-stone-900 rounded-sm border border-white/10 flex items-center justify-center p-2 overflow-hidden">
+                      <img src="/images/camera.jpg" alt="Futuro Cam" className="w-full h-full object-cover rounded-sm filter grayscale hover:grayscale-0 transition-all" />
                     </div>
                     
                     <div className="pt-2">
-                      <h3 className="text-xl font-bold text-white mb-1 uppercase tracking-tight">FootballRise Cam Pro</h3>
+                      <h3 className="text-xl font-bold text-white mb-1 uppercase tracking-tight">Futuro Cam Pro</h3>
                       <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-4">ID: FRC-99X204</p>
                       
                       <div className="grid grid-cols-2 gap-4 text-sm font-medium">
@@ -422,12 +422,12 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Add New Device */}
-                  <div className="w-full md:w-1/3 border-2 border-dashed border-stone-800 hover:border-amber-500 bg-stone-900/30 hover:bg-stone-900/80 transition-all rounded-sm flex flex-col items-center justify-center p-8 cursor-pointer text-center group">
+                  <div className="w-full md:w-1/3 border-2 border-dashed border-white/10 hover:border-amber-500 bg-stone-900/30 hover:bg-stone-900/80 transition-all rounded-sm flex flex-col items-center justify-center p-8 cursor-pointer text-center group">
                     <div className="w-16 h-16 rounded-full bg-stone-800 flex items-center justify-center mb-4 group-hover:bg-amber-600 transition-colors">
                       <Plus className="w-8 h-8 text-white" />
                     </div>
                     <h4 className="font-bold text-white uppercase mb-2">Qurilma qo'shish</h4>
-                    <p className="text-xs font-light text-stone-500">Yangi FootballRise Cam yoki boshqa mos keluvchi datchiklarni ulang.</p>
+                    <p className="text-xs font-light text-stone-500">Yangi Futuro Cam yoki boshqa mos keluvchi datchiklarni ulang.</p>
                   </div>
                 </div>
               </div>
@@ -601,7 +601,7 @@ export default function ProfilePage() {
                       <Target className="w-5 h-5 text-cyan-400" /> Maydondagi Faollik Xaritasi
                     </h3>
                     
-                    <div className="flex gap-1.5 bg-stone-900/90 border border-stone-800 p-1 rounded-xl text-xs font-bold">
+                    <div className="flex gap-1.5 bg-stone-900/90 border border-white/10 p-1 rounded-xl text-xs font-bold">
                       <button 
                         onClick={() => setPitchFilter('shots')}
                         className={`px-3 py-1.5 rounded-lg transition-all ${pitchFilter === 'shots' ? 'bg-cyan-500 text-black' : 'text-stone-400 hover:text-white'}`}
@@ -699,17 +699,17 @@ export default function ProfilePage() {
                     </h4>
 
                     <div className="grid grid-cols-3 gap-3 text-center">
-                      <div className="bg-[#0c131f] border border-stone-800 p-3 rounded-2xl">
+                      <div className="bg-[#0c131f] border border-white/10 p-3 rounded-2xl">
                         <div className="text-2xl font-black text-white font-mono">8</div>
                         <div className="text-[10px] uppercase font-bold text-cyan-400 mt-1">O'ng Oyoq</div>
                         <div className="text-[9px] text-stone-500">50%</div>
                       </div>
-                      <div className="bg-[#0c131f] border border-stone-800 p-3 rounded-2xl">
+                      <div className="bg-[#0c131f] border border-white/10 p-3 rounded-2xl">
                         <div className="text-2xl font-black text-white font-mono">4</div>
                         <div className="text-[10px] uppercase font-bold text-cyan-400 mt-1">Chap Oyoq</div>
                         <div className="text-[9px] text-stone-500">25%</div>
                       </div>
-                      <div className="bg-[#0c131f] border border-stone-800 p-3 rounded-2xl">
+                      <div className="bg-[#0c131f] border border-white/10 p-3 rounded-2xl">
                         <div className="text-2xl font-black text-white font-mono">4</div>
                         <div className="text-[10px] uppercase font-bold text-cyan-400 mt-1">Bosh bilan</div>
                         <div className="text-[9px] text-stone-500">25%</div>
@@ -774,9 +774,9 @@ export default function ProfilePage() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               {!hasTeam ? (
                 // Jamoa Yaratish Qismi
-                <div className="bg-stone-900 border border-stone-800 p-8 rounded-sm max-w-2xl mx-auto shadow-2xl">
+                <div className="bg-stone-900 border border-white/10 p-8 rounded-sm max-w-2xl mx-auto shadow-2xl">
                   <div className="flex flex-col items-center text-center mb-8">
-                    <div className="w-20 h-20 bg-stone-950 border border-stone-800 rounded-full flex items-center justify-center mb-4">
+                    <div className="w-20 h-20 bg-[#030303] border border-white/10 rounded-full flex items-center justify-center mb-4">
                       <Shield className="w-10 h-10 text-amber-500" />
                     </div>
                     <h2 className="text-3xl font-bold text-white tracking-tight uppercase mb-2">O'z Jamoangizni Yrating</h2>
@@ -786,11 +786,11 @@ export default function ProfilePage() {
                   <div className="space-y-5">
                     <div>
                       <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">Jamoa Nomi</label>
-                      <input type="text" value={teamForm.name} onChange={(e) => setTeamForm({...teamForm, name: e.target.value})} placeholder="Masalan: Paxtakor U-19" className="w-full px-4 py-3 rounded-sm bg-stone-950 border border-stone-800 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors" />
+                      <input type="text" value={teamForm.name} onChange={(e) => setTeamForm({...teamForm, name: e.target.value})} placeholder="Masalan: Paxtakor U-19" className="w-full px-4 py-3 rounded-sm bg-[#030303] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-2">Jamoa Hududi</label>
-                      <select value={teamForm.region} onChange={(e) => setTeamForm({...teamForm, region: e.target.value})} className="w-full px-4 py-3 rounded-sm bg-stone-950 border border-stone-800 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors appearance-none">
+                      <select value={teamForm.region} onChange={(e) => setTeamForm({...teamForm, region: e.target.value})} className="w-full px-4 py-3 rounded-sm bg-[#030303] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors appearance-none">
                         <option>Toshkent</option>
                         <option>Farg'ona</option>
                         <option>Qashqadaryo</option>
@@ -809,9 +809,9 @@ export default function ProfilePage() {
                   
                   {/* Jamoa Asosiy Ekran (Roster & Requests) */}
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-stone-900 border border-stone-800 p-6 rounded-sm flex items-center justify-between shadow-lg">
+                    <div className="bg-stone-900 border border-white/10 p-6 rounded-sm flex items-center justify-between shadow-lg">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-stone-950 border border-amber-600/30 rounded-sm flex items-center justify-center">
+                        <div className="w-16 h-16 bg-[#030303] border border-amber-600/30 rounded-sm flex items-center justify-center">
                           <Shield className="w-8 h-8 text-amber-500" />
                         </div>
                         <div>
@@ -823,17 +823,17 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       </div>
-                      <button className="px-4 py-2 border border-stone-700 hover:border-amber-500 text-stone-400 hover:text-white text-[10px] font-bold uppercase tracking-widest rounded-sm transition-colors flex items-center gap-2">
+                      <button className="px-4 py-2 border border-white/20 hover:border-amber-500 text-stone-400 hover:text-white text-[10px] font-bold uppercase tracking-widest rounded-sm transition-colors flex items-center gap-2">
                          <Plus className="w-3 h-3" /> Taklif qilish
                       </button>
                     </div>
 
                     {/* Tarkib (Roster) */}
-                    <div className="bg-stone-900 border border-stone-800 p-6 rounded-sm">
+                    <div className="bg-stone-900 border border-white/10 p-6 rounded-sm">
                       <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-amber-500" /> Jamoa Tarkibi</h3>
                       <div className="space-y-2">
                         {['Umidjon Erkinov (Kapitan)', 'Sardor', 'Azamat', 'Islom'].map((member, idx) => (
-                          <div key={idx} className="bg-stone-950 border border-stone-800 p-3 flex justify-between items-center rounded-sm">
+                          <div key={idx} className="bg-[#030303] border border-white/10 p-3 flex justify-between items-center rounded-sm">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-stone-800 flex items-center justify-center text-xs text-stone-400 font-bold">{member[0]}</div>
                               <span className="text-sm text-stone-200 font-medium">{member}</span>
@@ -848,7 +848,7 @@ export default function ProfilePage() {
                   {/* O'ng Ustun: Chat va Arizalar */}
                   <div className="space-y-6">
                     {/* Arizalar */}
-                    <div className="bg-stone-900 border border-stone-800 p-6 rounded-sm">
+                    <div className="bg-stone-900 border border-white/10 p-6 rounded-sm">
                       <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center justify-between">
                         Qo'shilish Arizalari
                         {joinRequests.length > 0 && <span className="bg-amber-600 text-white px-2 py-0.5 rounded-full text-[10px]">{joinRequests.length}</span>}
@@ -857,7 +857,7 @@ export default function ProfilePage() {
                         <p className="text-xs text-stone-500">Hozircha arizalar yo'q</p>
                       ) : (
                         joinRequests.map(req => (
-                          <div key={req.id} className="bg-stone-950 border border-stone-800 p-3 rounded-sm">
+                          <div key={req.id} className="bg-[#030303] border border-white/10 p-3 rounded-sm">
                             <div className="flex justify-between items-start mb-2">
                               <div>
                                 <h4 className="text-sm font-bold text-white">{req.name}</h4>
@@ -874,8 +874,8 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Jamoaviy Chat */}
-                    <div className="bg-stone-900 border border-stone-800 rounded-sm flex flex-col h-[400px]">
-                      <div className="p-4 border-b border-stone-800 bg-stone-950 flex items-center gap-2">
+                    <div className="bg-stone-900 border border-white/10 rounded-sm flex flex-col h-[400px]">
+                      <div className="p-4 border-b border-white/10 bg-[#030303] flex items-center gap-2">
                         <MessageSquare className="w-4 h-4 text-amber-500" />
                         <h3 className="text-sm font-bold text-white uppercase tracking-widest">Guruh Chati</h3>
                       </div>
@@ -892,7 +892,7 @@ export default function ProfilePage() {
                         ))}
                       </div>
 
-                      <div className="p-3 border-t border-stone-800 bg-stone-950 flex gap-2">
+                      <div className="p-3 border-t border-white/10 bg-[#030303] flex gap-2">
                         <input 
                           type="text" 
                           value={chatMsg}
@@ -904,7 +904,7 @@ export default function ProfilePage() {
                             }
                           }}
                           placeholder="Xabar yozish..." 
-                          className="flex-1 bg-stone-900 border border-stone-800 rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" 
+                          className="flex-1 bg-stone-900 border border-white/10 rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" 
                         />
                         <button 
                           onClick={() => {

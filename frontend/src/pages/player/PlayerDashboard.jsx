@@ -89,7 +89,7 @@ const PlayerDashboard = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans text-stone-200">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-stone-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
         <div>
           <span className="text-amber-500 font-mono text-xs uppercase tracking-widest font-bold">Futbolchi Shaxsiy Kabineti</span>
           <h2 className="text-3xl font-black text-white uppercase tracking-tight mt-1">
@@ -113,29 +113,29 @@ const PlayerDashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-stone-900/60 border border-stone-800 p-6 rounded-2xl backdrop-blur-md">
+        <div className="bg-stone-900/60 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
           <h3 className="text-stone-400 font-bold text-[10px] uppercase tracking-widest mb-1">Intizom Balli</h3>
           <p className="text-3xl font-black text-emerald-400 font-mono">100 / 100</p>
         </div>
-        <div className="bg-stone-900/60 border border-stone-800 p-6 rounded-2xl backdrop-blur-md">
+        <div className="bg-stone-900/60 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
           <h3 className="text-stone-400 font-bold text-[10px] uppercase tracking-widest mb-1">Tasdiqlangan Gollar</h3>
           <p className="text-3xl font-black text-white font-mono">0 ta</p>
         </div>
-        <div className="bg-stone-900/60 border border-stone-800 p-6 rounded-2xl backdrop-blur-md">
+        <div className="bg-stone-900/60 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
           <h3 className="text-stone-400 font-bold text-[10px] uppercase tracking-widest mb-1">Skaut Taklifnomalari</h3>
           <p className="text-3xl font-black text-amber-400 font-mono">{invitations.length} ta</p>
         </div>
-        <div className="bg-stone-900/60 border border-stone-800 p-6 rounded-2xl backdrop-blur-md">
+        <div className="bg-stone-900/60 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
           <h3 className="text-stone-400 font-bold text-[10px] uppercase tracking-widest mb-1">OVR Reyting</h3>
           <p className="text-3xl font-black text-amber-500 font-mono">82</p>
         </div>
       </div>
 
       {/* Scout Invitations Section (TASK 3) */}
-      <div className="mb-10 bg-gradient-to-b from-stone-900/80 to-stone-950 border border-stone-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
+      <div className="mb-10 bg-gradient-to-b from-stone-900/80 to-stone-950 border border-white/10 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-[90px] rounded-full pointer-events-none"></div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 pb-4 border-b border-stone-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 pb-4 border-b border-white/10">
           <div>
             <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2">
               <Mail className="w-5 h-5 text-amber-500" />
@@ -159,7 +159,7 @@ const PlayerDashboard = () => {
             {invitations.map((inv) => (
               <div 
                 key={inv.id} 
-                className="bg-stone-950/70 border border-stone-800/90 hover:border-amber-500/40 transition-colors p-6 rounded-2xl"
+                className="bg-[#030303]/70 border border-white/10/90 hover:border-amber-500/40 transition-colors p-6 rounded-2xl"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div>
@@ -192,12 +192,12 @@ const PlayerDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-stone-900/60 p-4 rounded-xl border border-stone-800/80 mb-4 text-xs text-stone-300 leading-relaxed font-light">
+                <div className="bg-stone-900/60 p-4 rounded-xl border border-white/10/80 mb-4 text-xs text-stone-300 leading-relaxed font-light">
                   <strong className="text-stone-400 uppercase text-[10px] font-bold block mb-1">Skaut Xabari:</strong>
                   {inv.message}
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pt-3 border-t border-stone-800/80">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pt-3 border-t border-white/10/80">
                   <span className="text-[11px] font-mono text-stone-400">
                     Skaut Aloqa Nomeri: <strong className="text-amber-400">{inv.contact_phone || "+998 90 123 45 67"}</strong>
                   </span>
@@ -212,7 +212,7 @@ const PlayerDashboard = () => {
                       </button>
                       <button
                         onClick={() => respondToInvite(inv.id, 'rad_etildi')}
-                        className="px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-white border border-stone-800 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors"
+                        className="px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-white border border-white/10 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors"
                       >
                         Rad Etish
                       </button>
@@ -243,7 +243,7 @@ const PlayerDashboard = () => {
       </div>
       
       {/* Videos Section */}
-      <div className="bg-stone-900/60 border border-stone-800 p-8 rounded-3xl text-center">
+      <div className="bg-stone-900/60 border border-white/10 p-8 rounded-3xl text-center">
         <Video className="w-10 h-10 text-stone-600 mx-auto mb-3" />
         <h3 className="text-lg font-black text-white uppercase tracking-tight mb-2">Mening Videolarim va Driblinglarim</h3>
         <p className="text-stone-400 text-xs max-w-md mx-auto mb-6">

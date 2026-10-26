@@ -101,7 +101,7 @@ export default function MatchCenterPage() {
 
   return (
     <PageTransition>
-      <div className="w-full bg-stone-950 min-h-screen font-sans text-stone-200 relative selection:bg-red-500/30 overflow-hidden pb-20">
+      <div className="w-full bg-[#030303] min-h-screen font-sans text-stone-200 relative selection:bg-red-500/30 overflow-hidden pb-20">
         
         {/* Cinematic Header */}
         <div className="relative h-[36vh] min-h-[300px] w-full flex items-end pb-10 z-10">
@@ -111,7 +111,7 @@ export default function MatchCenterPage() {
               alt="Match Center" 
               className="w-full h-full object-cover opacity-35 grayscale"
             />
-            <div className="absolute inset-0 bg-stone-950/70 mix-blend-multiply"></div>
+            <div className="absolute inset-0 bg-[#030303]/70 mix-blend-multiply"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/80 to-transparent"></div>
           </div>
           
@@ -121,7 +121,7 @@ export default function MatchCenterPage() {
                 <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                 </div>
-                <span className="text-[10px] font-black tracking-[0.2em] text-red-500 uppercase">FootballRise Arena</span>
+                <span className="text-[10px] font-black tracking-[0.2em] text-red-500 uppercase">Futuro Arena</span>
               </div>
               <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase mb-2">
                 O'yinlar & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Match Center</span>
@@ -136,7 +136,7 @@ export default function MatchCenterPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full relative z-20">
           
           {/* Tabs Menu */}
-          <div className="flex flex-wrap gap-2 bg-stone-900/90 p-1.5 rounded-2xl backdrop-blur-xl border border-stone-800 shadow-2xl mb-8">
+          <div className="flex flex-wrap gap-2 bg-white/[0.04]/90 p-1.5 rounded-2xl backdrop-blur-xl border border-white/10 shadow-2xl mb-8">
             {[
               { id: 'sos', label: '⚡️ SOS: Odam Yetmayapti', badge: 'Qaynoq' },
               { id: 'live', label: 'Jonli O\'yinlar' },
@@ -154,7 +154,7 @@ export default function MatchCenterPage() {
                 {tab.label}
                 {tab.badge && (
                   <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black uppercase ${
-                    activeTab === tab.id ? 'bg-stone-950 text-amber-400' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    activeTab === tab.id ? 'bg-[#030303] text-amber-400' : 'bg-red-500/20 text-red-400 border border-red-500/30'
                   }`}>
                     {tab.badge}
                   </span>
@@ -170,7 +170,7 @@ export default function MatchCenterPage() {
             <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               
               {/* E'lon berish sarlavhasi va tugmasi */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-900/90 border border-stone-800 p-6 rounded-3xl backdrop-blur-xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/[0.04]/90 border border-white/10 p-6 rounded-3xl backdrop-blur-xl">
                 <div>
                   <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2">
                     ⚡️ SOS Matchmaker: Futbolga Odam Qidirish
@@ -202,7 +202,7 @@ export default function MatchCenterPage() {
                   callouts.map((c) => (
                     <div 
                       key={c.id} 
-                      className="bg-stone-900/90 border border-stone-800 hover:border-amber-500/40 rounded-3xl p-6 backdrop-blur-xl transition-all shadow-xl flex flex-col justify-between"
+                      className="bg-white/[0.04]/90 border border-white/10 hover:border-amber-500/40 rounded-3xl p-6 backdrop-blur-xl transition-all shadow-xl flex flex-col justify-between"
                     >
                       <div>
                         <div className="flex justify-between items-start mb-3">
@@ -243,7 +243,7 @@ export default function MatchCenterPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-full py-16 text-center text-stone-500 bg-stone-900/40 rounded-3xl border border-stone-800">
+                  <div className="col-span-full py-16 text-center text-stone-500 bg-white/[0.04]/40 rounded-3xl border border-white/10">
                     <AlertTriangle className="w-8 h-8 text-amber-500/40 mx-auto mb-2" />
                     Hozircha faol SOS e'lonlar mavjud emas. Birinchi bo'lib o'z e'loningizni qoldiring!
                   </div>
@@ -252,8 +252,8 @@ export default function MatchCenterPage() {
 
               {/* E'lon berish Modali */}
               {showCalloutModal && (
-                <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-md flex items-center justify-center p-4">
-                  <div className="bg-stone-900 border border-stone-700 w-full max-w-lg rounded-3xl p-6 shadow-2xl">
+                <div className="fixed inset-0 z-50 bg-[#030303]/80 backdrop-blur-md flex items-center justify-center p-4">
+                  <div className="bg-white/[0.04] border border-white/20 w-full max-w-lg rounded-3xl p-6 shadow-2xl">
                     <h3 className="text-xl font-black text-white uppercase tracking-tight mb-4">
                       ⚡️ Yangi O'yin Uchun E'lon Berish
                     </h3>
@@ -266,7 +266,7 @@ export default function MatchCenterPage() {
                           value={newCallout.title}
                           onChange={(e) => setNewCallout({ ...newCallout, title: e.target.value })}
                           placeholder="Masalan: Kechki do'stona o'yinga 2 kishi kerak"
-                          className="w-full px-4 py-2.5 bg-stone-950 border border-stone-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                          className="w-full px-4 py-2.5 bg-[#030303] border border-white/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
                         />
                       </div>
 
@@ -278,7 +278,7 @@ export default function MatchCenterPage() {
                             required
                             value={newCallout.city}
                             onChange={(e) => setNewCallout({ ...newCallout, city: e.target.value })}
-                            className="w-full px-4 py-2.5 bg-stone-950 border border-stone-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                            className="w-full px-4 py-2.5 bg-[#030303] border border-white/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
                           />
                         </div>
                         <div>
@@ -288,7 +288,7 @@ export default function MatchCenterPage() {
                             value={newCallout.district}
                             onChange={(e) => setNewCallout({ ...newCallout, district: e.target.value })}
                             placeholder="Chilonzor"
-                            className="w-full px-4 py-2.5 bg-stone-950 border border-stone-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                            className="w-full px-4 py-2.5 bg-[#030303] border border-white/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
                           />
                         </div>
                       </div>
@@ -301,7 +301,7 @@ export default function MatchCenterPage() {
                           value={newCallout.stadium_name}
                           onChange={(e) => setNewCallout({ ...newCallout, stadium_name: e.target.value })}
                           placeholder="Bunyodkor Mini Arena"
-                          className="w-full px-4 py-2.5 bg-stone-950 border border-stone-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                          className="w-full px-4 py-2.5 bg-[#030303] border border-white/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
                         />
                       </div>
 
@@ -314,7 +314,7 @@ export default function MatchCenterPage() {
                             value={newCallout.match_time}
                             onChange={(e) => setNewCallout({ ...newCallout, match_time: e.target.value })}
                             placeholder="Bugun, 20:00"
-                            className="w-full px-4 py-2.5 bg-stone-950 border border-stone-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                            className="w-full px-4 py-2.5 bg-[#030303] border border-white/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
                           />
                         </div>
                         <div>
@@ -326,7 +326,7 @@ export default function MatchCenterPage() {
                             required
                             value={newCallout.players_needed}
                             onChange={(e) => setNewCallout({ ...newCallout, players_needed: parseInt(e.target.value) })}
-                            className="w-full px-4 py-2.5 bg-stone-950 border border-stone-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                            className="w-full px-4 py-2.5 bg-[#030303] border border-white/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
                           />
                         </div>
                       </div>
@@ -337,7 +337,7 @@ export default function MatchCenterPage() {
                           <select
                             value={newCallout.position_needed}
                             onChange={(e) => setNewCallout({ ...newCallout, position_needed: e.target.value })}
-                            className="w-full px-4 py-2.5 bg-stone-950 border border-stone-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                            className="w-full px-4 py-2.5 bg-[#030303] border border-white/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
                           >
                             <option value="Ixtiyoriy">Ixtiyoriy</option>
                             <option value="Himoyachi">Himoyachi</option>
@@ -355,12 +355,12 @@ export default function MatchCenterPage() {
                             value={newCallout.price_per_person}
                             onChange={(e) => setNewCallout({ ...newCallout, price_per_person: parseInt(e.target.value) || 0 })}
                             placeholder="0 (Tekin)"
-                            className="w-full px-4 py-2.5 bg-stone-950 border border-stone-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
+                            className="w-full px-4 py-2.5 bg-[#030303] border border-white/20 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"
                           />
                         </div>
                       </div>
 
-                      <div className="flex justify-end gap-3 pt-4 border-t border-stone-800">
+                      <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
                         <button
                           type="button"
                           onClick={() => setShowCalloutModal(false)}
@@ -399,7 +399,7 @@ export default function MatchCenterPage() {
               </div>
 
               {(!matches || matches.length === 0) ? (
-                <div className="py-16 bg-stone-900/40 border border-stone-800 rounded-2xl text-center flex flex-col items-center justify-center p-8">
+                <div className="py-16 bg-white/[0.04]/40 border border-white/10 rounded-2xl text-center flex flex-col items-center justify-center p-8">
                   <Activity className="w-12 h-12 text-stone-600 mb-4" />
                   <h4 className="text-xl font-bold text-white mb-2">Hozirda jonli o'yinlar mavjud emas</h4>
                   <p className="text-stone-400 text-sm max-w-md">Rasmiy uchrashuvlar boshlanganda ushbu bo'limda real-vaqt rejimida hisoblar va voqealar namoyish etiladi.</p>
@@ -407,8 +407,8 @@ export default function MatchCenterPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {matches.map((m, idx) => (
-                  <div key={m.id || idx} className="bg-stone-900/80 border border-stone-800 hover:border-red-500/40 transition-colors p-6 rounded-2xl relative overflow-hidden shadow-xl">
-                    <div className="flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest pb-3 mb-4 border-b border-stone-800">
+                  <div key={m.id || idx} className="bg-white/[0.04]/80 border border-white/10 hover:border-red-500/40 transition-colors p-6 rounded-2xl relative overflow-hidden shadow-xl">
+                    <div className="flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest pb-3 mb-4 border-b border-white/10">
                       <span>{m.tournament || "Rasmiy Turnir"}</span>
                       <span className="text-red-500 font-mono font-black animate-pulse flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {m.minute || "65'"}
@@ -421,7 +421,7 @@ export default function MatchCenterPage() {
                         <span className="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Mezbon</span>
                       </div>
                       <div className="w-1/5 flex justify-center">
-                        <div className="px-4 py-2 bg-stone-950 border border-stone-800 rounded-xl text-2xl font-black text-amber-400 font-mono shadow-inner">
+                        <div className="px-4 py-2 bg-[#030303] border border-white/10 rounded-xl text-2xl font-black text-amber-400 font-mono shadow-inner">
                           {m.home_score !== undefined ? m.home_score : 1} : {m.away_score !== undefined ? m.away_score : 0}
                         </div>
                       </div>
@@ -431,7 +431,7 @@ export default function MatchCenterPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-stone-800/80 flex justify-between items-center text-xs text-stone-400">
+                    <div className="mt-4 pt-3 border-t border-white/10/80 flex justify-between items-center text-xs text-stone-400">
                       <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-amber-500" /> {m.stadium || "Markaziy Stadion"}</span>
                       <span className="text-amber-500 font-bold hover:underline cursor-pointer">Batafsil & Stats &rarr;</span>
                     </div>
@@ -449,7 +449,7 @@ export default function MatchCenterPage() {
                 { name: "O'zbekiston Yoshlar Kubogi", teams: 16, status: "Pley-off bosqichi", img: "/images/stadiums/stadiums_1574629810360-7efbb6.jpg" },
                 { name: "Toshkent Chempionati U-18", teams: 12, status: "3-Tur", img: "/images/stadiums/stadiums_1522778119026-d647f0.jpg" }
               ].map((t, i) => (
-                <div key={i} className="relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-stone-800">
+                <div key={i} className="relative h-72 rounded-3xl overflow-hidden group cursor-pointer border border-white/10">
                   <img src={t.img} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" alt="Tournament"/>
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/60 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 p-6 w-full">

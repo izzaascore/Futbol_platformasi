@@ -35,7 +35,7 @@ const rules = [
   },
   {
     title: "Tanish-bilish va pul emas, raqamlar va faktlar gapiradi",
-    desc: "Kimdir \"tanishing bo'lmasa bo'lmaydi\" desa, ishonma. FootballRise platformasida sen o'z natijalaring, videolaring va statistikang bilan gapirasan.",
+    desc: "Kimdir \"tanishing bo'lmasa bo'lmaydi\" desa, ishonma. Futuro platformasida sen o'z natijalaring, videolaring va statistikang bilan gapirasan.",
     icon: <TrendingUp className="w-5 h-5" />
   },
   {
@@ -61,7 +61,7 @@ const ManifestoPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-300 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-[#030303] text-stone-300 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-amber-900/20 to-transparent pointer-events-none"></div>
@@ -77,7 +77,7 @@ const ManifestoPage = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-stone-900 border border-stone-800 text-amber-500 mb-6 shadow-[0_0_15px_rgba(217,119,6,0.15)]">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.04] border border-white/10 text-amber-500 mb-6 shadow-[0_0_15px_rgba(217,119,6,0.15)]">
             <Flame className="w-4 h-4 animate-pulse" />
             <span className="text-[10px] font-bold uppercase tracking-widest">Faqat kuchlilar uchun</span>
           </div>
@@ -96,7 +96,7 @@ const ManifestoPage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-20 bg-stone-900/50 backdrop-blur-sm border border-stone-800 p-8 md:p-12 rounded-sm shadow-xl"
+          className="mb-20 bg-white/[0.04]/50 backdrop-blur-sm border border-white/10 p-8 md:p-12 rounded-sm shadow-xl"
         >
           <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight mb-8 flex items-center gap-4">
             <span className="w-12 h-12 rounded-sm bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 shrink-0">
@@ -118,7 +118,7 @@ const ManifestoPage = () => {
               Keling, ochiq gaplashamiz. Bahona topish — bu ojizlarning ishi. Sen o'zingga achinishni bas qilmaguningcha, kimdir kelib sening qo'lingdan tutib, seni yulduz qilib qo'yishini kutib yashayverasanmi? Afsuski, bunday bo'lmaydi. Dunyo shafqatsiz: u yerda faqat kuchlilar, irodasiga tayanib o'rnidan turganlar qoladi.
             </p>
 
-            <div className="bg-stone-950 p-6 rounded-sm border border-stone-800 my-8">
+            <div className="bg-[#030303] p-6 rounded-sm border border-white/10 my-8">
               <h3 className="text-white font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-500" /> O'zingga tan ol:
               </h3>
@@ -146,7 +146,7 @@ const ManifestoPage = () => {
               Senga hech kim qimmatbaho butsa yoki tayyor yo'l olib kelib bermaydi. Yo'lni o'zing ochasan. Agar bugun ter to'kmasang, ertaga boshqalarning g'alabasini faqat telefonda tomosha qilib o'tirishga majbur bo'lasan.
             </p>
 
-            <div className="pt-6 mt-6 border-t border-stone-800">
+            <div className="pt-6 mt-6 border-t border-white/10">
               <h3 className="text-xl font-bold text-white uppercase tracking-widest mb-4">
                  Ruhni Sindirmaydigan Haqiqat
               </h3>
@@ -185,10 +185,10 @@ const ManifestoPage = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className="bg-stone-900 border border-stone-800 hover:border-amber-500/50 p-6 rounded-sm transition-all group"
+                className="bg-white/[0.04] border border-white/10 hover:border-amber-500/50 p-6 rounded-sm transition-all group"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-sm bg-stone-950 border border-stone-800 text-amber-500 flex items-center justify-center shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                  <div className="w-10 h-10 rounded-sm bg-[#030303] border border-white/10 text-amber-500 flex items-center justify-center shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-colors">
                     {rule.icon}
                   </div>
                   <div>
@@ -208,7 +208,7 @@ const ManifestoPage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mt-20 mb-20 bg-stone-900/50 backdrop-blur-sm border border-stone-800 p-8 md:p-12 rounded-sm shadow-xl"
+          className="mt-20 mb-20 bg-white/[0.04]/50 backdrop-blur-sm border border-white/10 p-8 md:p-12 rounded-sm shadow-xl"
         >
           <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight mb-8 flex items-center gap-4">
             <span className="w-12 h-12 rounded-sm bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20 shrink-0">
@@ -223,21 +223,21 @@ const ManifestoPage = () => {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-stone-950 p-6 rounded-sm border border-stone-800">
+              <div className="bg-[#030303] p-6 rounded-sm border border-white/10">
                 <h4 className="text-white font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Lock className="w-5 h-5 text-amber-500" /> Vaqti kelganda qulflash
                 </h4>
                 <p className="text-sm">Foydalanuvchi mashq uchun belgilangan vaqtni tanlaydi. Vaqt kelganda ilova unga xabar yuboradi. Agar u sababsiz kirmasa yoki boshqa narsa bilan ovvora bo'lib o'tirsa, ilova avtomatik ravishda boshqa ilovalardan chiqarib yuboradi va o'zini to'g'ridan-to'g'ri mashq sahifasiga majburiy kirgizib qo'yadi.</p>
               </div>
 
-              <div className="bg-stone-950 p-6 rounded-sm border border-stone-800">
+              <div className="bg-[#030303] p-6 rounded-sm border border-white/10">
                 <h4 className="text-white font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Smartphone className="w-5 h-5 text-red-500" /> No Exit Zone
                 </h4>
                 <p className="text-sm">Mashq vaqti boshlanganda telefonning pastki qismidagi "Uyga qaytish", "Orqaga" tugmalari va oynalarni almashtirish menyusi butunlay o'chib qoladi (bloklanadi). Foydalanuvchi qochib qutula olmaydi – faqat o'sha mashqni oxirigacha bajarishi shart.</p>
               </div>
 
-              <div className="bg-stone-950 p-6 rounded-sm border border-stone-800 md:col-span-2">
+              <div className="bg-[#030303] p-6 rounded-sm border border-white/10 md:col-span-2">
                 <h4 className="text-white font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Camera className="w-5 h-5 text-cyan-500" /> AI Camera Vision
                 </h4>
@@ -258,7 +258,7 @@ const ManifestoPage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-20 bg-stone-900/50 backdrop-blur-sm border border-stone-800 p-8 md:p-12 rounded-sm shadow-xl"
+          className="mb-20 bg-white/[0.04]/50 backdrop-blur-sm border border-white/10 p-8 md:p-12 rounded-sm shadow-xl"
         >
           <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight mb-8 flex items-center gap-4">
             <span className="w-12 h-12 rounded-sm bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20 shrink-0">
@@ -332,7 +332,7 @@ const ManifestoPage = () => {
           className="mt-20 text-center"
         >
           <div className="inline-block p-1 rounded-sm bg-gradient-to-r from-amber-600 to-amber-400 shadow-[0_0_30px_rgba(217,119,6,0.3)]">
-            <div className="bg-stone-950 px-8 py-6 rounded-sm flex flex-col md:flex-row items-center gap-6">
+            <div className="bg-[#030303] px-8 py-6 rounded-sm flex flex-col md:flex-row items-center gap-6">
               <div className="text-left">
                 <h4 className="text-xl font-bold text-white uppercase tracking-tight mb-1">O'zgarishni hozirdan boshla</h4>
                 <p className="text-sm text-stone-400 font-light">Ertaga emas, dushanbadan emas. Hozir.</p>

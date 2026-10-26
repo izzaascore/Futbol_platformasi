@@ -1,50 +1,98 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Fira+Code:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800;900&display=swap');
 
 @theme {
-  --color-obsidian-dark: #050505;
-  --color-obsidian-card: #0d0d0d;
-  --color-obsidian-accent: #f59e0b;
-  --color-obsidian-muted: #a8a29e;
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "Fira Code", monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
+  --color-dark-bg: #030303;
 }
 
 @layer base {
+  * {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
   body {
-    background-color: #050505;
-    color: #e7e5e4;
+    background-color: #030303;
+    color: #ffffff;
     overflow-x: hidden;
     margin: 0;
-    font-family: var(--font-sans);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   
   h1, h2, h3, h4, h5, h6, .font-heading {
-    font-family: var(--font-sans);
+    font-family: 'Montserrat', sans-serif;
   }
 }
 
-.hero-bg {
-  background: linear-gradient(135deg, #050505 0%, #141414 100%);
+/* Luxury Stadium Backgrounds & Effects */
+.bg-stadium {
+  background-image: 
+    linear-gradient(to right, rgba(3, 3, 3, 0.98) 0%, rgba(3, 3, 3, 0.88) 50%, rgba(3, 3, 3, 0.4) 100%),
+    url('https://images.unsplash.com/photo-1518605368461-1ee7c5320746?q=80&w=2670&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.secure-code-box {
-  background: repeating-linear-gradient(45deg, #1c1917, #1c1917 10px, #0a0a0a 10px, #0a0a0a 20px);
-  color: #f59e0b;
-  text-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+.bg-stadium-card {
+  background-image: 
+    linear-gradient(to bottom, rgba(3, 3, 3, 0.3) 0%, rgba(3, 3, 3, 0.95) 100%),
+    url('https://images.unsplash.com/photo-1518605368461-1ee7c5320746?q=80&w=1200&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
 }
 
+.text-gradient {
+  background: linear-gradient(to right, #ffffff, #a3a3a3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-glow {
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.1) 40%, transparent 70%);
+  filter: blur(50px);
+  mix-blend-mode: screen;
+}
+
+.bg-grid {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+.card-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card-glass:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 35px rgba(255, 255, 255, 0.4);
+}
+
+.shadow-card {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #030303;
 }
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: #222222;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #404040;
+  background: #3b3b3b;
 }

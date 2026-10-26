@@ -83,7 +83,7 @@ export default function AdminPage({ defaultTab }) {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-[#050505] flex items-center justify-center font-mono relative overflow-hidden">
+            <div className="min-h-screen bg-[#030303] flex items-center justify-center font-mono relative overflow-hidden">
                 <div className="absolute inset-0 grid-bg opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#222 1px, transparent 1px), linear-gradient(90deg, #222 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
                 
                 <div className="bg-[#0a0a0a] border border-[#1f1f1f] p-8 w-full max-w-md relative z-10 shadow-[0_0_50px_rgba(0,0,0,1)]">
@@ -139,7 +139,7 @@ export default function AdminPage({ defaultTab }) {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] text-[#eee] font-mono flex">
+        <div className="min-h-screen bg-[#030303] text-[#eee] font-mono flex">
             {/* Sidebar */}
             <div className="w-64 bg-[#0a0a0a] border-r border-[#1f1f1f] flex flex-col overflow-y-auto custom-scrollbar">
                 <div className="p-6 border-b border-[#1f1f1f] flex items-center gap-3 sticky top-0 bg-[#0a0a0a] z-10">
@@ -671,7 +671,7 @@ function ShopOrdersMonitor() {
                                             o.status === 'yetkazildi' ? 'bg-emerald-950/60 text-emerald-400 border-emerald-900' :
                                             o.status === 'yetkazilmoqda' ? 'bg-sky-950/60 text-sky-400 border-sky-900' :
                                             o.status === 'qabul_qilindi' ? 'bg-amber-950/60 text-amber-400 border-amber-900' :
-                                            'bg-stone-900 text-stone-400 border-stone-800'
+                                            'bg-stone-900 text-stone-400 border-white/10'
                                         }`}>
                                             {o.status}
                                         </span>

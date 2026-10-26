@@ -14,22 +14,22 @@ const NewsPage = () => {
   };
 
   const news = [
-    { id: 2, title: "FootballRise ekotizimi O'zbekiston PFL bilan rasmiy hamkorlikni boshladi", date: '18 May, 2026', category: 'Platforma', image: '/images/news/news_1518605368461-1eb5d0.jpg', excerpt: "Endilikda rasmiy o'yinlar statistikasi to'g'ridan-to'g'ri profilga ulanadi." },
+    { id: 2, title: "Futuro ekotizimi O'zbekiston PFL bilan rasmiy hamkorlikni boshladi", date: '18 May, 2026', category: 'Platforma', image: '/images/news/news_1518605368461-1eb5d0.jpg', excerpt: "Endilikda rasmiy o'yinlar statistikasi to'g'ridan-to'g'ri profilga ulanadi." },
     { id: 3, title: "Evropaning top skautlari qanday videolarga ko'proq e'tibor qaratadi?", date: '15 May, 2026', category: 'Scouting Tips', image: '/images/stadiums/stadiums_1522778119026-d647f0.jpg', excerpt: "Uzoq muddatli tahlillar shuni ko'rsatmoqdaki, qaror qabul qilish tezligi eng muhim faktor." },
     { id: 4, title: 'Yosh iqtidorlarni izlab: "Nasaf" akademiyasi yangi yig\'inga start berdi', date: '12 May, 2026', category: 'Akademiyalar', image: '/images/tournaments/tournaments_1589487391730-58f20e.jpg', excerpt: 'Markaziy hujumchilar va pleymeykerlar uchun ochiq eshiklar kuni e\'lon qilindi.' },
-    { id: 5, title: 'FootballRise Cam taqdimoti: Endi video yozib olish yanada oson', date: '10 May, 2026', category: 'Texnologiya', image: '/images/news/news_1516035069371-29a1b2.jpg', excerpt: 'Avto-sinxronizatsiya funksiyasiga ega birinchi portativ futbol kamerasi namoyish etildi.' },
+    { id: 5, title: 'Futuro Cam taqdimoti: Endi video yozib olish yanada oson', date: '10 May, 2026', category: 'Texnologiya', image: '/images/news/news_1516035069371-29a1b2.jpg', excerpt: 'Avto-sinxronizatsiya funksiyasiga ega birinchi portativ futbol kamerasi namoyish etildi.' },
   ];
 
   return (
     <PageTransition>
-      <div className="w-full bg-stone-950 min-h-screen font-sans">
+      <div className="w-full bg-[#030303] min-h-screen font-sans">
         
         {/* Header */}
-        <div className="border-b border-stone-800 bg-stone-950 py-8">
+        <div className="border-b border-white/10 bg-[#030303] py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold tracking-tighter text-white uppercase">
-                FootballRise <span className="text-amber-500">Media</span>
+                Futuro <span className="text-amber-500">Media</span>
               </h1>
               <div className="hidden md:flex gap-6 text-xs font-bold uppercase tracking-widest text-stone-500">
                 <span className="hover:text-amber-500 cursor-pointer transition-colors text-amber-500">Barchasi</span>
@@ -78,7 +78,7 @@ const NewsPage = () => {
               <motion.div 
                 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: idx * 0.1 }}
                 key={item.id} 
-                className="group flex flex-col sm:flex-row gap-6 items-center bg-stone-900 border border-stone-800 rounded-sm p-4 hover:border-stone-700 transition-colors cursor-pointer"
+                className="group flex flex-col sm:flex-row gap-6 items-center bg-stone-900 border border-white/10 rounded-sm p-4 hover:border-white/20 transition-colors cursor-pointer"
               >
                 <div className="w-full sm:w-1/3 h-48 sm:h-full relative overflow-hidden rounded-sm">
                   <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
@@ -93,7 +93,7 @@ const NewsPage = () => {
                     <p className="text-stone-400 font-light text-sm line-clamp-2">{item.excerpt}</p>
                   </div>
                   
-                  <div className="flex items-center justify-between border-t border-stone-800 pt-4 mt-auto">
+                  <div className="flex items-center justify-between border-t border-white/10 pt-4 mt-auto">
                     <span className="text-[10px] text-stone-500 font-bold uppercase tracking-widest flex items-center gap-1">
                       <Calendar className="w-3 h-3" /> {item.date}
                     </span>

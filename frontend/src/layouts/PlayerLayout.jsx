@@ -16,9 +16,9 @@ const PlayerLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] font-sans text-stone-200 flex flex-col">
+    <div className="min-h-screen bg-[#030303] font-sans text-stone-200 flex flex-col">
       {/* Top Header */}
-      <header className="bg-stone-950/90 backdrop-blur-xl sticky top-0 z-40 border-b border-stone-800 shadow-2xl">
+      <header className="bg-[#030303]/90 backdrop-blur-xl sticky top-0 z-40 border-b border-white/10 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
               <Link to="/" className="flex items-center gap-3 cursor-pointer group">
                   <div className="w-10 h-10 rounded-sm bg-stone-900 border border-stone-700 flex items-center justify-center text-amber-500">
@@ -55,8 +55,8 @@ const PlayerLayout = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-stone-950 py-8 text-center text-stone-500 text-xs font-bold uppercase tracking-widest">
-        FootballRise &copy; {new Date().getFullYear()}
+      <footer className="bg-[#030303] py-8 text-center text-stone-500 text-xs font-bold uppercase tracking-widest">
+        Futuro &copy; {new Date().getFullYear()}
       </footer>
     </div>
   );
