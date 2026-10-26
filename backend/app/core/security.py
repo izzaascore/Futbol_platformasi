@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import User, UserStatus, UserRole
+from app.core.database import SessionLocal
+from app.models.models import User, UserStatus, UserRole
 
 import os
 import hmac
@@ -21,10 +21,15 @@ load_dotenv()
 logger = logging.getLogger("security")
 
 # Xavfsizlik kalitlari (.env dan o'qiladi)
-SECRET_KEY = os.getenv("SECRET_KEY", "FOOTBALL_RISE_ULTIMATE_SECRET_KEY_PROD")
+import secrets
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY or SECRET_KEY == "FOOTBALL_RISE_ULTIMATE_SECRET_KEY_PROD":
+    if os.getenv("ENVIRONMENT", "").lower() == "production":
+        raise RuntimeError("XAVFSIZLIK XATOSI: Production muhitida SECRET_KEY .env da o'rnatilishi shart!")
+    SECRET_KEY = os.getenv("JWT_SECRET") or secrets.token_hex(32)
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", str(60 * 24 * 7)))
-MASTER_TOKEN = os.getenv("MASTER_TOKEN", "super-secret-admin-token")
+# MASTER_TOKEN removed for security
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 
 # Admin boshqaruv kalitlari
@@ -67,10 +72,6 @@ def decode_access_token(token: str) -> dict:
 
 # Tizimga kirgan foydalanuvchini aniqlash
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    if token == MASTER_TOKEN:
-        admin_user = db.query(User).filter(User.role == UserRole.ADMIN).first()
-        if admin_user:
-            return admin_user
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -257,3 +258,11 @@ def detect_malicious_payload(query_string: str, body_str: str = "") -> bool:
         if pat in combined:
             return True
     return False
+
+
+def decode_access_token(token: str) -> dict:
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except Exception:
+        return {}
+

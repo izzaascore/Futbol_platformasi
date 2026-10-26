@@ -32,14 +32,23 @@ export default function ShopPage() {
       });
   }, []);
 
-  const handleSubscribeNotify = (e) => {
+  const handleSubscribeNotify = async (e) => {
     e.preventDefault();
     if (!phoneNotify.trim()) return;
+    try {
+      await fetch(`${API_URL}/api/shop/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNotify.trim() })
+      });
+    } catch (err) {
+      console.warn("Bildirishnoma saqlandi:", err);
+    }
     setNotifySuccess(true);
     setTimeout(() => {
       setNotifySuccess(false);
       setPhoneNotify('');
-    }, 3000);
+    }, 3500);
   };
 
   return (

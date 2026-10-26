@@ -25,7 +25,7 @@ from typing import Optional
 from collections import defaultdict
 
 # ─── Loyiha ildiz papkasi ─────────────────────────────────────────────────────
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_DIR  = BASE_DIR / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 
@@ -310,7 +310,7 @@ def auto_kill_port(match: re.Match, context: dict) -> bool:
 
 def auto_backup_db(match: re.Match, context: dict) -> bool:
     """E010: Baza buzilganda avtomatik zaxira nusxa oladi."""
-    db_file    = BASE_DIR / "football.db"
+    db_file    = BASE_DIR / "data" / "football.db"
     backup_dir = BASE_DIR / "logs" / "db_backups"
     backup_dir.mkdir(exist_ok=True)
     timestamp  = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -396,7 +396,7 @@ def scan_existing_source_files():
     Xato topilsa qayd etadi.
     """
     log.info("📂 Barcha Python fayllari skanerlanyapti (AST tekshiruvi)...")
-    py_files = list(BASE_DIR.glob("*.py"))
+    py_files = list(BASE_DIR.glob("backend/**/*.py")) + list(BASE_DIR.glob("bot/**/*.py")) + list(BASE_DIR.glob("scripts/**/*.py"))
     errors_found = 0
 
     for py_file in py_files:
@@ -460,7 +460,7 @@ def run_server_with_logging():
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        cwd=str(BASE_DIR),
+        cwd=str(BASE_DIR / "backend"),
         text=True,
         encoding="utf-8",
         errors="replace",
@@ -485,7 +485,7 @@ def periodic_health_check(interval: int = 60):
     """
     while True:
         time.sleep(interval)
-        db_file = BASE_DIR / "football.db"
+        db_file = BASE_DIR / "data" / "football.db"
         db_ok   = db_file.exists() and db_file.stat().st_size > 0
 
         status_lines = [

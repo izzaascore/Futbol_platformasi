@@ -4,6 +4,8 @@ __pycache__/
 *.pyd
 .Python
 env/
+.venv/
+venv/
 .env
 .env.local
 .env.production
@@ -13,12 +15,15 @@ env/
 *.sqlite
 *.sqlite3
 *.bak
+data/*.db
+data/*.sqlite
 uploads/
+logs/
 .vscode/
 node_modules/
 frontend/node_modules/
 dist/
 frontend/dist/
 build/
-# .agents/
 .gemini/
+.agents/

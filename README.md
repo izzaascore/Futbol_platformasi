@@ -1,75 +1,69 @@
-# ⚽ FootballRise Platform
+# ⚽ FUTURO — O'zbekiston Yoshlar Futboli & Skauting Ekosistemasi
 
-O'zbekiston yosh futbol iqtidorlarini kashf etish, statistikasini yuritish va skautlar bilan bog'lash uchun mo'ljallangan zamonaviy platforma.
-
----
-
-## 🏗️ Arxitektura va Texnologiyalar
-
-- **Backend**: Python 3.11+, FastAPI, SQLAlchemy, SQLite (yoki PostgreSQL), Pydantic v2, Python-Jose (JWT), Passlib (Bcrypt)
-- **Frontend**: React 19, Vite, Tailwind CSS v4, Framer Motion, Lucide React, React Router v7
-- **Telegram Bot**: Python, Aiogram v3, HTTPX (Asinxron integratsiya)
-- **Monitoring & Self-Healing**: Abdulbosit Core (`self_healing_monitor.py`) va Obsidian Sync Watcher (`sync_watcher.py`)
+> **"Kelajaging o'z qo'lingda"** — O'zbekistondagi yosh futbolchilarni professional skautlar, klublar va akademiyalar bilan bog'lovchi yagona milliy platforma.
 
 ---
 
-## 🚀 O'rnatish va Ishga Tushirish
+## 🏛️ Loyiha Arxitekturasi
 
-### 1. Backend sozlash
+Platforma 3 ta asosiy mustaqil va o'zaro bog'langan qismdan iborat:
+
+1. **Frontend (`frontend/`)**:
+   - **Texnologiyalar**: React 19, Vite 6, Tailwind CSS v4, Framer Motion, Lucide Icons, Leaflet (interaktiv xaritalar).
+   - **Dizayn uslubi**: Dark Luxury (obsidian qora `#030303`, Montserrat + Inter tipografiyasi, stadion chiroqlari nuri, oq neon yorug'lik effektlari).
+   - **Joylashuv**: Vercel (`https://futbol-platformasi-alpha.vercel.app`).
+
+2. **Backend (`backend/`)**:
+   - **Texnologiyalar**: Python 3.11+, FastAPI, SQLAlchemy, Pydantic v2, PostgreSQL / SQLite, JWT, bcrypt.
+   - **Xavfsizlik**: RBAC (Admin, Scout, Player rollari), CSRF / IDOR tekshiruvlari, IP Rate Limiter, Telegram HMAC-SHA256 kriptografik tekshiruvi.
+   - **Joylashuv**: Railway (`https://web-production-dc0f4.up.railway.app`).
+
+3. **Telegram Mini App Bot (`bot/`)**:
+   - **Texnologiyalar**: Aiogram 3.x, TMA (Telegram Mini App) integratsiyasi, tezkor bir bosishda tizimga kirish (Seamless WebApp Auth).
+
+---
+
+## 🔒 Xavfsizlik va Himoya Tizimi (Security Hardening)
+
+- **Orqa eshiksiz (No Backdoor)**: Barcha statik login parollar butunlay olib tashlangan. Faqat bcrypt hash va JWT orqali autentifikatsiya.
+- **Rol eskalatsiyasidan himoya**: Ommaviy ro'yxatdan o'tishda faqat `player` yoki `scout` rollari ruxsat etiladi. `admin` rolini faqat mavjud tizim ma'muri berishi mumkin.
+- **Himoyalangan Endpointlar**: Gollar kiritish, o'yin natijalarini o'zgartirish, turnirlar va maydonlar yaratish faqat admin / vakolatli xodimlar uchun cheklangan.
+- **Rate Limiting & Proxy IP**: Railway va Vercel proksi serverlari orqasida `X-Forwarded-For` sarlavhasidan real foydalanuvchi IP manzili aniqlanadi.
+
+---
+
+## 🚀 Ishga Tushirish (Local Development)
+
+### 1. Backend:
 ```bash
-# Virtual muhitni faollashtirish
-.venv\Scripts\activate
-
-# Kutubxonalarni o'rnatish
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
 ```
 
-### 2. Frontend sozlash
+### 2. Frontend:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 3. Telegram Bot va Mini App (TMA) sozlash
-1. Telegram Bot tokenini kiriting (`BOT_TOKEN`).
-2. Agar Mini App ni testing qilmoqchi bo'lsangiz:
-   - Lokal sinov uchun `WEBAPP_URL=http://localhost:5173` yoki `ngrok http 5173` orqali berilgan HTTPS linkni ishlating (Telegram WebApp uchun HTTPS kerak).
-   - Bot ishga tushganda avtomatik ravishda chap burchakda **"Ilova" (MenuButton)** tugmasini o'rnatadi.
-```bash
-python bot.py
+---
+
+## 📝 Muhim Muhit O'zgaruvchilari (`.env`)
+
+```env
+SECRET_KEY=kriptografik_kuchli_maxfiy_kalit
+ENVIRONMENT=production
+DATABASE_URL=postgresql://user:pass@host:5432/futuro_db
+BOT_TOKEN=telegram_bot_token_bu_yerda
+ADMIN_USERNAME=erkin_master
+ADMIN_PASSKEY=kuchli_admin_paroli
 ```
 
-### 4. Barcha tizimlarni birdan ishga tushirish (Windows)
-Loyiha ildizidagi `start.bat` faylini ikki marta bosing:
-- Backend server va Self-Healing monitor
-- Telegram bot
-- Frontend dasturi (http://localhost:5173)
-- Obsidian file watcher
-
-To'xtatish uchun: `stop_servers.bat` faylini ishga tushiring.
-
 ---
 
-## 🔑 Asosiy API Marshrutlari
-
-| Metod | Marshrut | Tavsif | Ruxsat |
-|---|---|---|---|
-| `GET` | `/` | API holati (Health check) | Ochiq |
-| `POST` | `/api/auth/register` | Yangi foydalanuvchi ro'yxatdan o'tishi | Ochiq |
-| `POST` | `/api/auth/login` | Tizimga kirish va JWT token olish | Ochiq |
-| `POST` | `/admin/login` | Maxsus Admin kirishi | Admin |
-| `GET` | `/players` | Barcha futbolchilar ro'yxati va filtrlari | Ochiq |
-| `POST` | `/players` | Yangi futbolchi yaratish | Ochiq |
-| `POST` | `/players/{id}/submit-goal` | Gol videosini yuborish (Bot/Web) | Ochiq |
-| `GET` | `/tournaments` | Turnirlar ro'yxati | Ochiq |
-| `GET` | `/matches` | Jonli va rejalashtirilgan o'yinlar | Ochiq |
-| `GET` | `/api/admin/submissions` | Tasdiqlanmagan videolar navbati | Admin |
-| `POST` | `/api/admin/submissions/{id}/approve` | Videoni tasdiqlash | Admin |
-
-Hujjatlar (Swagger UI): [http://localhost:8000/docs](http://localhost:8000/docs)
-
----
-
-## 👥 AI Crew Standartlari (The Elite 5)
-Loyiha boshqaruv qoidalari va rollar bo'yicha batafsil ma'lumot: `AGENTS.md`
+## 📄 Litsenziya va Mualliflik
+© 2026 Futuro. Barcha huquqlar himoyalangan. Chempionlar uchun yaratilgan • O'zbekistonda ishlab chiqilgan.

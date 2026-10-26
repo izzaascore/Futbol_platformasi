@@ -18,13 +18,13 @@ QADAM 3: .env faylni yangilang
   Loyiha papkasidagi .env faylini oching va quyidagi qatorni yangilang:
 
   # SQLite qatorini # bilan o'chiring:
-  # DATABASE_URL=sqlite:///./football.db
+  # DATABASE_URL=sqlite:///./data/football.db
 
   # PostgreSQL qatorini faollashtiring:
   DATABASE_URL=postgresql://postgres:[PAROLINGIZ]@db.[SUPABASE_ID].supabase.co:5432/postgres
 
 QADAM 4: Serverni qayta ishga tushiring
-  terminal da: uvicorn main:app --reload
+  terminal da: cd backend && uvicorn main:app --reload
 
   Server ishga tushganda barcha jadvallar Supabase'da avtomatik yaratiladi!
   (Base.metadata.create_all avtomatik ishlaydi)

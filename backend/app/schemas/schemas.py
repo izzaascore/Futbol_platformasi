@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from models import VerificationStatus, UserRole, UserStatus
+from app.models.models import VerificationStatus, UserRole, UserStatus
 
 class UserBase(BaseModel):
     first_name: str

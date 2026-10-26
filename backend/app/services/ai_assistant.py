@@ -1,3 +1,4 @@
+from pathlib import Path
 """
 FootballRise Autonomous AI Concierge ("Mahoraga Adaptive Engine")
 Arxitektura:
@@ -242,8 +243,8 @@ def search_obsidian_knowledge_base(query: str, vault_dir: str = None) -> tuple[s
 
     if not os.path.isabs(vault_dir):
         # Nisbiy yo'l bo'lsa, loyiha ildiziga nisbatan tekshiramiz
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        vault_dir = os.path.join(base_dir, vault_dir)
+        root_dir = Path(__file__).resolve().parent.parent.parent.parent
+        vault_dir = str(root_dir / vault_dir)
 
     if not os.path.isdir(vault_dir):
         return None
@@ -323,8 +324,8 @@ def save_to_knowledge_base(question: str, answer: str, vault_dir: str = None) ->
         vault_dir = os.getenv("OBSIDIAN_VAULT_PATH", "docs/obsidian_sync")
 
     if not os.path.isabs(vault_dir):
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        vault_dir = os.path.join(base_dir, vault_dir)
+        root_dir = Path(__file__).resolve().parent.parent.parent.parent
+        vault_dir = str(root_dir / vault_dir)
 
     os.makedirs(vault_dir, exist_ok=True)
     faq_file = os.path.join(vault_dir, "Bilimlar_Bazasi_FAQ.md")

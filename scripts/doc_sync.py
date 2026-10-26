@@ -6,7 +6,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # Kuzatiladigan papka va log fayl manzillari
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WATCH_DIR = os.path.join(BASE_DIR, "docs", "obsidian_sync")
 METADATA_FILE = os.path.join(BASE_DIR, "docs", "obsidian_metadata.json")
 

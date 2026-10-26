@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).resolve().parent.parent
+BACKEND_DIR = ROOT_DIR / "backend"
+for p in [str(BACKEND_DIR), str(ROOT_DIR)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, F, types
@@ -17,7 +25,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(ROOT_DIR / '.env')
 
 logging.basicConfig(level=logging.INFO)
 
@@ -36,8 +44,9 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-dc0f4.up.railwa
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platformasi-alpha.vercel.app")
 # Admin Telegram ID (muhim shaxsiy xabarlar uchun):
 ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "")
+MASTER_TOKEN = os.getenv("MASTER_TOKEN", "super-secret-admin-token")
 
-from ai_concierge import (
+from app.services.ai_assistant import (
     classify_intent,
     get_team_rules_response,
     get_tournament_status_response,
@@ -121,11 +130,10 @@ async def start_handler(message: types.Message, state: FSMContext):
     # API dan o'yinchini tekshiramiz
     async with httpx.AsyncClient() as client:
         try:
-            res = await client.get(f"{API_BASE_URL}/players")
+            res = await client.get(f"{API_BASE_URL}/players?telegram_id={user_id}")
             players = res.json() if res.status_code == 200 else []
-            # telegram_id orqali qidiramiz
-            current_player = next((p for p in players if p.get("telegram_id") == user_id), None)
-        except Exception as e:
+            current_player = players[0] if players else None
+        except Exception:
             await message.answer("⚠️ Server bilan aloqa o'rnatib bo'lmadi. Keyinroq urinib ko'ring.")
             return
 
@@ -241,9 +249,9 @@ async def process_foot(message: types.Message, state: FSMContext):
 async def show_profile(message: types.Message):
     async with httpx.AsyncClient() as client:
         try:
-            res = await client.get(f"{API_BASE_URL}/players")
-            players = res.json()
-            user = next((p for p in players if p.get("telegram_id") == message.from_user.id), None)
+            res = await client.get(f"{API_BASE_URL}/players?telegram_id={message.from_user.id}")
+            players = res.json() if res.status_code == 200 else []
+            user = players[0] if players else None
         except Exception:
             await message.answer("Ma'lumotlarni yuklab bo'lmadi.")
             return
@@ -308,9 +316,9 @@ async def process_caption(message: types.Message, state: FSMContext):
 
     # Avval futbolchining API dagi ID sini olamiz
     async with httpx.AsyncClient() as client:
-        res = await client.get(f"{API_BASE_URL}/players")
-        players = res.json()
-        current_player = next((p for p in players if p.get("telegram_id") == message.from_user.id), None)
+        res = await client.get(f"{API_BASE_URL}/players?telegram_id={message.from_user.id}")
+        players = res.json() if res.status_code == 200 else []
+        current_player = players[0] if players else None
 
         if not current_player:
             await message.answer("Xatolik yuz berdi. Qaytadan /start bosing.", reply_markup=get_main_menu())
@@ -321,9 +329,11 @@ async def process_caption(message: types.Message, state: FSMContext):
             "video_url": video_url,
             "description": desc
         }
+        headers = {"Authorization": f"Bearer {MASTER_TOKEN}"} if MASTER_TOKEN else {}
         submit_res = await client.post(
             f"{API_BASE_URL}/players/{current_player['id']}/submit-goal",
-            json=payload
+            json=payload,
+            headers=headers
         )
 
         if submit_res.status_code == 200:
