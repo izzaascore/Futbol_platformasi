@@ -11,6 +11,7 @@ venv/
 .env.production
 .env.*
 !.env.example
+!.env.required.example
 *.db
 *.sqlite
 *.sqlite3

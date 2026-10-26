@@ -77,6 +77,30 @@ def auto_migrate_db():
 
 auto_migrate_db()
 
+def purge_stale_admin_accounts():
+    """Ishga tushganda bazadagi eski backdoor admin hisoblarini tozalaydi."""
+    try:
+        from app.core.database import SessionLocal
+        from app.models.models import User, UserRole
+        from app.core.security import ADMIN_PASSKEY, verify_password
+        db = SessionLocal()
+        try:
+            admin_users = db.query(User).filter(User.role == UserRole.ADMIN).all()
+            stale = [u for u in admin_users if not verify_password(ADMIN_PASSKEY, u.password_hash)]
+            if stale:
+                for u in stale:
+                    print('[Security] Eski backdoor admin hisobi ochrildi: id=%d %s %s' % (u.id, u.first_name, u.last_name))
+                    db.delete(u)
+                db.commit()
+                print('[Security] %d ta eski admin hisob tozalandi.' % len(stale))
+        finally:
+            db.close()
+    except Exception as exc:
+        print('[Security Notice] Admin tozalash: %s' % str(exc))
+
+
+purge_stale_admin_accounts()
+
 IS_PRODUCTION = (
     os.getenv("ENVIRONMENT", "development").lower() == "production"
     or os.getenv("RAILWAY_ENVIRONMENT") is not None

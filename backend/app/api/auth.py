@@ -31,8 +31,28 @@ router = APIRouter(tags=["Auth and Users"])
 @router.post("/api/auth/telegram-webapp")
 def telegram_webapp_auth(tg_data: TelegramAuthRequest, db: Session = Depends(get_db)):
     # 1. Telegram Kriptografik imzo (HMAC-SHA256) tekshiruvi — Soxtalashtirishdan himoya
+    import secrets as _secrets
     bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
-    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and bot_token != "your_bot_token_here":
+    is_real_bot_token = (
+        bool(bot_token)
+        and ":" in bot_token
+        and not bot_token.startswith("1234567890")
+        and bot_token not in ("your_bot_token_here", "")
+    )
+
+    if not is_real_bot_token:
+        # BOT_TOKEN o'rnatilmagan bo'lsa production'da ishga tushmaydi
+        is_production = (
+            os.getenv("ENVIRONMENT", "").lower() == "production"
+            or os.getenv("RAILWAY_ENVIRONMENT") is not None
+        )
+        if is_production:
+            raise HTTPException(
+                status_code=503,
+                detail="Xavfsizlik: BOT_TOKEN sozlanmagan. Telegram autentifikatsiyasi ishlamaydi."
+            )
+    else:
+        # Haqiqiy token bor — HMAC imzosini tekshir
         if not tg_data.init_data or not verify_telegram_init_data(tg_data.init_data, bot_token):
             raise HTTPException(
                 status_code=401,
@@ -42,13 +62,14 @@ def telegram_webapp_auth(tg_data: TelegramAuthRequest, db: Session = Depends(get
     # 2. Telegram foydalanuvchisi mavjudligini tekshirish
     user = db.query(User).filter(User.telegram_id == tg_data.id).first()
     if not user:
-        # Yangi foydalanuvchi yaratish
+        # Yangi foydalanuvchi yaratish — tasodifiy parol
+        random_pw = _secrets.token_hex(24)
         user = User(
             telegram_id=tg_data.id,
             first_name=tg_data.first_name,
             last_name=tg_data.last_name or "",
             profile_image=tg_data.photo_url,
-            password_hash=get_password_hash(f"tg_{tg_data.id}_tma_secure"),
+            password_hash=get_password_hash(random_pw),
             role=UserRole.PLAYER,
             status=UserStatus.ACTIVE
         )
@@ -254,6 +275,13 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
     if not user or not verify_password(login_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Login yoki parol noto'g'ri!")
 
+    # Admin oddiy login orqali kira olmaydi — faqat /admin/login orqali
+    if user.role == UserRole.ADMIN:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin hisoblari faqat /admin/login orqali kirishi mumkin!"
+        )
+
     if user.status == UserStatus.BANNED:
         raise HTTPException(status_code=403, detail="Hisobingiz ma'muriyat tomonidan bloklangan!")
 
@@ -424,25 +452,66 @@ def delete_user_video(
 @router.post("/admin/login")
 @router.post("/api/admin/login")
 def admin_login(data: dict, db: Session = Depends(get_db)):
-    # Xavfsiz .env kalitlari orqali tekshirish
-    if data.get("username") == ADMIN_USERNAME and data.get("passkey") == ADMIN_PASSKEY:
-        admin_user = db.query(User).filter(User.role == UserRole.ADMIN).first()
-        if not admin_user:
+    """
+    Admin faqat shu endpoint orqali kiradi.
+    Oddiy /api/auth/login admin rolini qaytarmaydi — admin hisoblari
+    to'g'ridan-to'g'ri login sahifasiga kira olmaydi.
+    """
+    import hmac as _hmac
+
+    incoming_user = (data.get("username") or "").strip()
+    incoming_pass = (data.get("passkey") or "").strip()
+
+    # Vaqt-xavfsiz (timing-safe) solishtirish
+    user_ok = _hmac.compare_digest(incoming_user, ADMIN_USERNAME)
+    pass_ok = _hmac.compare_digest(incoming_pass, ADMIN_PASSKEY)
+
+    if not (user_ok and pass_ok):
+        raise HTTPException(status_code=401, detail="Xato login yoki maxfiy kalit")
+
+    # Bazada bitta-bitta admin bo'lishi kerak.
+    # Eski "backdoor" hisoblari (nimda/Erkin Master) bo'lsa, qayta yaratib to'g'ri hash qo'yiladi.
+    admin_users = db.query(User).filter(User.role == UserRole.ADMIN).all()
+
+    # Toza admin hisobi: faqat bitta, to'g'ri credentials bilan
+    admin_user = None
+    for au in admin_users:
+        if verify_password(ADMIN_PASSKEY, au.password_hash):
+            admin_user = au
+            break
+
+    if admin_user is None:
+        # Eski admin(lar)ning parolini yangilash yoki yangi hisob yaratish
+        if admin_users:
+            # Birinchisini yangilab, qolganlarini o'chirish
+            admin_user = admin_users[0]
+            admin_user.first_name = "Admin"
+            admin_user.last_name = "Futuro"
+            admin_user.password_hash = get_password_hash(ADMIN_PASSKEY)
+            admin_user.status = UserStatus.ACTIVE
+            for old in admin_users[1:]:
+                db.delete(old)
+        else:
             admin_user = User(
-                first_name="Erkin",
-                last_name="Master",
+                first_name="Admin",
+                last_name="Futuro",
                 password_hash=get_password_hash(ADMIN_PASSKEY),
                 role=UserRole.ADMIN,
                 status=UserStatus.ACTIVE
             )
             db.add(admin_user)
-            db.commit()
-            db.refresh(admin_user)
-        admin_user.is_logged_in = True
         db.commit()
-        access_token = create_access_token(data={"sub": str(admin_user.id)})
-        return {"access_token": access_token, "token_type": "bearer", "role": admin_user.role, "user": admin_user}
-    raise HTTPException(status_code=401, detail="Xato login yoki maxfiy kalit")
+        db.refresh(admin_user)
+
+    admin_user.is_logged_in = True
+    db.commit()
+    access_token = create_access_token(data={"sub": str(admin_user.id)})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": admin_user.role,
+        "user": admin_user
+    }
 
 @router.get("/admin/users", dependencies=[Depends(RequireRole(["admin"]))])
 @router.get("/api/admin/users", dependencies=[Depends(RequireRole(["admin"]))])
