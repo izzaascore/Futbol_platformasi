@@ -218,25 +218,25 @@ export default function StadiumsPage() {
             <!-- Floating Pill Tag -->
             <div class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider whitespace-nowrap shadow-[0_4px_20px_rgba(0,0,0,0.8)] border backdrop-blur-xl flex items-center gap-1.5 transition-all ${
               isSelected 
-                ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-black border-white scale-110 shadow-[0_0_25px_rgba(245,158,11,0.6)]' 
-                : 'bg-[#030303]/90 text-stone-100 border-amber-500/40 hover:border-amber-400 group-hover:text-amber-400'
+                ? 'bg-white text-black font-heading font-black border-white scale-110 shadow-glow' 
+                : 'bg-[#030303]/95 text-white border-white/25 hover:border-white group-hover:text-white backdrop-blur-md'
             }">
-              <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-black animate-ping' : 'bg-amber-400'}"></span>
+              <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-black animate-ping' : 'bg-white'}"></span>
               <span class="max-w-[130px] truncate">${stadium.name}</span>
               ${stadium.distanceKm ? `<span class="px-1.5 py-0.2 rounded-full text-[9px] font-black ${isSelected ? 'bg-black/25 text-black' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">${stadium.distanceKm < 1 ? Math.round(stadium.distanceKm * 1000) + 'm' : stadium.distanceKm.toFixed(1) + 'km'}</span>` : ''}
             </div>
 
             <!-- Central Beacon Needle -->
             <div class="relative mt-1 flex flex-col items-center">
-              ${isSelected ? '<span class="absolute -inset-3 rounded-full bg-amber-400/30 animate-ping"></span>' : ''}
+              ${isSelected ? '<span class="absolute -inset-3 rounded-full bg-white/40 animate-ping"></span>' : ''}
               <div class="w-9 h-9 rounded-full border-2 flex items-center justify-center shadow-2xl transition-all ${
                 isSelected 
-                  ? 'bg-gradient-to-tr from-amber-500 to-amber-300 border-white text-black scale-120 shadow-[0_0_25px_rgba(245,158,11,0.8)]' 
-                  : 'bg-[#030303] border-amber-500/80 text-amber-400 group-hover:border-amber-400 group-hover:scale-110'
+                  ? 'bg-white border-white text-black scale-120 shadow-glow' 
+                  : 'bg-[#030303] border-white/30 text-white group-hover:border-white group-hover:scale-110'
               }">
                 <span class="text-xs">⚽️</span>
               </div>
-              <div class="w-0.5 h-3 bg-gradient-to-b from-amber-400 to-transparent"></div>
+              <div class="w-0.5 h-3 bg-gradient-to-b from-white to-transparent"></div>
             </div>
           </div>
         `,
@@ -295,14 +295,14 @@ export default function StadiumsPage() {
   });
 
   return (
-    <div className="relative w-full h-[calc(100vh-80px)] min-h-[620px] bg-[#030303] text-stone-100 flex flex-col overflow-hidden selection:bg-amber-500 selection:text-black">
+    <div className="relative w-full h-[calc(100vh-80px)] min-h-[620px] bg-[#030303] text-stone-100 flex flex-col overflow-hidden selection:bg-white selection:text-black">
       
       {/* 1. TOP INTERACTIVE TOOLBAR (Floating Island Design) */}
       <header className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 bg-[#030303]/90 border-b border-white/10/80 shadow-2xl backdrop-blur-2xl">
         
         {/* Left: Region Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-500/5 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-wider mr-1 shadow-inner">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/20 text-white font-heading font-black shadow-sm text-xs font-black uppercase tracking-wider mr-1 shadow-inner">
             <Compass className="w-3.5 h-3.5" />
             <span>Maydonlar</span>
           </div>
@@ -316,7 +316,7 @@ export default function StadiumsPage() {
               }}
               className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 selectedRegion === reg.id
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-black shadow-lg shadow-amber-500/30 scale-105'
+                  ? 'bg-white text-black font-heading font-black shadow-glow scale-105 border border-white'
                   : 'bg-white/[0.04]/90 hover:bg-stone-800 text-stone-300 border border-white/10/80'
               }`}
             >
@@ -338,7 +338,7 @@ export default function StadiumsPage() {
                 : 'bg-white/[0.04] border-white/20 text-stone-300 hover:bg-stone-800'
             }`}
           >
-            <LocateFixed className={`w-3.5 h-3.5 ${geoLocating ? 'animate-spin text-amber-400' : 'text-emerald-400'}`} />
+            <LocateFixed className={`w-3.5 h-3.5 ${geoLocating ? 'animate-spin text-white' : 'text-emerald-400'}`} />
             <span className="hidden sm:inline">
               {geoLocating ? "Topilmoqda..." : userCoords ? "GPS Ulangan" : "Turgan Joyim"}
             </span>
@@ -349,7 +349,7 @@ export default function StadiumsPage() {
             <button
               onClick={() => setMapTheme('dark')}
               className={`px-2.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
-                mapTheme === 'dark' ? 'bg-amber-500 text-black shadow-md' : 'text-stone-400 hover:text-white'
+                mapTheme === 'dark' ? 'bg-white text-black font-heading font-black shadow-glow' : 'text-stone-400 hover:text-white'
               }`}
             >
               🌙 Qorong'u
@@ -357,7 +357,7 @@ export default function StadiumsPage() {
             <button
               onClick={() => setMapTheme('street')}
               className={`px-2.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
-                mapTheme === 'street' ? 'bg-amber-500 text-black shadow-md' : 'text-stone-400 hover:text-white'
+                mapTheme === 'street' ? 'bg-white text-black font-heading font-black shadow-glow' : 'text-stone-400 hover:text-white'
               }`}
             >
               ☀️ Ko'cha
@@ -365,7 +365,7 @@ export default function StadiumsPage() {
             <button
               onClick={() => setMapTheme('satellite')}
               className={`px-2.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
-                mapTheme === 'satellite' ? 'bg-amber-500 text-black shadow-md' : 'text-stone-400 hover:text-white'
+                mapTheme === 'satellite' ? 'bg-white text-black font-heading font-black shadow-glow' : 'text-stone-400 hover:text-white'
               }`}
             >
               🛰️ Sun'iy Yo'ldosh
@@ -409,7 +409,7 @@ export default function StadiumsPage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30, scale: 0.96 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              className="absolute bottom-20 sm:bottom-24 right-3 sm:right-6 z-30 w-[94vw] sm:w-[380px] bg-[#030303]/95 border border-amber-500/50 rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_40px_rgba(245,158,11,0.2)] backdrop-blur-2xl text-white overflow-hidden"
+              className="absolute bottom-20 sm:bottom-24 right-3 sm:right-6 z-30 w-[94vw] sm:w-[380px] bg-[#030303]/95 border border-white/20 rounded-3xl p-4 sm:p-5 shadow-card backdrop-blur-2xl text-white overflow-hidden"
             >
               {/* Close Button */}
               <button
@@ -429,8 +429,8 @@ export default function StadiumsPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/30 to-transparent" />
 
                 {/* Region & Distance Badge */}
-                <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md text-[9px] font-black uppercase text-amber-400 border border-white/20 shadow-md">
-                  <MapPin className="w-3 h-3 text-amber-500" />
+                <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md text-[9px] font-black uppercase text-stone-300 border border-white/20 shadow-md">
+                  <MapPin className="w-3 h-3 text-white" />
                   <span>{selectedStadium.region}</span>
                   {selectedStadium.distanceKm && (
                     <span className="text-emerald-400 font-bold">• {selectedStadium.distanceKm < 1 ? `${Math.round(selectedStadium.distanceKm * 1000)} m` : `${selectedStadium.distanceKm.toFixed(1)} km`}</span>
@@ -439,15 +439,15 @@ export default function StadiumsPage() {
 
                 {/* Price Display */}
                 <div className="absolute bottom-2.5 left-3 text-white">
-                  <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500">
+                  <span className="text-2xl font-heading font-black text-white">
                     {selectedStadium.price_per_hour.toLocaleString('uz-UZ')}
                   </span>
                   <span className="text-[10px] text-stone-300 font-bold uppercase ml-1.5">so'm / soat</span>
                 </div>
 
                 {/* Rating Badge */}
-                <div className="absolute bottom-2.5 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-[10px] font-black text-amber-400 border border-amber-500/30">
-                  <Star className="w-3 h-3 fill-amber-400" />
+                <div className="absolute bottom-2.5 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md text-[10px] font-black text-white border border-white/20">
+                  <Star className="w-3 h-3 fill-white text-white" />
                   <span>{selectedStadium.rating ? selectedStadium.rating.toFixed(1) : '4.9'}</span>
                 </div>
               </div>
@@ -458,7 +458,7 @@ export default function StadiumsPage() {
               </h3>
               
               <p className="text-xs text-stone-400 mt-1 flex items-center gap-1.5 line-clamp-1">
-                <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                 <span>{selectedStadium.address || `${selectedStadium.region}, ${selectedStadium.district || ''}`}</span>
               </p>
 
@@ -468,7 +468,7 @@ export default function StadiumsPage() {
                   🌱 {selectedStadium.turf_type}
                 </span>
                 {selectedStadium.has_lights && (
-                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-lg bg-white/10 text-stone-200 border border-white/20 flex items-center gap-1">
                     <Moon className="w-3 h-3" /> Yoritgichlar bor
                   </span>
                 )}
@@ -484,9 +484,9 @@ export default function StadiumsPage() {
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setRouteModalStadium(selectedStadium)}
-                  className="min-h-[46px] px-3 py-2.5 rounded-2xl bg-white/[0.04] hover:bg-stone-800 border border-white/20/80 hover:border-amber-400 text-stone-100 hover:text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-colors"
+                  className="min-h-[46px] px-3 py-2.5 rounded-2xl bg-white/[0.04] hover:bg-stone-800 border border-white/20/80 hover:border-white text-stone-100 hover:text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-colors"
                 >
-                  <Navigation className="w-4 h-4 text-amber-400" />
+                  <Navigation className="w-4 h-4 text-white" />
                   <span>Yo'nalish</span>
                 </motion.button>
 
@@ -494,7 +494,7 @@ export default function StadiumsPage() {
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   onClick={(e) => handleCall(selectedStadium.phone_number, e)}
-                  className="min-h-[46px] px-3 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(245,158,11,0.35)] transition-all"
+                  className="min-h-[46px] px-3 py-2.5 rounded-2xl bg-white hover:bg-stone-200 text-black text-xs font-heading font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-glow transition-all"
                 >
                   <Phone className="w-4 h-4 fill-black" />
                   <span>Band Qilish</span>
@@ -522,8 +522,8 @@ export default function StadiumsPage() {
                 }}
                 className={`shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl backdrop-blur-2xl border transition-all text-left shadow-xl ${
                   isSelected
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-black border-white shadow-amber-500/40 scale-105'
-                    : 'bg-[#030303]/90 hover:bg-white/[0.04] text-white border-white/10 hover:border-amber-400/80'
+                    ? 'bg-white text-black font-heading font-black border-white shadow-glow scale-105'
+                    : 'bg-[#030303]/90 hover:bg-white/[0.06] text-white border-white/15 hover:border-white/40'
                 }`}
               >
                 <img
@@ -536,7 +536,7 @@ export default function StadiumsPage() {
                     {s.name}
                   </h4>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className={`text-[10px] font-black ${isSelected ? 'text-black' : 'text-amber-400'}`}>
+                    <span className={`text-[10px] font-black ${isSelected ? 'text-black' : 'text-stone-300'}`}>
                       {s.price_per_hour.toLocaleString('uz-UZ')} so'm
                     </span>
                     {s.distanceKm && (
@@ -562,7 +562,7 @@ export default function StadiumsPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              className="w-full max-w-sm rounded-3xl bg-[#030303] border border-amber-500/40 p-6 shadow-2xl text-white relative"
+              className="w-full max-w-sm rounded-3xl bg-[#030303] border border-white/20 p-6 shadow-2xl text-white relative"
             >
               <button
                 onClick={() => setRouteModalStadium(null)}
@@ -571,8 +571,8 @@ export default function StadiumsPage() {
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-2 mb-2 text-amber-400 text-xs font-black uppercase tracking-wider">
-                <Navigation className="w-4 h-4 text-amber-400" />
+              <div className="flex items-center gap-2 mb-2 text-white text-xs font-heading font-black uppercase tracking-wider">
+                <Navigation className="w-4 h-4 text-white" />
                 <span>Marshrut & Navigatsiya</span>
               </div>
 

@@ -46,7 +46,7 @@ function PublicLayout({ children }) {
   const navLinks = [
     { to: '/', label: 'Bosh sahifa' },
     { to: '/players', label: "O'yinchilar" },
-    { to: '/stadiums', label: 'Maydonlar', icon: <MapPin className="w-3.5 h-3.5 text-amber-400" /> },
+    { to: '/stadiums', label: 'Maydonlar', icon: <MapPin className="w-3.5 h-3.5 text-white" /> },
     { to: '/rankings', label: 'Reyting' },
     { to: '/tournaments', label: 'Turnirlar' },
     { to: '/shop', label: "Do'kon", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
@@ -342,8 +342,8 @@ function PublicLayout({ children }) {
           <Activity className="w-5 h-5 animate-pulse" />
           <span>Live</span>
         </Link>
-        <Link to="/stadiums" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-400 hover:text-white p-2">
-          <MapPin className="w-5 h-5 text-amber-500" />
+        <Link to="/stadiums" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white hover:text-white p-2">
+          <MapPin className="w-5 h-5 text-white" />
           <span>Maydon</span>
         </Link>
         <Link to={user ? (user.role === 'admin' ? '/admin' : user.role === 'scout' ? '/scout/dashboard' : '/player/dashboard') : "/login"} className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-white p-2">

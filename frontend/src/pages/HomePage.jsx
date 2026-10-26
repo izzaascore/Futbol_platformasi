@@ -171,7 +171,7 @@ export default function HomePage() {
                   to="/register"
                   className="bg-white/5 hover:bg-white/10 text-white border border-white/20 text-xs font-bold uppercase tracking-widest px-8 py-4 rounded-xl transition duration-300 flex items-center gap-2.5 backdrop-blur-sm hover:border-white/40"
                 >
-                  <Star className="w-4 h-4 text-amber-400" />
+                  <Star className="w-4 h-4 text-white" />
                   Profil ochish
                 </Link>
               </div>
@@ -495,7 +495,7 @@ export default function HomePage() {
               >
                 <div>
                   <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center mb-6 group-hover:scale-110 transition duration-300">
-                    <MapPin className="w-6 h-6 text-amber-400" />
+                    <MapPin className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="font-heading font-black text-2xl uppercase text-white mb-2">
                     Professional Maydonlar
