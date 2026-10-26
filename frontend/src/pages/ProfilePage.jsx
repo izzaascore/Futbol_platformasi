@@ -150,7 +150,7 @@ export default function ProfilePage() {
     <PageTransition>
       <div className="w-full bg-[#030303] min-h-screen font-sans text-stone-200">
         
-        {/* Profile Header (Cinematic) */}
+        {/* Profile Bosh bilan (Cinematic) */}
         <div className="relative w-full h-[40vh] min-h-[350px]">
           <div className="absolute inset-0">
             <img 
@@ -592,7 +592,7 @@ export default function ProfilePage() {
               {/* LOWER SECTION: 2D Pitch Event Visualizer (Left) + Detailed Tactical Metrics (Right) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                {/* 2D Pitch / Heatmap & Shots Field */}
+                {/* 2D Pitch / Faollik Xaritasi & Shots Field */}
                 <div className="lg:col-span-7 bg-[#080d14] border border-cyan-500/20 rounded-3xl p-6 shadow-xl">
                   
                   {/* Pitch Filter Tabs */}
@@ -612,7 +612,7 @@ export default function ProfilePage() {
                         onClick={() => setPitchFilter('heatmap')}
                         className={`px-3 py-1.5 rounded-lg transition-all ${pitchFilter === 'heatmap' ? 'bg-cyan-500 text-black' : 'text-stone-400 hover:text-white'}`}
                       >
-                        Heatmap
+                        Faollik Xaritasi
                       </button>
                       <button 
                         onClick={() => setPitchFilter('passes')}
@@ -688,7 +688,7 @@ export default function ProfilePage() {
 
                 </div>
 
-                {/* Tactical Analytics Grid (Goal Breakdown + Pass Compass + Speed) */}
+                {/* Tactical Analytics Grid (Goal Breakdown + Uzatma Yo'nalishlari + Speed) */}
                 <div className="lg:col-span-5 flex flex-col gap-6">
                   
                   {/* Goal Breakdown (O'ng oyoq, Chap oyoq, Bosh) */}
@@ -717,7 +717,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Pass Compass & Movement */}
+                  {/* Uzatma Yo'nalishlari & Movement */}
                   <div className="bg-[#080d14] border border-cyan-500/20 rounded-3xl p-6 shadow-xl flex-1 flex flex-col justify-between">
                     <h4 className="text-sm font-black text-white uppercase tracking-wider mb-4 flex items-center justify-between">
                       <span>To'p Uzatish Yo'nalishlari</span>

@@ -199,7 +199,7 @@ const PlayersPage = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <div className="inline-flex items-center gap-2 mb-3 bg-white/5 px-4 py-1.5 rounded-full border border-white/20 backdrop-blur-md">
                 <Shield className="w-3.5 h-3.5 text-white" />
-                <span className="text-[10px] font-bold tracking-widest text-stone-300 uppercase">FUTURO PRO SCOUTING NETWORK</span>
+                <span className="text-[10px] font-bold tracking-widest text-stone-300 uppercase">FUTURO PROFESSIONAL SKAUTING TIZIMI</span>
               </div>
               <h1 className="text-4xl sm:text-6xl md:text-7xl font-heading font-black tracking-tight text-white uppercase mb-3">
                 IQTIDORLAR <span className="text-gradient">BAZASI</span>
@@ -290,7 +290,7 @@ const PlayersPage = () => {
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Scout Pro Tahlil</span>
+              <span>Professional Skaut Tahlili</span>
             </button>
 
           </div>
@@ -318,7 +318,7 @@ const PlayersPage = () => {
                       {player.position}
                     </span>
                     <span className="px-2.5 py-1 rounded-md bg-white text-black text-[10px] font-heading font-black shadow-glow">
-                      OVR {player.rating || 88}
+                      REYTING {player.rating || 88}
                     </span>
                   </div>
 
@@ -342,11 +342,11 @@ const PlayersPage = () => {
                 <div className="p-4 bg-white/[0.02] border-t border-white/10 flex flex-col gap-3">
                   <div className="grid grid-cols-6 gap-1 text-center py-1 rounded-lg bg-white/[0.03] border border-white/5">
                     <div>
-                      <div className="text-[8px] font-bold text-stone-400">PAC</div>
+                      <div className="text-[8px] font-bold text-stone-400">TEZ</div>
                       <div className="text-xs font-bold text-white">{player.stats?.pac || 85}</div>
                     </div>
                     <div>
-                      <div className="text-[8px] font-bold text-stone-400">SHO</div>
+                      <div className="text-[8px] font-bold text-stone-400">ZAR</div>
                       <div className="text-xs font-bold text-white">{player.stats?.sho || 82}</div>
                     </div>
                     <div>
@@ -358,11 +358,11 @@ const PlayersPage = () => {
                       <div className="text-xs font-bold text-white">{player.stats?.dri || 88}</div>
                     </div>
                     <div>
-                      <div className="text-[8px] font-bold text-stone-400">DEF</div>
+                      <div className="text-[8px] font-bold text-stone-400">HIM</div>
                       <div className="text-xs font-bold text-white">{player.stats?.def || 55}</div>
                     </div>
                     <div>
-                      <div className="text-[8px] font-bold text-stone-400">PHY</div>
+                      <div className="text-[8px] font-bold text-stone-400">JIS</div>
                       <div className="text-xs font-bold text-white">{player.stats?.phy || 80}</div>
                     </div>
                   </div>
@@ -379,7 +379,7 @@ const PlayersPage = () => {
                       }}
                       className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white text-white hover:text-black text-xs font-bold uppercase tracking-wider transition flex items-center gap-1 border border-white/15"
                     >
-                      Dossye <ArrowUpRight className="w-3.5 h-3.5" />
+                      Profil <ArrowUpRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -420,7 +420,7 @@ const PlayersPage = () => {
                 </div>
                 <div className="flex-grow">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[10px] font-heading font-black text-white uppercase tracking-wider mb-2">
-                    {selectedPlayer.position} • OVR {selectedPlayer.rating || 90}
+                    {selectedPlayer.position} • REYTING {selectedPlayer.rating || 90}
                   </div>
                   <h3 className="font-heading font-black text-3xl uppercase text-white mb-1">
                     {selectedPlayer.full_name}
@@ -435,7 +435,7 @@ const PlayersPage = () => {
                       <span className="font-heading font-black text-white text-lg">{selectedPlayer.market_value || '€1.2M'}</span>
                     </div>
                     <div>
-                      <span className="text-stone-400 block text-[10px] uppercase font-bold">Skaut Statusi:</span>
+                      <span className="text-stone-400 block text-[10px] uppercase font-bold">Skaut xulosasi:</span>
                       <span className="text-emerald-400 font-bold flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Tasdiqlangan</span>
                     </div>
                   </div>

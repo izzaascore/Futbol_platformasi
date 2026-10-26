@@ -17,7 +17,7 @@ export default function MatchCenterPage() {
   const [matches, setMatches] = useState([]);
   const [selectedMatch, setSelectedMatch] = useState(null);
 
-  // SOS Matchmaker States
+  // Tezkor O'yinchi Qidirish (SOS) States
   const [callouts, setCallouts] = useState([]);
   const [showCalloutModal, setShowCalloutModal] = useState(false);
   const [newCallout, setNewCallout] = useState({
@@ -108,7 +108,7 @@ export default function MatchCenterPage() {
           <div className="absolute inset-0">
             <img 
               src="/images/general/general_1518609878373-06d740.jpg" 
-              alt="Match Center" 
+              alt="Jonli Efir" 
               className="w-full h-full object-cover opacity-35 grayscale"
             />
             <div className="absolute inset-0 bg-[#030303]/70 mix-blend-multiply"></div>
@@ -121,10 +121,10 @@ export default function MatchCenterPage() {
                 <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                 </div>
-                <span className="text-[10px] font-black tracking-[0.2em] text-red-500 uppercase">Futuro Arena</span>
+                <span className="text-[10px] font-black tracking-[0.2em] text-red-500 uppercase">Futuro Jonli Markazi</span>
               </div>
               <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase mb-2">
-                O'yinlar & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Match Center</span>
+                O'yinlar & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Jonli Efir</span>
               </h1>
               <p className="text-stone-400 font-light max-w-xl text-sm md:text-base">
                 Jonli o'yinlar, turnir jadvallari va kechki o'yinlar uchun tezkor o'yinchi topish markazi.
@@ -173,7 +173,7 @@ export default function MatchCenterPage() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/[0.04]/90 border border-white/10 p-6 rounded-3xl backdrop-blur-xl">
                 <div>
                   <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2">
-                    ⚡️ SOS Matchmaker: Futbolga Odam Qidirish
+                    ⚡️ Tezkor O'yinchi Qidirish (SOS): Futbolga Odam Qidirish
                   </h3>
                   <p className="text-xs text-stone-400 mt-1">
                     Kechki o'yiningizga o'yinchi yetmayaptimi? E'lon bering yoki yaqin atrofdagi o'yinga qo'shiling!

@@ -52,7 +52,7 @@ function PublicLayout({ children }) {
     { to: '/shop', label: "Do'kon", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
     { 
       to: '/live', 
-      label: 'Live Center', 
+      label: 'Jonli Efir', 
       isLive: true 
     },
     { to: '/manifesto', label: 'Manifest' },
@@ -75,7 +75,7 @@ function PublicLayout({ children }) {
                 FUTURO
               </span>
               <span className="text-[9px] font-bold tracking-widest text-stone-400 uppercase mt-1 leading-tight whitespace-nowrap">
-                Your future is in your own hands
+                Kelajaging o'z qo'lingda
               </span>
             </div>
           </Link>
@@ -262,7 +262,7 @@ function PublicLayout({ children }) {
                     FUTURO
                   </span>
                   <span className="text-[9px] font-bold tracking-widest text-stone-400 uppercase">
-                    Your future is in your own hands
+                    Kelajaging o'z qo'lingda
                   </span>
                 </div>
               </Link>
@@ -276,7 +276,7 @@ function PublicLayout({ children }) {
                   Tizim 100% Onlayn
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-wider text-stone-300">
-                  Cadets Edition
+                  Cadets Nashri
                 </span>
               </div>
             </div>
@@ -300,7 +300,7 @@ function PublicLayout({ children }) {
                 Interaktiv
               </h4>
               <ul className="flex flex-col gap-2.5 text-xs text-stone-400">
-                <li><Link to="/live" className="hover:text-red-400 transition flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Live Center</Link></li>
+                <li><Link to="/live" className="hover:text-red-400 transition flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Jonli Efir</Link></li>
                 <li><Link to="/shop" className="hover:text-white transition">Futuro Do'koni</Link></li>
                 <li><Link to="/manifesto" className="hover:text-white transition">Bizning Manifest</Link></li>
                 <li><Link to="/drills" className="hover:text-white transition">Kunlik mashg'ulotlar</Link></li>
@@ -315,7 +315,7 @@ function PublicLayout({ children }) {
               <ul className="flex flex-col gap-2.5 text-xs text-stone-400">
                 <li><Link to="/register" className="hover:text-white transition">Skaut sifatida kirish</Link></li>
                 <li><Link to="/register" className="hover:text-white transition">Klublar uchun API</Link></li>
-                <li><Link to="/admin" className="hover:text-stone-300 text-stone-500 transition">Admin Panel</Link></li>
+                <li><Link to="/admin" className="hover:text-stone-300 text-stone-500 transition">Boshqaruv Paneli (Admin)</Link></li>
               </ul>
             </div>
 
@@ -323,7 +323,7 @@ function PublicLayout({ children }) {
 
           <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
             <p>© {new Date().getFullYear()} Futuro. Barcha huquqlar himoyalangan.</p>
-            <p className="tracking-widest uppercase text-[10px]">Designed for Champions • Made in Uzbekistan</p>
+            <p className="tracking-widest uppercase text-[10px]">Chempionlar uchun yaratilgan • O'zbekistonda ishlab chiqilgan</p>
           </div>
         </div>
       </footer>
@@ -340,7 +340,7 @@ function PublicLayout({ children }) {
         </Link>
         <Link to="/live" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-400 p-2">
           <Activity className="w-5 h-5 animate-pulse" />
-          <span>Live</span>
+          <span>Jonli</span>
         </Link>
         <Link to="/stadiums" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white hover:text-white p-2">
           <MapPin className="w-5 h-5 text-white" />

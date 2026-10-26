@@ -22,7 +22,7 @@ const DEFAULT_TALENTS = [
     image: "https://images.unsplash.com/photo-1550286395-520556eecdb7?q=80&w=1000&auto=format&fit=crop",
     stats: { pac: 89, sho: 92, pas: 84, dri: 91, def: 45, phy: 82 },
     is_verified: true,
-    tag: "TOP TALENT"
+    tag: "ENG ZO'R IQTIDOR"
   },
   {
     id: 2,
@@ -36,7 +36,7 @@ const DEFAULT_TALENTS = [
     image: "https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=1000&auto=format&fit=crop",
     stats: { pac: 85, sho: 80, pas: 90, dri: 88, def: 62, phy: 75 },
     is_verified: true,
-    tag: "SCOUT PRO"
+    tag: "PRO SKAUT"
   },
   {
     id: 3,
@@ -50,7 +50,7 @@ const DEFAULT_TALENTS = [
     image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop",
     stats: { pac: 93, sho: 84, pas: 81, dri: 89, def: 38, phy: 74 },
     is_verified: true,
-    tag: "RISING STAR"
+    tag: "PORLAYOTGAN YULDUZ"
   },
   {
     id: 4,
@@ -64,7 +64,7 @@ const DEFAULT_TALENTS = [
     image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1000&auto=format&fit=crop",
     stats: { pac: 78, sho: 50, pas: 74, dri: 72, def: 89, phy: 88 },
     is_verified: true,
-    tag: "ROCK DEFENDER"
+    tag: "ISHLONCHLI HIMOYA"
   }
 ];
 
@@ -94,7 +94,7 @@ export default function HomePage() {
             image: p.avatar_url || p.photo_url || DEFAULT_TALENTS[idx % DEFAULT_TALENTS.length].image,
             stats: p.stats || { pac: 80, sho: 75, pas: 78, dri: 80, def: 60, phy: 70 },
             is_verified: p.is_verified ?? true,
-            tag: p.tag || "TALENT"
+            tag: p.tag || "IQTIDOR"
           }));
           setPlayers([...formatted, ...DEFAULT_TALENTS.slice(formatted.length >= 4 ? 0 : 0)]);
         }
@@ -207,10 +207,10 @@ export default function HomePage() {
                 <div className="px-6 pt-6 pb-2 flex items-center justify-between relative z-10">
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-1 rounded-md bg-white text-black text-[10px] font-heading font-black tracking-wider uppercase">
-                      TOP TALENT
+                      ENG ZO'R IQTIDOR
                     </span>
                     <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/20 text-white text-[10px] font-bold tracking-wider">
-                      POT 94
+                      IMKONIYAT 94
                     </span>
                   </div>
                   <div className="w-8 h-8 rounded-full border border-white/20 overflow-hidden p-0.5 bg-black/60 shadow-sm">
@@ -234,7 +234,7 @@ export default function HomePage() {
                       <div className="text-3xl font-heading font-black text-white">€1.5M</div>
                     </div>
                     <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">
-                      Best Value
+                      Foydali Narx
                     </span>
                   </div>
                 </div>
@@ -257,11 +257,11 @@ export default function HomePage() {
                   {/* Radar / Stat Grid */}
                   <div className="grid grid-cols-6 gap-2 p-3 rounded-xl bg-white/[0.04] border border-white/10 text-center mb-5">
                     <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">PAC</div>
+                      <div className="text-[9px] font-bold text-stone-400 uppercase">TEZ</div>
                       <div className="font-heading font-black text-sm text-white">89</div>
                     </div>
                     <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">SHO</div>
+                      <div className="text-[9px] font-bold text-stone-400 uppercase">ZAR</div>
                       <div className="font-heading font-black text-sm text-white">92</div>
                     </div>
                     <div>
@@ -273,11 +273,11 @@ export default function HomePage() {
                       <div className="font-heading font-black text-sm text-white">91</div>
                     </div>
                     <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">DEF</div>
+                      <div className="text-[9px] font-bold text-stone-400 uppercase">HIM</div>
                       <div className="font-heading font-black text-sm text-white">45</div>
                     </div>
                     <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">PHY</div>
+                      <div className="text-[9px] font-bold text-stone-400 uppercase">JIS</div>
                       <div className="font-heading font-black text-sm text-white">82</div>
                     </div>
                   </div>
@@ -287,7 +287,7 @@ export default function HomePage() {
                     to="/players"
                     className="w-full py-3 rounded-xl bg-white/10 hover:bg-white text-white hover:text-black font-heading font-bold text-xs uppercase tracking-widest transition duration-300 flex items-center justify-center gap-2 border border-white/20"
                   >
-                    To'liq Skauting Dossiyesini Ko'rish
+                    To'liq Skauting Ma'lumotlarini Ko'rish
                     <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -409,7 +409,7 @@ export default function HomePage() {
                         {player.tag || 'PRO'}
                       </span>
                       <span className="px-2 py-0.5 rounded-md bg-white text-black text-[10px] font-heading font-black">
-                        POT {player.potential}
+                        IMKONIYAT {player.potential}
                       </span>
                     </div>
 
@@ -510,7 +510,7 @@ export default function HomePage() {
                 </div>
               </Link>
 
-              {/* Module 2: Live Center */}
+              {/* Module 2: Jonli Efir */}
               <Link
                 to="/live"
                 className="group p-8 rounded-3xl bg-white/[0.03] border border-white/10 hover:border-red-500/40 transition duration-300 flex flex-col justify-between backdrop-blur-xl"
@@ -521,7 +521,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-heading font-black text-2xl uppercase text-white">
-                      Live Center
+                      Jonli Efir
                     </h3>
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                   </div>

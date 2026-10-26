@@ -15,7 +15,7 @@ const TournamentsPage = () => {
   const fallbackTournaments = [
     { 
       id: 1, 
-      name: "Futuro Cadets Cup 2026", 
+      name: "Futuro Cadets Kubogi 2026", 
       description: "O'zbekistonning eng iqtidorli yoshlar akademiyalari o'rtasidagi asosiy kubok musobaqasi. Xalqaro va mahalliy skautlar to'liq kuzatuvi ostida.", 
       prize: "€10,000 & Yevropa Ko'rigi", 
       status: "Aktiv", 
@@ -37,7 +37,7 @@ const TournamentsPage = () => {
     },
     { 
       id: 3, 
-      name: "Vodiy Stars Super Cup", 
+      name: "Vodiy Yulduzlari Superkubogi", 
       description: "Andijon, Farg'ona va Namangan viloyatlarining eng sara U-17 jamoalari to'qnashuvi. Superliga klublari murabbiylari ishtirokida.", 
       prize: "Klublar Akademiyasiga Qabul", 
       status: "Tez kunda", 

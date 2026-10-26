@@ -141,7 +141,7 @@ export default function RankingsPage() {
                   <h3 className="font-heading font-black text-lg text-white uppercase tracking-tight mb-1 text-center truncate w-full">{filteredRankings[1].name}</h3>
                   <span className="text-[11px] text-stone-400 uppercase tracking-widest font-bold mb-3">{filteredRankings[1].club}</span>
                   <div className="text-3xl font-heading font-black text-white">{filteredRankings[1].rating}</div>
-                  <span className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">OVR (2-O'rin)</span>
+                  <span className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">REYTING (2-o'rin)</span>
                 </div>
               </motion.div>
 
@@ -170,7 +170,7 @@ export default function RankingsPage() {
                   <h3 className="font-heading font-black text-2xl text-white uppercase tracking-tight mb-1 text-center truncate w-full">{filteredRankings[0].name}</h3>
                   <span className="text-xs text-stone-300 uppercase tracking-widest font-bold mb-3">{filteredRankings[0].club}</span>
                   <div className="text-5xl font-heading font-black text-white">{filteredRankings[0].rating}</div>
-                  <span className="text-[10px] text-white uppercase tracking-widest font-bold mt-1">OVR (Mutloq Yetakchi)</span>
+                  <span className="text-[10px] text-white uppercase tracking-widest font-bold mt-1">REYTING (Mutlaq yetakchi)</span>
                 </div>
               </motion.div>
 
@@ -196,7 +196,7 @@ export default function RankingsPage() {
                   <h3 className="font-heading font-black text-lg text-white uppercase tracking-tight mb-1 text-center truncate w-full">{filteredRankings[2].name}</h3>
                   <span className="text-[11px] text-stone-400 uppercase tracking-widest font-bold mb-3">{filteredRankings[2].club}</span>
                   <div className="text-3xl font-heading font-black text-stone-200">{filteredRankings[2].rating}</div>
-                  <span className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">OVR (3-O'rin)</span>
+                  <span className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">REYTING (3-o'rin)</span>
                 </div>
               </motion.div>
 
@@ -296,7 +296,7 @@ export default function RankingsPage() {
                           {player.name}
                         </h4>
                         <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-white/10 border border-white/15 text-stone-300">
-                          {player.position}
+                          normalizePosition(player.position) === 'FW' ? 'Hujumchi' : normalizePosition(player.position) === 'MF' ? 'Yarim himoya' : normalizePosition(player.position) === 'DF' ? 'Himoyachi' : 'Darvozabon'
                         </span>
                       </div>
                       <p className="text-xs text-stone-400 truncate mt-0.5">{player.club}</p>
@@ -326,7 +326,7 @@ export default function RankingsPage() {
                       <div className="font-heading font-black text-xl sm:text-2xl text-white">
                         {player.rating}
                       </div>
-                      <span className="text-[9px] uppercase font-bold text-stone-400 tracking-wider">OVR</span>
+                      <span className="text-[9px] uppercase font-bold text-stone-400 tracking-wider">REYTING</span>
                     </div>
 
                   </motion.div>
