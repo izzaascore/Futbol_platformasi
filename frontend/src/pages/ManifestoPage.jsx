@@ -83,7 +83,7 @@ const ManifestoPage = () => {
           </div>
           <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter leading-tight mb-6">
             Xarakter, Psixologiya va <br className="hidden md:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">O'zini O'zi Tarbiyalash</span> Manifesti
+            <span className="text-white font-extrabold">O'zini O'zi Tarbiyalash</span> Manifesti
           </h1>
           <p className="text-stone-400 text-lg md:text-xl font-light max-w-2xl mx-auto">
             Sen xohlagan o'sha badavlat hayot, olqishlar, tribunadagi muxlislar — bularning hammasi shunchaki xohish bo'lib qolaveradi, agar sen hozir, shu soniyada o'zgarishga rozi bo'lmasang.
@@ -304,7 +304,7 @@ const ManifestoPage = () => {
           transition={{ duration: 0.6 }}
           className="mb-10 text-center max-w-3xl mx-auto"
         >
-          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 uppercase tracking-tighter mb-6">
+          <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-6">
             Ishon, Natijaga Erishtiramiz!
           </h2>
           <p className="text-stone-300 text-lg font-light leading-relaxed mb-4">

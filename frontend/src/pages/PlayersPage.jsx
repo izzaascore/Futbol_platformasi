@@ -482,7 +482,7 @@ const PlayersPage = () => {
 
               {inviteSuccess ? (
                 <div className="py-8 text-center">
-                  <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto mb-3 animate-bounce" />
+                  <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto mb-3" />
                   <h4 className="font-heading font-black text-xl text-white uppercase">Taklifnoma Muvaffaqiyatli Yuborildi!</h4>
                   <p className="text-stone-400 text-xs mt-1">Futbolchi profilingiz orqali aloqaga chiqadi.</p>
                 </div>

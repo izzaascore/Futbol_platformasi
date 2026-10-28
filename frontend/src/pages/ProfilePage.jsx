@@ -460,7 +460,7 @@ export default function ProfilePage() {
 
                     <div className="flex-1 text-center sm:text-left">
                       <div className="flex items-center justify-center sm:justify-start gap-2 text-cyan-400 font-black">
-                        <span className="text-6xl sm:text-7xl font-black font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-cyan-400">
+                        <span className="text-6xl sm:text-7xl font-black font-mono tracking-tighter text-white">
                           9
                         </span>
                         <span className="text-xs uppercase tracking-widest text-cyan-500 font-bold border border-cyan-500/40 px-1.5 py-0.5 rounded">

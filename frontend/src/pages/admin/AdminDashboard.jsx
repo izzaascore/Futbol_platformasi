@@ -486,8 +486,7 @@ function TournamentsHub() {
             </div>
             
             {showForm && (
-                <div className="bg-[#0a0a0a] border border-cyan-900/50 p-6 mb-8 relative">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-6 mb-8 relative">
                     <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
                         <div className="col-span-2">
                             <label className="text-[10px] text-cyan-700 font-bold uppercase tracking-widest block mb-1">Turnir Nomi</label>

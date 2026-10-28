@@ -144,7 +144,7 @@ const LegendModal = ({ legendId, onClose }) => {
             
             <div className="space-y-6 text-stone-300 font-light leading-relaxed text-sm md:text-base">
                 {legend.bio.map((paragraph, idx) => (
-                    <p key={idx} className={idx === legend.bio.length - 1 && paragraph.startsWith('"') ? "italic text-amber-400 font-medium p-4 border-l-4 border-amber-500 bg-amber-950/20" : ""}>
+                    <p key={idx} className={idx === legend.bio.length - 1 && paragraph.startsWith('"') ? "italic text-stone-200 font-medium pl-4 py-2 border-l border-white/30 bg-white/[0.02] rounded-r" : ""}>
                         {paragraph}
                     </p>
                 ))}

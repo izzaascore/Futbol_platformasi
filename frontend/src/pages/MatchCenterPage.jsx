@@ -124,7 +124,7 @@ export default function MatchCenterPage() {
                 <span className="text-[10px] font-black tracking-[0.2em] text-red-500 uppercase">Futuro Jonli Markazi</span>
               </div>
               <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase mb-2">
-                O'yinlar & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Jonli Efir</span>
+                O'yinlar & <span className="text-white">Jonli Efir</span>
               </h1>
               <p className="text-stone-400 font-light max-w-xl text-sm md:text-base">
                 Jonli o'yinlar, turnir jadvallari va kechki o'yinlar uchun tezkor o'yinchi topish markazi.

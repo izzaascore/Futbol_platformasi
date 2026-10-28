@@ -108,7 +108,7 @@ export default function FeedbackModal() {
             {/* Success State */}
             {status === 'success' ? (
               <div className="py-8 text-center flex flex-col items-center justify-center gap-3">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400 animate-bounce" />
+                <CheckCircle2 className="w-12 h-12 text-emerald-400" />
                 <h4 className="text-base font-semibold">Katta rahmat!</h4>
                 <p className="text-xs text-stone-400 max-w-xs">
                   Fikr-mulohazangiz qabul qilindi. Tez orada ko'rib chiqamiz.
