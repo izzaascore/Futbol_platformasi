@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_user, RequireRole
+from app.core.security import get_current_user, RequireRole, check_ownership
 from app.models import Scout, ScoutReport, ScoutInvitation, Player, User
 from app.schemas import (
     ScoutCreate, ScoutOut, ScoutReportBase, ScoutReportCreate, ScoutReportOut,
@@ -97,10 +97,14 @@ def respond_to_invitation(
     inv = db.query(ScoutInvitation).filter(ScoutInvitation.id == invitation_id).first()
     if not inv:
         raise HTTPException(status_code=404, detail="Taklifnoma topilmadi")
+    # Faqat taklif yuborilgan futbolchining O'ZI (yoki admin) javob bera oladi
+    invited_player = db.query(Player).filter(Player.id == inv.player_id).first()
+    check_ownership(invited_player.user_id if invited_player else None, current_user, "taklifnoma")
     status = data.get("status")
-    if status in ["qabul_qilindi", "rad_etildi"]:
-        inv.status = status
-        db.commit()
-        db.refresh(inv)
+    if status not in ["qabul_qilindi", "rad_etildi"]:
+        raise HTTPException(status_code=400, detail="Noto'g'ri holat")
+    inv.status = status
+    db.commit()
+    db.refresh(inv)
     return inv
 

@@ -1,6 +1,6 @@
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
@@ -21,18 +21,35 @@ load_dotenv()
 logger = logging.getLogger("security")
 
 # Xavfsizlik kalitlari (.env dan o'qiladi)
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError("XAVFSIZLIK XATOSI: SECRET_KEY .env faylida o'rnatilishi shart!")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
+def _require_env(name: str, min_len: int = 1) -> str:
+    """Majburiy sir. .env / Railway o'zgaruvchilarida bo'lmasa ilova ishga tushmaydi."""
+    value = (os.getenv(name) or "").strip()
+    if len(value) < min_len:
+        raise RuntimeError(
+            f"{name} o'rnatilmagan yoki juda qisqa (kamida {min_len} belgi). "
+            f".env faylga yoki Railway Variables ga qo'shing."
+        )
+    return value
+
+
+IS_PRODUCTION = (
+    os.getenv("ENVIRONMENT", "development").lower() == "production"
+    or os.getenv("RAILWAY_ENVIRONMENT") is not None
+    or os.getenv("RAILWAY_PROJECT_ID") is not None
+)
+
+# Standart (default) qiymatlar YO'Q: sirlar faqat muhit o'zgaruvchilaridan olinadi
+SECRET_KEY = _require_env("SECRET_KEY", 32)
+ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", str(60 * 24 * 7)))
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 
-# Admin boshqaruv kalitlari (.env da majburiy)
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSKEY = os.getenv("ADMIN_PASSKEY")
-if not ADMIN_PASSKEY:
-    raise RuntimeError("XAVFSIZLIK XATOSI: ADMIN_PASSKEY .env faylida o'rnatilishi shart!")
+# Admin boshqaruv kalitlari
+ADMIN_USERNAME = _require_env("ADMIN_USERNAME", 3)
+ADMIN_PASSKEY = _require_env("ADMIN_PASSKEY", 12)
+
+# Telegram bot -> API uchun alohida kalit (admin huquqi bermaydi, faqat bot endpointlari)
+BOT_API_KEY = (os.getenv("BOT_API_KEY") or "").strip()
 
 import bcrypt
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
@@ -70,7 +87,6 @@ def decode_access_token(token: str) -> dict:
 
 # Tizimga kirgan foydalanuvchini aniqlash
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Tasdiqlash tokeni xato yoki muddati tugagan",
@@ -97,6 +113,49 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Hisobingiz bloklangan!")
         
     return user
+
+oauth2_optional = OAuth2PasswordBearer(tokenUrl="api/auth/login", auto_error=False)
+
+
+def get_optional_user(token: str | None = Depends(oauth2_optional), db: Session = Depends(get_db)):
+    """Token bo'lsa foydalanuvchini qaytaradi; yo'q yoki noto'g'ri bo'lsa None (xato bermaydi)."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        uid = int(payload.get("sub"))
+    except (JWTError, ValueError, TypeError):
+        return None
+    user = db.query(User).filter(User.id == uid).first()
+    if user is None or user.status == UserStatus.BANNED:
+        return None
+    return user
+
+
+def safe_equals(a, b) -> bool:
+    """Vaqt bo'yicha hujumga chidamli taqqoslash (parol/kalit uchun)."""
+    return hmac.compare_digest(str(a or "").encode("utf-8"), str(b or "").encode("utf-8"))
+
+
+def require_bot_key(x_bot_key: str = Header(default="")):
+    """Faqat Telegram bot uchun: X-Bot-Key sarlavhasi BOT_API_KEY ga teng bo'lishi shart."""
+    if not BOT_API_KEY or not safe_equals(x_bot_key, BOT_API_KEY):
+        raise HTTPException(status_code=403, detail="Ruxsat yo'q")
+
+
+def get_client_ip(request: Request) -> str:
+    """
+    Proksi (Railway) ortida haqiqiy IP. TRUSTED_PROXY_HOPS = ishonchli proksilar soni (standart 1).
+    X-Forwarded-For ning chap tomonini mijoz soxtalashtirishi mumkin, shuning uchun
+    o'ng tomondan hisoblaymiz.
+    """
+    hops = int(os.getenv("TRUSTED_PROXY_HOPS", "1"))
+    xff = request.headers.get("x-forwarded-for", "")
+    parts = [p.strip() for p in xff.split(",") if p.strip()]
+    if parts and hops > 0:
+        return parts[-hops] if len(parts) >= hops else parts[0]
+    return request.client.host if request.client else "127.0.0.1"
+
 
 # Maxsus ruxsatlarni tekshirish (RBAC)
 def RequireRole(allowed_roles: list[str]):
@@ -146,8 +205,11 @@ def verify_telegram_init_data(init_data: str, bot_token: str = None) -> bool:
         
     token = bot_token or BOT_TOKEN
     if not token or ":" not in token or token.startswith("1234567890"):
-        # Agar bot token hali test rejimida bo'lsa (dev fallback)
-        logger.warning("Telegram Bot Token test rejimida, HMAC tekshiruvi bypass qilindi.")
+        # Faqat lokal ishlab chiqishda ruxsat; productionda HECH QACHON
+        if IS_PRODUCTION:
+            logger.error("BOT_TOKEN sozlanmagan: Telegram autentifikatsiyasi rad etildi.")
+            return False
+        logger.warning("Telegram Bot Token test rejimida, HMAC tekshiruvi bypass qilindi (faqat dev).")
         return True
 
     try:

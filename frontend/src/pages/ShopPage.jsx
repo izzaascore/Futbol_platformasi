@@ -13,6 +13,8 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true);
   const [phoneNotify, setPhoneNotify] = useState('');
   const [notifySuccess, setNotifySuccess] = useState(false);
+  const [notifyError, setNotifyError] = useState('');
+  const [notifySending, setNotifySending] = useState(false);
 
   // Attempt to fetch any real products from backend, otherwise empty list
   useEffect(() => {
@@ -34,21 +36,33 @@ export default function ShopPage() {
 
   const handleSubscribeNotify = async (e) => {
     e.preventDefault();
-    if (!phoneNotify.trim()) return;
+    if (!phoneNotify.trim() || notifySending) return;
+    setNotifyError('');
+    setNotifySending(true);
     try {
-      await fetch(`${API_URL}/api/shop/notify`, {
+      const res = await fetch(`${API_URL}/api/shop/notify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phoneNotify.trim() })
+        body: JSON.stringify({ phone: phoneNotify.trim() }),
       });
-    } catch (err) {
-      console.warn("Bildirishnoma saqlandi:", err);
+      if (res.ok) {
+        setNotifySuccess(true);
+        setTimeout(() => {
+          setNotifySuccess(false);
+          setPhoneNotify('');
+        }, 3000);
+      } else if (res.status === 422) {
+        setNotifyError("Telefon raqami noto'g'ri. Masalan: +998 90 123 45 67");
+      } else if (res.status === 429) {
+        setNotifyError("Juda ko'p urinish. Birozdan keyin qayta urinib ko'ring.");
+      } else {
+        setNotifyError("Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+      }
+    } catch {
+      setNotifyError("Server bilan aloqa yo'q. Internetni tekshiring.");
+    } finally {
+      setNotifySending(false);
     }
-    setNotifySuccess(true);
-    setTimeout(() => {
-      setNotifySuccess(false);
-      setPhoneNotify('');
-    }, 3500);
   };
 
   return (
@@ -154,9 +168,10 @@ export default function ShopPage() {
                       Rahmat! Raqamingiz ro'yxatga kiritildi.
                     </div>
                   ) : (
+                    <>
                     <form onSubmit={handleSubscribeNotify} className="flex gap-2">
                       <input 
-                        type="text" 
+                        type="tel" 
                         required
                         value={phoneNotify}
                         onChange={(e) => setPhoneNotify(e.target.value)}
@@ -165,12 +180,15 @@ export default function ShopPage() {
                       />
                       <button
                         type="submit"
-                        className="px-5 py-2.5 rounded-xl bg-white hover:bg-stone-200 text-black font-heading font-black text-xs uppercase tracking-wider transition shadow-glow flex items-center gap-1.5"
+                        disabled={notifySending}
+                        className="px-5 py-2.5 rounded-xl bg-white disabled:opacity-50 hover:bg-stone-200 text-black font-heading font-black text-xs uppercase tracking-wider transition shadow-glow flex items-center gap-1.5"
                       >
                         <Send className="w-3.5 h-3.5" />
                         Yuborish
                       </button>
                     </form>
+                    {notifyError && <p role="alert" className="mt-2 text-xs text-red-400">{notifyError}</p>}
+                    </>
                   )}
                 </div>
 

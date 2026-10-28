@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Key, ShieldHalf, Send, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { API_URL, TELEGRAM_BOT_USERNAME } from '../../config';
+import { API_URL, TELEGRAM_BOT_USERNAME, ADMIN_PATH, ADMIN_BASE } from '../../config';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ const LoginPage = () => {
       if (data.access_token) localStorage.setItem('token', data.access_token);
       if (data.role) localStorage.setItem('role', data.role);
 
-      if (data.role === 'admin') navigate('/admin/dashboard');
+      if (data.role === 'admin') navigate(ADMIN_PATH ? `${ADMIN_BASE}/dashboard` : '/');
       else if (data.role === 'scout') navigate('/scout/dashboard');
       else navigate('/player/dashboard');
     } catch (e) {
@@ -92,7 +92,7 @@ const LoginPage = () => {
       if (data.access_token) localStorage.setItem('token', data.access_token);
       if (data.role) localStorage.setItem('role', data.role);
       
-      if (data.role === 'admin') navigate('/admin/dashboard');
+      if (data.role === 'admin') navigate(ADMIN_PATH ? `${ADMIN_BASE}/dashboard` : '/');
       else if (data.role === 'scout') navigate('/scout/dashboard');
       else navigate('/player/dashboard');
     } catch (e) {

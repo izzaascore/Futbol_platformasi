@@ -44,7 +44,9 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-dc0f4.up.railwa
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platformasi-alpha.vercel.app")
 # Admin Telegram ID (muhim shaxsiy xabarlar uchun):
 ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "")
-from app.core.security import create_access_token
+# Botning API uchun kaliti (admin huquqi bermaydi). Railway Variables da BOT_API_KEY ni o'rnating.
+BOT_API_KEY = os.getenv("BOT_API_KEY", "").strip()
+BOT_HEADERS = {"X-Bot-Key": BOT_API_KEY} if BOT_API_KEY else {}
 
 from app.services.ai_assistant import (
     classify_intent,
@@ -228,7 +230,7 @@ async def process_foot(message: types.Message, state: FSMContext):
     # API ga yuboramiz
     async with httpx.AsyncClient() as client:
         try:
-            res = await client.post(f"{API_BASE_URL}/players", json=payload)
+            res = await client.post(f"{API_BASE_URL}/players", json=payload, headers=BOT_HEADERS)
             if res.status_code == 200:
                 await message.answer(
                     "🎉 Profilingiz muvaffaqiyatli yaratildi!\n"
@@ -329,11 +331,9 @@ async def process_caption(message: types.Message, state: FSMContext):
             "video_url": video_url,
             "description": desc
         }
-        user_uid = current_player.get("user_id") or current_player.get("id")
-        user_token = create_access_token(data={"sub": str(user_uid)})
-        headers = {"Authorization": f"Bearer {user_token}"}
+        headers = BOT_HEADERS
         submit_res = await client.post(
-            f"{API_BASE_URL}/players/{current_player['id']}/submit-goal",
+            f"{API_BASE_URL}/api/bot/players/{current_player['id']}/submit-goal",
             json=payload,
             headers=headers
         )
@@ -382,6 +382,59 @@ async def show_leaderboard(message: types.Message):
 # ==============================================================
 # P2P VIRTUAL XONANI TARK ETISH
 # ==============================================================
+# ==============================================================
+# FIKR-MULOHAZA: /fikr
+# ==============================================================
+class FeedbackState(StatesGroup):
+    waiting_text = State()
+
+
+@dp.message(Command("fikr"))
+async def feedback_start(message: types.Message, state: FSMContext):
+    await state.set_state(FeedbackState.waiting_text)
+    await message.answer(
+        "💬 Fikr-mulohazangizni bitta xabar qilib yozing (nima yoqmadi, nima ishlamadi, nima qo'shaylik).\n\n"
+        "Bekor qilish: /bekor"
+    )
+
+
+@dp.message(FeedbackState.waiting_text, Command("bekor"))
+async def feedback_cancel(message: types.Message, state: FSMContext):
+    await state.clear()
+    await message.answer("Bekor qilindi.")
+
+
+@dp.message(FeedbackState.waiting_text, F.text)
+async def feedback_receive(message: types.Message, state: FSMContext):
+    text = (message.text or "").strip()
+    if text.startswith("/"):
+        await message.answer("Fikringizni oddiy matn ko'rinishida yozing yoki /bekor ni bosing.")
+        return
+    if len(text) < 3 or len(text) > 1000:
+        await message.answer("Fikr 3 dan 1000 gacha belgidan iborat bo'lishi kerak. Qayta yozing yoki /bekor.")
+        return
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            res = await client.post(
+                f"{API_BASE_URL}/api/bot/feedback",
+                json={"text": text, "telegram_id": message.from_user.id},
+                headers=BOT_HEADERS,
+            )
+        ok = res.status_code == 200
+    except Exception:
+        ok = False
+    if ok:
+        await state.clear()
+        await message.answer("✅ Rahmat! Fikringiz qabul qilindi.")
+    else:
+        await message.answer("⚠️ Hozir yuborib bo'lmadi. Birozdan keyin qayta yozing yoki /bekor.")
+
+
+@dp.message(FeedbackState.waiting_text)
+async def feedback_wrong_type(message: types.Message):
+    await message.answer("Iltimos, fikringizni matn ko'rinishida yozing yoki /bekor ni bosing.")
+
+
 @dp.message(Command("leave_room"))
 async def leave_room_handler(message: types.Message):
     user_id = message.from_user.id
@@ -395,52 +448,6 @@ async def leave_room_handler(message: types.Message):
             pass
     else:
         await message.answer("Siz hozirda hech qanday virtual xonada emassiz.")
-
-
-# ==============================================================
-# FIKR VA TAKLIF BILDIRISH (/fikr <matn>)
-# ==============================================================
-@dp.message(Command("fikr"))
-async def feedback_command_handler(message: types.Message):
-    raw_text = message.text or ""
-    # Buyruq matnidan so'ng yozilgan taklifni ajratib olish
-    parts = raw_text.split(maxsplit=1)
-    if len(parts) < 2 or not parts[1].strip():
-        await message.answer(
-            "💬 <b>Futuro haqida o'z fikr yoki taklifingizni yuboring:</b>\n\n"
-            "Buyruqdan so'ng xabaringizni yozing.\n"
-            "<i>Masalan:</i> <code>/fikr Maydon qidirish bo'limida filterlar yanada ko'paysa yaxshi bo'lardi</code>",
-            parse_mode="HTML"
-        )
-        return
-
-    content = parts[1].strip()
-    author = message.from_user.full_name or message.from_user.first_name
-    contact = f"@{message.from_user.username}" if message.from_user.username else f"TG: {message.from_user.id}"
-
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.post(
-                f"{API_BASE_URL}/api/feedback",
-                json={
-                    "message": content,
-                    "category": "taklif",
-                    "author_name": author,
-                    "contact": contact,
-                    "page_url": "Telegram Bot"
-                }
-            )
-            if resp.status_code in [200, 201]:
-                await message.answer(
-                    "✅ <b>Katta rahmat!</b>\n"
-                    "Fikr va taklifingiz muvaffaqiyatli qabul qilindi. Biz har bir xabarni ko'rib chiqamiz!",
-                    parse_mode="HTML"
-                )
-            else:
-                await message.answer("✅ Fikringiz qabul qilindi. Rahmat!")
-    except Exception as e:
-        logging.error(f"Telegram /fikr xatosi: {e}")
-        await message.answer("✅ Fikringiz ma'muriyatga yetkazildi. Rahmat!")
 
 
 # ==============================================================

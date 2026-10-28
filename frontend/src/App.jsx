@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { ShieldHalf, Menu, X, Activity, Flame, Home, Users, Search, Target, ShoppingBag, User, MapPin, Trophy, LogOut } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import { Analytics } from '@vercel/analytics/react';
-import FeedbackModal from './components/FeedbackModal';
 
 import ProtectedRoute from './components/ProtectedRoute';
+import FeedbackButton from './components/FeedbackButton';
 import AdminLayout from './layouts/AdminLayout';
 import ScoutLayout from './layouts/ScoutLayout';
 import PlayerLayout from './layouts/PlayerLayout';
-import { API_URL } from './config';
+import { API_URL, ADMIN_PATH, ADMIN_BASE } from './config';
 
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
@@ -51,6 +50,7 @@ function PublicLayout({ children }) {
     { to: '/stadiums', label: 'Maydonlar', icon: <MapPin className="w-3.5 h-3.5 text-white" /> },
     { to: '/rankings', label: 'Reyting' },
     { to: '/tournaments', label: 'Turnirlar' },
+    { to: '/shop', label: "Do'kon", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
     { 
       to: '/live', 
       label: 'Jonli Efir', 
@@ -115,7 +115,7 @@ function PublicLayout({ children }) {
                 <Link
                   to={
                     user.role === 'admin'
-                      ? '/admin'
+                      ? ADMIN_BASE
                       : user.role === 'scout'
                       ? '/scout/dashboard'
                       : '/player/dashboard'
@@ -200,7 +200,7 @@ function PublicLayout({ children }) {
                     <Link
                       to={
                         user.role === 'admin'
-                          ? '/admin'
+                          ? ADMIN_BASE
                           : user.role === 'scout'
                           ? '/scout/dashboard'
                           : '/player/dashboard'
@@ -301,8 +301,8 @@ function PublicLayout({ children }) {
                 Interaktiv
               </h4>
               <ul className="flex flex-col gap-2.5 text-xs text-stone-400">
-                <li><Link to="/live" className="hover:text-red-400 transition flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Jonli Efir</Link></li>
-                <li><Link to="/news" className="hover:text-white transition">Yangiliklar va Media</Link></li>
+                <li><Link to="/live" className="hover:text-red-400 transition flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Live Center</Link></li>
+                <li><Link to="/shop" className="hover:text-white transition">Futuro Do'koni</Link></li>
                 <li><Link to="/manifesto" className="hover:text-white transition">Bizning Manifest</Link></li>
                 <li><Link to="/drills" className="hover:text-white transition">Kunlik mashg'ulotlar</Link></li>
               </ul>
@@ -316,7 +316,6 @@ function PublicLayout({ children }) {
               <ul className="flex flex-col gap-2.5 text-xs text-stone-400">
                 <li><Link to="/register" className="hover:text-white transition">Skaut sifatida kirish</Link></li>
                 <li><Link to="/register" className="hover:text-white transition">Klublar uchun API</Link></li>
-                <li><Link to="/admin" className="hover:text-stone-300 text-stone-500 transition">Boshqaruv Paneli (Admin)</Link></li>
               </ul>
             </div>
 
@@ -347,14 +346,11 @@ function PublicLayout({ children }) {
           <MapPin className="w-5 h-5 text-white" />
           <span>Maydon</span>
         </Link>
-        <Link to={user ? (user.role === 'admin' ? '/admin' : user.role === 'scout' ? '/scout/dashboard' : '/player/dashboard') : "/login"} className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-white p-2">
+        <Link to={user ? (user.role === 'admin' ? ADMIN_BASE : user.role === 'scout' ? '/scout/dashboard' : '/player/dashboard') : "/login"} className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-white p-2">
           <User className="w-5 h-5" />
           <span>{user ? "Profil" : "Kirish"}</span>
         </Link>
       </nav>
-
-      {/* Reusable Floating Feedback Modal */}
-      <FeedbackModal />
 
     </div>
   );
@@ -402,6 +398,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <FeedbackButton />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -420,13 +417,15 @@ function App() {
         <Route path="/news" element={<PublicLayout><NewsPage /></PublicLayout>} />
         <Route path="/drills" element={<PublicLayout><DailyDrillsPage /></PublicLayout>} />
         
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="users" element={<AdminDashboard defaultTab="users" />} />
-            <Route path="submissions" element={<AdminDashboard defaultTab="submissions" />} />
-        </Route>
+        {/* Admin Routes: faqat yashirin manzilda (VITE_ADMIN_PATH). O'rnatilmagan bo'lsa umuman yo'q */}
+        {ADMIN_PATH && (
+          <Route path={`/${ADMIN_PATH}`} element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="users" element={<AdminDashboard defaultTab="users" />} />
+              <Route path="submissions" element={<AdminDashboard defaultTab="submissions" />} />
+          </Route>
+        )}
 
         {/* Scout Routes */}
         <Route element={<ProtectedRoute allowedRoles={['scout']} />}>
@@ -447,8 +446,10 @@ function App() {
             </Route>
         </Route>
 
+        {/* Noma'lum manzillar (jumladan eski /admin) bosh sahifaga */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
-      <Analytics />
     </BrowserRouter>
   );
 }

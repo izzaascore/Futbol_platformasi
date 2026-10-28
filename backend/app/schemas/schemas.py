@@ -1,12 +1,11 @@
-from pydantic import BaseModel
+import re
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from app.models.models import VerificationStatus, UserRole, UserStatus
 
 class UserBase(BaseModel):
     first_name: str
     last_name: str
-    username: str | None = None
-    phone: str | None = None
     telegram_id: int | None = None
     age: int | None = None
     address: str | None = None
@@ -36,12 +35,8 @@ class UserCreate(UserBase):
     license_url: str | None = None
 
 class UserLogin(BaseModel):
-    firstName: str | None = None
-    lastName: str | None = None
-    username: str | None = None
-    email: str | None = None
-    phone: str | None = None
-    identifier: str | None = None
+    firstName: str
+    lastName: str
     password: str
 
 class UserOut(UserBase):
@@ -229,13 +224,13 @@ class ProductOut(ProductBase):
 
 # --- SHOP ORDER SCHEMAS ---
 class ShopOrderCreate(BaseModel):
-    customer_name: str
-    customer_phone: str
-    shipping_city: str = "Toshkent"
-    shipping_address: str
-    payment_method: str = "click"
-    total_price: int | None = None
-    items_json: str
+    # total_price YO'Q: narx serverda bazadagi Product.price dan hisoblanadi
+    customer_name: str = Field(min_length=2, max_length=100)
+    customer_phone: str = Field(min_length=7, max_length=50)
+    shipping_city: str = Field(default="Toshkent", max_length=100)
+    shipping_address: str = Field(min_length=3, max_length=500)
+    payment_method: str = Field(default="click", max_length=50)
+    items_json: str = Field(max_length=5000)  # [{"id": 1, "qty": 2}, ...]
 
 class ShopOrderOut(BaseModel):
     id: int
@@ -638,29 +633,34 @@ class StadiumOut(BaseModel):
     class Config:
         from_attributes = True
 
-# --- FEEDBACK SCHEMAS ---
+
+class ShopNotifyCreate(BaseModel):
+    phone: str = Field(min_length=7, max_length=30)
+
+    @field_validator("phone")
+    @classmethod
+    def normalize_phone(cls, v: str) -> str:
+        digits = re.sub(r"\D", "", v)
+        if len(digits) == 9:          # 901234567 -> 998901234567
+            digits = "998" + digits
+        if len(digits) != 12 or not digits.startswith("998"):
+            raise ValueError("Telefon raqami noto'g'ri")
+        return "+" + digits
+
+
 class FeedbackCreate(BaseModel):
-    message: str
-    category: str = "taklif"
-    contact: str | None = None
-    author_name: str | None = None
-    page_url: str | None = None
+    text: str = Field(min_length=3, max_length=1000)
+    page: str | None = Field(default=None, max_length=100)
 
-class FeedbackOut(BaseModel):
-    id: int
-    user_id: int | None = None
-    author_name: str | None = None
-    contact: str | None = None
-    category: str
-    page_url: str | None = None
-    message: str
-    status: str
-    admin_notes: str | None = None
-    created_at: datetime
+    @field_validator("text")
+    @classmethod
+    def clean_text(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 3:
+            raise ValueError("Fikr juda qisqa")
+        return v
 
-    class Config:
-        from_attributes = True
 
-class FeedbackStatusUpdate(BaseModel):
-    status: str
-    admin_notes: str | None = None
+class BotFeedbackCreate(BaseModel):
+    text: str = Field(min_length=3, max_length=1000)
+    telegram_id: int | None = None

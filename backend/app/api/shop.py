@@ -1,12 +1,14 @@
 import os
+import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user, RequireRole
-from app.models import Product, ShopOrder, User
+from app.models import Product, ShopOrder, ShopNotify, User
+from sqlalchemy.exc import IntegrityError
 from app.schemas import (
-    ProductCreate, ProductOut, ShopOrderCreate, ShopOrderOut
+    ProductCreate, ProductOut, ShopOrderCreate, ShopOrderOut, ShopNotifyCreate
 )
 
 router = APIRouter(tags=["Shop and Orders"])
@@ -100,7 +102,6 @@ def seed_products_if_empty(db: Session):
         db.commit()
 
 @router.post("/products", response_model=ProductOut, dependencies=[Depends(RequireRole(["admin"]))])
-@router.post("/api/shop/products", response_model=ProductOut, dependencies=[Depends(RequireRole(["admin"]))])
 def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
     product = Product(**product_data.model_dump())
     db.add(product)
@@ -109,73 +110,65 @@ def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
     return product
 
 @router.get("/products", response_model=list[ProductOut])
-@router.get("/api/products", response_model=list[ProductOut])
 @router.get("/api/shop/products", response_model=list[ProductOut])
 def get_products(category: str | None = None, db: Session = Depends(get_db)):
+    seed_products_if_empty(db)
     query = db.query(Product)
     if category and category != "all":
         query = query.filter(Product.category == category)
     return query.all()
 
-import json
+MAX_ORDER_LINES = 20
+MAX_QTY_PER_LINE = 20
+
 
 @router.post("/api/shop/orders", response_model=ShopOrderOut)
 def create_shop_order(order_data: ShopOrderCreate, db: Session = Depends(get_db)):
-    # 1. items_json ni tahlil qilish
+    # Mijozdan faqat {id, qty} olinadi. Narx va ombor serverda hisoblanadi.
     try:
-        items = json.loads(order_data.items_json)
-        if not isinstance(items, list) or len(items) == 0:
-            raise ValueError("Mahsulotlar ro'yxati bo'sh")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Noto'g'ri mahsulotlar ro'yxati (items_json)")
+        raw_items = json.loads(order_data.items_json)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Buyurtma tarkibi noto'g'ri")
+    if not isinstance(raw_items, list) or not 1 <= len(raw_items) <= MAX_ORDER_LINES:
+        raise HTTPException(status_code=400, detail="Buyurtma tarkibi noto'g'ri")
 
-    server_total_price = 0
-    validated_items = []
-
-    # 2. Narxni serverda bazadan hisoblash va ombor (stock) zaxirasini tekshirish
-    for item in items:
-        p_id = item.get("id") or item.get("product_id")
-        qty = item.get("quantity") or item.get("count") or 1
+    wanted: dict[int, int] = {}
+    for it in raw_items:
         try:
-            p_id = int(p_id)
-            qty = int(qty)
-        except (ValueError, TypeError):
-            raise HTTPException(status_code=400, detail="Mahsulot ID yoki miqdori noto'g'ri formatda")
+            pid = int(it["id"])
+            qty = int(it.get("qty", it.get("quantity", 1)))
+        except (KeyError, ValueError, TypeError, AttributeError):
+            raise HTTPException(status_code=400, detail="Buyurtma tarkibi noto'g'ri")
+        if not 1 <= qty <= MAX_QTY_PER_LINE:
+            raise HTTPException(status_code=400, detail="Miqdor noto'g'ri")
+        wanted[pid] = wanted.get(pid, 0) + qty
 
-        if qty <= 0:
-            raise HTTPException(status_code=400, detail="Mahsulot miqdori 0 dan katta bo'lishi shart")
-
-        product = db.query(Product).filter(Product.id == p_id).first()
+    total = 0
+    lines = []
+    for pid, qty in wanted.items():
+        product = db.query(Product).filter(Product.id == pid).with_for_update().first()
         if not product:
-            raise HTTPException(status_code=404, detail=f"ID {p_id} bo'lgan mahsulot topilmadi")
+            raise HTTPException(status_code=404, detail="Mahsulot topilmadi")
+        if (product.stock or 0) < qty:
+            raise HTTPException(status_code=400, detail=f"'{product.name}' omborda yetarli emas")
+        product.stock = (product.stock or 0) - qty
+        total += product.price * qty
+        lines.append({"id": product.id, "name": product.name, "qty": qty, "price": product.price})
 
-        if product.stock < qty:
-            raise HTTPException(
-                status_code=400,
-                detail=f"'{product.name}' mahsulotidan omborda yetarli qolmagan (mavjud: {product.stock} ta)"
-            )
-
-        # Ombordagi qoldiqni kamaytirish va narxni hisoblash
-        product.stock -= qty
-        server_total_price += product.price * qty
-        validated_items.append({
-            "id": product.id,
-            "name": product.name,
-            "price": product.price,
-            "quantity": qty
-        })
-
-    # 3. Buyurtmani bazaga xavfsiz saqlash (mijoz yuborgan narx inkor etiladi)
-    order_dict = order_data.model_dump()
-    order_dict["total_price"] = server_total_price
-    order_dict["items_json"] = json.dumps(validated_items, ensure_ascii=False)
-    order_dict["status"] = "kutilmoqda"
-
-    order = ShopOrder(**order_dict)
+    order = ShopOrder(
+        customer_name=order_data.customer_name,
+        customer_phone=order_data.customer_phone,
+        shipping_city=order_data.shipping_city,
+        shipping_address=order_data.shipping_address,
+        payment_method=order_data.payment_method,
+        total_price=total,
+        items_json=json.dumps(lines, ensure_ascii=False),
+    )
     db.add(order)
     db.commit()
     db.refresh(order)
     return order
+
 
 @router.get("/api/shop/orders", response_model=list[ShopOrderOut], dependencies=[Depends(RequireRole(["admin"]))])
 def get_shop_orders(db: Session = Depends(get_db)):
@@ -194,19 +187,22 @@ def update_shop_order_status(order_id: int, status_data: dict, db: Session = Dep
     return order
 
 
-from pydantic import BaseModel
 
-class ShopNotifyRequest(BaseModel):
-    phone: str
-
+# --- "Do'kon ochilganda xabar bering" ro'yxati ---
 @router.post("/api/shop/notify")
-def subscribe_shop_notification(req: ShopNotifyRequest, db: Session = Depends(get_db)):
-    phone = req.phone.strip()
-    if not phone:
-        raise HTTPException(status_code=400, detail="Telefon raqami kiritilishi shart")
-    from app.models.models import ShopNotification
-    record = ShopNotification(phone_number=phone)
-    db.add(record)
-    db.commit()
-    db.refresh(record)
-    return {"message": "Raqamingiz muvaffaqiyatli saqlandi!", "id": record.id}
+def subscribe_shop_notify(data: ShopNotifyCreate, db: Session = Depends(get_db)):
+    # Raqam allaqachon bo'lsa ham "ok" qaytaramiz (kim ro'yxatda ekanini oshkor qilmaymiz)
+    if not db.query(ShopNotify).filter(ShopNotify.phone == data.phone).first():
+        db.add(ShopNotify(phone=data.phone))
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+    return {"ok": True}
+
+
+@router.get("/api/admin/shop-notify", dependencies=[Depends(RequireRole(["admin"]))])
+def list_shop_notify(db: Session = Depends(get_db)):
+    total = db.query(ShopNotify).count()
+    rows = db.query(ShopNotify).order_by(ShopNotify.id.desc()).limit(1000).all()
+    return {"count": total, "items": [{"id": r.id, "phone": r.phone, "created_at": r.created_at} for r in rows]}

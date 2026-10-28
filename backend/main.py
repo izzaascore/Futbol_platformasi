@@ -21,7 +21,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.database import Base, engine
-from app.core.security import rate_limiter, detect_malicious_payload
+from app.core.security import rate_limiter, detect_malicious_payload, get_client_ip
 
 
 # Ma'lumotlar bazasi jadvallarini avtomatik yaratish
@@ -43,7 +43,7 @@ def auto_migrate_db():
             product_cols = [c["name"] for c in inspector.get_columns("products")]
             with engine.begin() as conn:
                 if "category" not in product_cols:
-                    conn.execute(text("ALTER TABLE products ADD COLUMN category VARCHAR(50) DEFAULT 'smart'"))
+                    conn.execute(text('ALTER TABLE products ADD COLUMN category VARCHAR(50) DEFAULT "smart"'))
                     print("[Auto-Migration] 'products' jadvaliga 'category' ustuni qo'shildi.")
                 if "badge" not in product_cols:
                     conn.execute(text('ALTER TABLE products ADD COLUMN badge VARCHAR(50)'))
@@ -57,49 +57,14 @@ def auto_migrate_db():
             scout_cols = [c["name"] for c in inspector.get_columns("scout_invitations")]
             with engine.begin() as conn:
                 if "status" not in scout_cols:
-                    conn.execute(text("ALTER TABLE scout_invitations ADD COLUMN status VARCHAR(30) DEFAULT 'kutilmoqda'"))
+                    conn.execute(text('ALTER TABLE scout_invitations ADD COLUMN status VARCHAR(30) DEFAULT "kutilmoqda"'))
                     print("[Auto-Migration] 'scout_invitations' jadvaliga 'status' ustuni qo'shildi.")
-
-        # 3. Users table (unikal username va phone qo'shish)
-        if "users" in tables:
-            user_cols = [c["name"] for c in inspector.get_columns("users")]
-            with engine.begin() as conn:
-                if "username" not in user_cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR(50)"))
-                    print("[Auto-Migration] 'users' jadvaliga 'username' ustuni qo'shildi.")
-                if "phone" not in user_cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN phone VARCHAR(30)"))
-                    print("[Auto-Migration] 'users' jadvaliga 'phone' ustuni qo'shildi.")
 
     except Exception as e:
         print(f"[Auto-Migration Notice] {e}")
 
 
 auto_migrate_db()
-
-def purge_stale_admin_accounts():
-    """Ishga tushganda bazadagi eski backdoor admin hisoblarini tozalaydi."""
-    try:
-        from app.core.database import SessionLocal
-        from app.models.models import User, UserRole
-        from app.core.security import ADMIN_PASSKEY, verify_password
-        db = SessionLocal()
-        try:
-            admin_users = db.query(User).filter(User.role == UserRole.ADMIN).all()
-            stale = [u for u in admin_users if not verify_password(ADMIN_PASSKEY, u.password_hash)]
-            if stale:
-                for u in stale:
-                    print('[Security] Eski backdoor admin hisobi ochrildi: id=%d %s %s' % (u.id, u.first_name, u.last_name))
-                    db.delete(u)
-                db.commit()
-                print('[Security] %d ta eski admin hisob tozalandi.' % len(stale))
-        finally:
-            db.close()
-    except Exception as exc:
-        print('[Security Notice] Admin tozalash: %s' % str(exc))
-
-
-purge_stale_admin_accounts()
 
 IS_PRODUCTION = (
     os.getenv("ENVIRONMENT", "development").lower() == "production"
@@ -160,11 +125,7 @@ app.add_middleware(
 # Kiber-Himoya Middleware: Rate Limiting & Intrusion Detection
 @app.middleware("http")
 async def security_defense_middleware(request: Request, call_next):
-    forwarded_for = request.headers.get("x-forwarded-for")
-    if forwarded_for:
-        client_ip = forwarded_for.split(",")[0].strip()
-    else:
-        client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
 
     # 1. Zararli so'rovlar / SQL Injection / Path Traversal tekshiruvi
     if detect_malicious_payload(str(request.url.query)):
@@ -176,7 +137,7 @@ async def security_defense_middleware(request: Request, call_next):
 
     # 2. Rate Limiting tekshiruvi (Brute-force / DoS spamdan himoya)
     path = request.url.path
-    is_auth_route = any(p in path for p in ["/api/auth/", "/admin/login"])
+    is_auth_route = any(p in path for p in ["/api/auth/", "/admin/login", "/api/feedback", "/api/shop/notify"])
     allowed, msg = rate_limiter.check(client_ip, is_auth=is_auth_route)
     if not allowed:
         return JSONResponse(status_code=429, content={"detail": msg})
@@ -192,7 +153,7 @@ async def security_defense_middleware(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    if IS_PRODUCTION or request.url.scheme == "https":
+    if IS_PRODUCTION:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
     return response

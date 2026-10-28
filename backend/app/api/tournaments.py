@@ -108,7 +108,7 @@ def get_tournaments(db: Session = Depends(get_db)):
     return db.query(Tournament).all()
 
 @router.post("/tournaments/{tournament_id}/join", response_model=TournamentParticipantOut)
-def join_tournament(tournament_id: int, participant_data: TournamentParticipantCreate, db: Session = Depends(get_db)):
+def join_tournament(tournament_id: int, participant_data: TournamentParticipantCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     # Check tournament exists
     tournament = db.query(Tournament).filter(Tournament.id == tournament_id).first()
     if not tournament:

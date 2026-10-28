@@ -14,3 +14,16 @@ const getApiUrl = () => {
 
 export const API_URL = getApiUrl();
 export const TELEGRAM_BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'FootballRiseBot';
+
+// ---------------------------------------------------------------
+// Admin panel manzili. Oddiy foydalanuvchi bu manzilni bilmaydi.
+// Vercel -> Settings -> Environment Variables:  VITE_ADMIN_PATH = o'zingiz o'ylab topgan uzun so'z
+// (masalan: k7x2p9-panel). "admin" kabi oson so'z qo'ymang.
+// O'rnatilmasa PRODUCTIONDA admin panel umuman ochilmaydi (xavfsiz standart).
+// Lokal ishlab chiqishda (npm run dev) standart "admin".
+// ---------------------------------------------------------------
+const rawAdminPath = String(import.meta.env.VITE_ADMIN_PATH || 'admin')
+  .trim()
+  .replace(/^\/+|\/+$/g, '');
+export const ADMIN_PATH = /^[A-Za-z0-9_-]+$/.test(rawAdminPath) ? rawAdminPath : 'admin';
+export const ADMIN_BASE = `/${ADMIN_PATH}`;

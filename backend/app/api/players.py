@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_user, RequireRole, check_ownership
+from app.core.security import get_current_user, RequireRole, check_ownership, require_bot_key
 from app.models import (
     Player, CareerHistory, GoalSubmission, VerificationStatus,
     DailyDrill, User, UserRole, UserStatus
@@ -17,7 +17,7 @@ router = APIRouter(tags=["Players"])
 
 # --- O'YINCHILAR ---
 
-@router.post("/players", response_model=PlayerOut, dependencies=[Depends(RequireRole(["admin"]))])
+@router.post("/players", response_model=PlayerOut, dependencies=[Depends(require_bot_key)])  # faqat Telegram bot
 def create_player(player_data: PlayerCreate, db: Session = Depends(get_db)):
     player = Player(**player_data.model_dump())
     db.add(player)
@@ -144,6 +144,27 @@ def submit_goal(
 
     check_ownership(player.user_id, current_user, "gol/video")
 
+    submission = GoalSubmission(
+        player_id=player_id,
+        video_url=submission_data.video_url,
+        description=submission_data.description
+    )
+    db.add(submission)
+    db.commit()
+    db.refresh(submission)
+    return submission
+
+
+# Telegram bot uchun: botning o'z kaliti (X-Bot-Key) bilan o'yinchi nomidan gol yuborish
+@router.post("/api/bot/players/{player_id}/submit-goal", response_model=GoalSubmissionOut, dependencies=[Depends(require_bot_key)])
+def bot_submit_goal(
+    player_id: int,
+    submission_data: GoalSubmissionCreate,
+    db: Session = Depends(get_db)
+):
+    player = db.query(Player).filter(Player.id == player_id).first()
+    if not player:
+        raise HTTPException(status_code=404, detail="Futbolchi topilmadi")
     submission = GoalSubmission(
         player_id=player_id,
         video_url=submission_data.video_url,
@@ -293,16 +314,8 @@ def toggle_hardcore_mode(
 
 
 
-@router.post("/players/{player_id}/donate", dependencies=[Depends(RequireRole(["admin"]))])
-def donate_to_player(player_id: int, amount: int, db: Session = Depends(get_db)):
-    # To'lov provayderi integratsiyasigacha faqat admin orqali xavfsiz tasdiqlanadi
-    if amount <= 0:
-        raise HTTPException(status_code=400, detail="Summa 0 dan katta bo'lishi shart!")
-    player = db.query(Player).filter(Player.id == player_id).first()
-    if not player:
-        raise HTTPException(status_code=404, detail="O'yinchi topilmadi")
-    
-    player.fund_raised += amount
-    db.commit()
-    return {"message": "Mablag' muvaffaqiyatli qayd etildi", "fund_raised": player.fund_raised}
+@router.post("/players/{player_id}/donate")
+def donate_to_player(player_id: int, amount: int):
+    # To'lov tizimi (Click/Payme) ulanmaguncha o'chirilgan: avval soxta "yig'ilgan mablag'" ko'rsatish mumkin edi
+    raise HTTPException(status_code=503, detail="Xayriya hozircha o'chirilgan: to'lov tizimi ulanmagan")
 

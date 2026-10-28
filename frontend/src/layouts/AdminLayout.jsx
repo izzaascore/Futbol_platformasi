@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { ShieldHalf, LogOut, LayoutDashboard, Users, Video } from 'lucide-react';
-import { API_URL } from '../config';
+import { API_URL, ADMIN_BASE } from '../config';
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ const AdminLayout = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
       localStorage.removeItem('talaqCurrentUser');
-      navigate('/admin');
+      navigate(ADMIN_BASE);
       window.location.reload();
     }
   };
@@ -51,13 +51,13 @@ const AdminLayout = () => {
           </Link>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <Link to="/admin/dashboard" className="flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-widest rounded-sm hover:bg-stone-800 text-stone-300 hover:text-white transition-colors">
+          <Link to={`${ADMIN_BASE}/dashboard`} className="flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-widest rounded-sm hover:bg-stone-800 text-stone-300 hover:text-white transition-colors">
             <LayoutDashboard className="w-4 h-4" /> Dashboard
           </Link>
-          <Link to="/admin/users" className="flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-widest rounded-sm hover:bg-stone-800 text-stone-300 hover:text-white transition-colors">
+          <Link to={`${ADMIN_BASE}/users`} className="flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-widest rounded-sm hover:bg-stone-800 text-stone-300 hover:text-white transition-colors">
             <Users className="w-4 h-4" /> Users
           </Link>
-          <Link to="/admin/submissions" className="flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-widest rounded-sm hover:bg-stone-800 text-stone-300 hover:text-white transition-colors">
+          <Link to={`${ADMIN_BASE}/submissions`} className="flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-widest rounded-sm hover:bg-stone-800 text-stone-300 hover:text-white transition-colors">
             <Video className="w-4 h-4" /> Submissions
           </Link>
         </nav>
