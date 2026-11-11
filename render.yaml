@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: football-platform-api
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENVIRONMENT
+        value: production
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSKEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: WEBAPP_URL
+        value: https://futbol-platformasi-alpha.vercel.app
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_API_KEY
+        generateValue: true
+      - key: ADMIN_TELEGRAM_ID
+        sync: false

@@ -9,7 +9,7 @@ const getApiUrl = () => {
       return 'http://localhost:8000';
     }
   }
-  return 'https://web-production-dc0f4.up.railway.app';
+  return 'https://futbol-platform.onrender.com';
 };
 
 export const API_URL = getApiUrl();

@@ -70,6 +70,7 @@ IS_PRODUCTION = (
     os.getenv("ENVIRONMENT", "development").lower() == "production"
     or os.getenv("RAILWAY_ENVIRONMENT") is not None
     or os.getenv("RAILWAY_PROJECT_ID") is not None
+    or os.getenv("RENDER") is not None
 )
 
 
@@ -103,6 +104,7 @@ app = FastAPI(
 # CORS sozlamalari
 ALLOWED_ORIGINS = [
     "https://futbol-platformasi-alpha.vercel.app",
+    "https://futbol-platform.onrender.com",
     "https://web-production-dc0f4.up.railway.app",
     "http://localhost:3000",
     "http://localhost:5173",
@@ -112,6 +114,13 @@ ALLOWED_ORIGINS = [
 frontend_env = os.getenv("WEBAPP_URL")
 if frontend_env and frontend_env not in ALLOWED_ORIGINS:
     ALLOWED_ORIGINS.append(frontend_env)
+
+cors_env = os.getenv("CORS_ORIGINS", "")
+if cors_env:
+    for origin in cors_env.split(","):
+        o = origin.strip()
+        if o and o not in ALLOWED_ORIGINS:
+            ALLOWED_ORIGINS.append(o)
 
 app.add_middleware(
     CORSMiddleware,
@@ -169,6 +178,11 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 @app.get("/")
 def home():
     return {"message": "Football Platform API ishlayapti!"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "Football Platform API"}
 
 
 # Barcha API marshrutlarini ulash

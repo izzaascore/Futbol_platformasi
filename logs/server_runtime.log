@@ -51,3 +51,9 @@ Traceback (most recent call last):
   File "C:\Users\erkin\OneDrive\Desktop\football_platform\database.py", line 2, in <module>
     from dotenv import load_dotenv
 ModuleNotFoundError: No module named 'dotenv'
+INFO:     Will watch for changes in these directories: ['C:\\Users\\erkin\\OneDrive\\Desktop\\football_platform\\backend']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [10100] using StatReload
+INFO:     Started server process [10008]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

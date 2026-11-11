@@ -36,6 +36,7 @@ IS_PRODUCTION = (
     os.getenv("ENVIRONMENT", "development").lower() == "production"
     or os.getenv("RAILWAY_ENVIRONMENT") is not None
     or os.getenv("RAILWAY_PROJECT_ID") is not None
+    or os.getenv("RENDER") is not None
 )
 
 # Standart (default) qiymatlar YO'Q: sirlar faqat muhit o'zgaruvchilaridan olinadi
