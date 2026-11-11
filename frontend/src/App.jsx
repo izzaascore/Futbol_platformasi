@@ -242,7 +242,7 @@ function PublicLayout({ children }) {
       </header>
 
       {/* Main Page Body */}
-      <main className="flex-grow flex flex-col">
+      <main className="flex-grow flex flex-col pb-20 sm:pb-0">
         {children}
       </main>
 
@@ -329,26 +329,51 @@ function PublicLayout({ children }) {
       </footer>
 
       {/* Bottom Navigation for Mobile */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#030303]/95 backdrop-blur-lg border-t border-white/10 px-4 py-2 flex items-center justify-around">
-        <Link to="/" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-white p-2">
-          <Home className="w-5 h-5" />
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#030303]/95 backdrop-blur-lg border-t border-white/10 px-2 py-1.5 flex items-center justify-around shadow-2xl">
+        <Link
+          to="/"
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider p-1.5 rounded-lg transition-colors ${
+            location.pathname === '/' ? 'text-white' : 'text-stone-400 hover:text-stone-200'
+          }`}
+        >
+          <Home className={`w-5 h-5 ${location.pathname === '/' ? 'text-white scale-110' : 'text-stone-400'}`} />
           <span>Bosh</span>
         </Link>
-        <Link to="/players" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-white p-2">
-          <Users className="w-5 h-5" />
+        <Link
+          to="/players"
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider p-1.5 rounded-lg transition-colors ${
+            location.pathname.startsWith('/players') ? 'text-white' : 'text-stone-400 hover:text-stone-200'
+          }`}
+        >
+          <Users className={`w-5 h-5 ${location.pathname.startsWith('/players') ? 'text-white scale-110' : 'text-stone-400'}`} />
           <span>O'yinchilar</span>
         </Link>
-        <Link to="/live" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-400 p-2">
-          <Activity className="w-5 h-5 animate-pulse" />
+        <Link
+          to="/live"
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider p-1.5 rounded-lg transition-colors ${
+            location.pathname.startsWith('/live') ? 'text-red-400' : 'text-stone-400 hover:text-red-400'
+          }`}
+        >
+          <Activity className="w-5 h-5 animate-pulse text-red-500" />
           <span>Jonli</span>
         </Link>
-        <Link to="/stadiums" className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white hover:text-white p-2">
-          <MapPin className="w-5 h-5 text-white" />
+        <Link
+          to="/stadiums"
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider p-1.5 rounded-lg transition-colors ${
+            location.pathname.startsWith('/stadiums') ? 'text-white' : 'text-stone-400 hover:text-stone-200'
+          }`}
+        >
+          <MapPin className={`w-5 h-5 ${location.pathname.startsWith('/stadiums') ? 'text-white scale-110' : 'text-stone-400'}`} />
           <span>Maydon</span>
         </Link>
-        <Link to={user ? (user.role === 'admin' ? ADMIN_BASE : user.role === 'scout' ? '/scout/dashboard' : '/player/dashboard') : "/login"} className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-white p-2">
-          <User className="w-5 h-5" />
-          <span>{user ? "Profil" : "Kirish"}</span>
+        <Link
+          to={user ? (user.role === 'admin' ? ADMIN_BASE : user.role === 'scout' ? '/scout/dashboard' : '/player/dashboard') : "/profile"}
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider p-1.5 rounded-lg transition-colors ${
+            (location.pathname === '/login' || location.pathname.includes('dashboard') || location.pathname === '/profile') ? 'text-white' : 'text-stone-400 hover:text-stone-200'
+          }`}
+        >
+          <User className={`w-5 h-5 ${(location.pathname === '/login' || location.pathname.includes('dashboard') || location.pathname === '/profile') ? 'text-white scale-110' : 'text-stone-400'}`} />
+          <span>{user ? "Profil" : "Profil"}</span>
         </Link>
       </nav>
 
@@ -416,6 +441,7 @@ function App() {
         <Route path="/shop" element={<PublicLayout><ShopPage /></PublicLayout>} />
         <Route path="/news" element={<PublicLayout><NewsPage /></PublicLayout>} />
         <Route path="/drills" element={<PublicLayout><DailyDrillsPage /></PublicLayout>} />
+        <Route path="/profile" element={<PublicLayout><ProfilePage /></PublicLayout>} />
         
         {/* Admin Routes: faqat yashirin manzilda (VITE_ADMIN_PATH). O'rnatilmagan bo'lsa umuman yo'q */}
         {ADMIN_PATH && (

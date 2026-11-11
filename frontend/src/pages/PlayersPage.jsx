@@ -122,20 +122,32 @@ const PlayersPage = () => {
   });
 
   const fallbackPlayers = [
-    { id: 1, full_name: 'Azizbek Karimov', position: 'hujumchi', city: 'Toshkent', rating: 92, age: 19, image: 'https://images.unsplash.com/photo-1550286395-520556eecdb7?q=80&w=1000&auto=format&fit=crop', club: 'Bunyodkor FK / O\'zb U-21', market_value: '€1.5M', stats: { pac: 89, sho: 92, pas: 84, dri: 91, def: 45, phy: 82 } },
-    { id: 2, full_name: 'Jasur Hasanov', position: 'yarimhimoyachi', city: 'Samarqand', rating: 88, age: 18, image: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=1000&auto=format&fit=crop', club: 'Dinamo Samarqand', market_value: '€850K', stats: { pac: 85, sho: 80, pas: 90, dri: 88, def: 62, phy: 75 } },
-    { id: 3, full_name: 'Sardor Rashidov', position: 'himoyachi', city: 'Andijon', rating: 87, age: 20, image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1000&auto=format&fit=crop', club: 'Andijon FK', market_value: '€700K', stats: { pac: 78, sho: 50, pas: 74, dri: 72, def: 89, phy: 88 } },
-    { id: 4, full_name: 'Umidjon Erkinov', position: 'hujumchi', city: 'Buxoro', rating: 89, age: 17, image: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop', club: 'Buxoro U-19', market_value: '€900K', stats: { pac: 91, sho: 88, pas: 80, dri: 87, def: 40, phy: 78 } },
-    { id: 5, full_name: 'Doston Hamdamov', position: 'darvozabon', city: 'Farg\'ona', rating: 86, age: 21, image: 'https://images.unsplash.com/photo-1518605368461-1ee7c5320746?q=80&w=1000&auto=format&fit=crop', club: 'Neftchi Farg\'ona', market_value: '€600K', stats: { pac: 70, sho: 40, pas: 72, dri: 65, def: 90, phy: 85 } },
-    { id: 6, full_name: 'Otabek Shukurov', position: 'yarimhimoyachi', city: 'Qarshi', rating: 85, age: 19, image: 'https://images.unsplash.com/photo-1517466787929-bc9095ab716e?q=80&w=1000&auto=format&fit=crop', club: 'Nasaf Qarshi U-21', market_value: '€750K', stats: { pac: 82, sho: 78, pas: 86, dri: 84, def: 74, phy: 80 } }
+    { id: 1, full_name: 'Azizbek Karimov', position: 'hujumchi', city: 'Toshkent', rating: 92, age: 19, image: '/images/players/players_1552374196-1ab2a1c59.jpg', club: 'Bunyodkor FK / O\'zb U-21', market_value: '€1.5M', stats: { pac: 89, sho: 92, pas: 84, dri: 91, def: 45, phy: 82 } },
+    { id: 2, full_name: 'Jasur Hasanov', position: 'yarimhimoyachi', city: 'Samarqand', rating: 88, age: 18, image: '/images/players/players_1517466787929-bc9095.jpg', club: 'Dinamo Samarqand', market_value: '€850K', stats: { pac: 85, sho: 80, pas: 90, dri: 88, def: 62, phy: 75 } },
+    { id: 3, full_name: 'Sardor Rashidov', position: 'himoyachi', city: 'Andijon', rating: 87, age: 20, image: '/images/players/players_1579952363873-27f3ba.jpg', club: 'Andijon FK', market_value: '€700K', stats: { pac: 78, sho: 50, pas: 74, dri: 72, def: 89, phy: 88 } },
+    { id: 4, full_name: 'Umidjon Erkinov', position: 'hujumchi', city: 'Buxoro', rating: 89, age: 17, image: '/images/players/players_1534438327276-14e530.jpg', club: 'Buxoro U-19', market_value: '€900K', stats: { pac: 91, sho: 88, pas: 80, dri: 87, def: 40, phy: 78 } },
+    { id: 5, full_name: 'Doston Hamdamov', position: 'darvozabon', city: 'Farg\'ona', rating: 86, age: 21, image: '/images/players/players_1506794778202-cad84c.jpg', club: 'Neftchi Farg\'ona', market_value: '€600K', stats: { pac: 70, sho: 40, pas: 72, dri: 65, def: 90, phy: 85 } },
+    { id: 6, full_name: 'Otabek Shukurov', position: 'yarimhimoyachi', city: 'Qarshi', rating: 85, age: 19, image: '/images/players/players_1614632537190-23e414.jpg', club: 'Nasaf Qarshi U-21', market_value: '€750K', stats: { pac: 82, sho: 78, pas: 86, dri: 84, def: 74, phy: 80 } }
   ];
 
   useEffect(() => {
+    // Only track on desktop pointer devices to avoid mobile lag & battery drain
+    if (typeof window === 'undefined' || !window.matchMedia('(pointer: fine)').matches || window.innerWidth < 768) {
+      return;
+    }
+    let animationFrameId = null;
     const handleGlobalMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      if (animationFrameId) return;
+      animationFrameId = requestAnimationFrame(() => {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+        animationFrameId = null;
+      });
     };
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mousemove', handleGlobalMouseMove, { passive: true });
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+    };
   }, []);
 
   useEffect(() => {
@@ -186,9 +198,9 @@ const PlayersPage = () => {
     <PageTransition>
       <div className="w-full bg-[#030303] min-h-screen font-sans text-white relative selection:bg-white selection:text-black overflow-hidden">
         
-        {/* Dynamic Subtle Follower */}
+        {/* Dynamic Subtle Follower (Desktop only) */}
         <div 
-          className="pointer-events-none fixed inset-0 z-0 opacity-15 mix-blend-screen transition-all duration-300"
+          className="pointer-events-none fixed inset-0 z-0 opacity-15 mix-blend-screen transition-all duration-300 hidden md:block"
           style={{ background: `radial-gradient(800px circle at ${mousePosition?.x ?? 0}px ${mousePosition?.y ?? 0}px, rgba(255, 255, 255, 0.15), transparent 45%)` }}
         />
 
@@ -232,10 +244,10 @@ const PlayersPage = () => {
         {/* Filters and Controls Toolbar */}
         <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
           
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-white/10">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 pb-6 border-b border-white/10">
             
             {/* Position Pills */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 overflow-x-auto">
+            <div className="w-full lg:w-auto overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 touch-pan-x overscroll-x-contain">
               {[
                 { id: 'all', label: 'Barchasi' },
                 { id: 'hujumchi', label: 'Hujumchi' },
@@ -246,7 +258,7 @@ const PlayersPage = () => {
                 <button
                   key={tab.id}
                   onClick={() => setFilter(tab.id)}
-                  className={`px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+                  className={`px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition-all ${
                     filter === tab.id
                       ? 'bg-white text-black shadow-glow'
                       : 'text-stone-400 hover:text-white hover:bg-white/5'
@@ -258,7 +270,7 @@ const PlayersPage = () => {
             </div>
 
             {/* Age Filter */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10">
+            <div className="w-full lg:w-auto overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 touch-pan-x overscroll-x-contain">
               {[
                 { id: 'all', label: 'Barcha yoshlar' },
                 { id: 'u16', label: 'U-16' },
@@ -269,7 +281,7 @@ const PlayersPage = () => {
                 <button
                   key={ag.id}
                   onClick={() => setAgeFilter(ag.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition ${
                     ageFilter === ag.id
                       ? 'bg-white text-black shadow-glow'
                       : 'text-stone-400 hover:text-white hover:bg-white/5'
@@ -283,7 +295,7 @@ const PlayersPage = () => {
             {/* Scout Pro Mode Toggle */}
             <button
               onClick={() => setIsScoutPro(!isScoutPro)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition flex items-center gap-2 flex-shrink-0 self-start lg:self-auto ${
                 isScoutPro 
                   ? 'bg-white text-black border-white shadow-glow' 
                   : 'bg-white/[0.03] text-stone-300 border-white/15 hover:border-white/30 hover:text-white'
@@ -306,8 +318,9 @@ const PlayersPage = () => {
                 {/* Image Section */}
                 <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-900">
                   <img
-                    src={player.image}
+                    src={player.image || '/images/player.jpg'}
                     alt={player.full_name}
+                    onError={(e) => { e.currentTarget.src = '/images/player.jpg'; }}
                     className="w-full h-full object-cover object-top filter brightness-95 group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/30 to-transparent"></div>

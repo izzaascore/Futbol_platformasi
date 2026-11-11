@@ -42,14 +42,23 @@ export default function ProfilePage() {
   useEffect(() => {
     const savedUser = localStorage.getItem('talaqCurrentUser');
     if (savedUser) {
-      const u = JSON.parse(savedUser);
-      u.discipline_score = u.discipline_score ?? 100;
-      u.streak = u.streak ?? 0;
-      u.hardcore_mode = u.hardcore_mode ?? false;
-      setUser(u);
+      try {
+        const u = JSON.parse(savedUser);
+        u.first_name = u.first_name || (u.full_name ? u.full_name.split(' ')[0] : (u.username || 'Futbolchi'));
+        u.last_name = u.last_name || (u.full_name ? u.full_name.split(' ').slice(1).join(' ') : 'Iqtidor');
+        u.age = u.age || 18;
+        u.address = u.address || 'Toshkent, O\'zbekiston';
+        u.discipline_score = u.discipline_score ?? 100;
+        u.streak = u.streak ?? 5;
+        u.hardcore_mode = u.hardcore_mode ?? false;
+        u.profile_image = u.profile_image || '/images/player.jpg';
+        setUser(u);
+      } catch (e) {
+        setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent, O\'zbekiston', email: 'umidjon@example.com', profile_image: '/images/player.jpg', discipline_score: 95, streak: 12, hardcore_mode: false });
+      }
     } else {
-      // Mock user for testing the UI if not logged in
-      setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent', email: 'umidjon@example.com', profile_image: '/images/players/players_1506794778202-cad84c.jpg', discipline_score: 95, streak: 12, hardcore_mode: false });
+      // Demo user for testing the UI if not logged in
+      setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent, O\'zbekiston', email: 'umidjon@example.com', profile_image: '/images/player.jpg', discipline_score: 95, streak: 12, hardcore_mode: false });
     }
   }, []);
 
@@ -166,11 +175,12 @@ export default function ProfilePage() {
               
               <div className="relative group">
                 <div className="w-40 h-40 rounded-sm border-4 border-stone-950 shadow-2xl overflow-hidden bg-stone-900 relative">
-                  {user.profile_image ? (
-                    <img src={user.profile_image} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-5xl font-bold text-stone-600 uppercase">{user.first_name?.[0]}</div>
-                  )}
+                  <img
+                    src={user.profile_image || '/images/player.jpg'}
+                    alt="Profile"
+                    onError={(e) => { e.currentTarget.src = '/images/player.jpg'; }}
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                     <Camera className="w-8 h-8 text-white" />
                   </div>

@@ -19,7 +19,7 @@ const DEFAULT_TALENTS = [
     club: "Bunyodkor FK",
     potential: 94,
     market_value: "€1.5M",
-    image: "https://images.unsplash.com/photo-1550286395-520556eecdb7?q=80&w=1000&auto=format&fit=crop",
+    image: "/images/players/players_1552374196-1ab2a1c59.jpg",
     stats: { pac: 89, sho: 92, pas: 84, dri: 91, def: 45, phy: 82 },
     is_verified: true,
     tag: "ENG ZO'R IQTIDOR"
@@ -33,7 +33,7 @@ const DEFAULT_TALENTS = [
     club: "Navbahor U-19",
     potential: 91,
     market_value: "€950K",
-    image: "https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=1000&auto=format&fit=crop",
+    image: "/images/players/players_1517466787929-bc9095.jpg",
     stats: { pac: 85, sho: 80, pas: 90, dri: 88, def: 62, phy: 75 },
     is_verified: true,
     tag: "PRO SKAUT"
@@ -47,7 +47,7 @@ const DEFAULT_TALENTS = [
     club: "Dinamo Samarqand",
     potential: 89,
     market_value: "€800K",
-    image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop",
+    image: "/images/players/players_1534438327276-14e530.jpg",
     stats: { pac: 93, sho: 84, pas: 81, dri: 89, def: 38, phy: 74 },
     is_verified: true,
     tag: "PORLAYOTGAN YULDUZ"
@@ -61,7 +61,7 @@ const DEFAULT_TALENTS = [
     club: "Neftchi U-21",
     potential: 88,
     market_value: "€650K",
-    image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1000&auto=format&fit=crop",
+    image: "/images/players/players_1579952363873-27f3ba.jpg",
     stats: { pac: 78, sho: 50, pas: 74, dri: 72, def: 89, phy: 88 },
     is_verified: true,
     tag: "ISHLONCHLI HIMOYA"
@@ -219,10 +219,11 @@ export default function HomePage() {
                 </div>
 
                 {/* Player Image Section with smooth gradient fade */}
-                <div className="relative h-72 sm:h-80 w-full overflow-hidden flex items-center justify-center">
+                <div className="relative h-72 sm:h-80 w-full overflow-hidden flex items-center justify-center bg-stone-900">
                   <img
-                    src="https://images.unsplash.com/photo-1550286395-520556eecdb7?q=80&w=2500&auto=format&fit=crop"
+                    src="/images/player.jpg"
                     alt="Hero Player Action"
+                    onError={(e) => { e.currentTarget.src = '/images/players/players_1552374196-1ab2a1c59.jpg'; }}
                     className="w-full h-full object-cover object-top filter brightness-95 contrast-105 group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/40 to-transparent"></div>
@@ -330,51 +331,53 @@ export default function HomePage() {
           </div>
 
           {/* Filter Panel */}
-          <div className="flex flex-wrap items-center gap-3 mb-10">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 mb-10">
             
-            {/* Position Pills */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10">
-              {['ALL', 'Hujumchi', 'Yarim himoyachi', 'Himoyachi', 'Darvozabon'].map((pos) => (
-                <button
-                  key={pos}
-                  onClick={() => setSelectedPosition(pos)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
-                    selectedPosition === pos
-                      ? 'bg-white text-black shadow-glow'
-                      : 'text-stone-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {pos === 'ALL' ? 'Barcha Pozitsiyalar' : pos}
-                </button>
-              ))}
-            </div>
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth pb-2 touch-pan-x overscroll-x-contain">
+              {/* Position Pills */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 flex-shrink-0">
+                {['ALL', 'Hujumchi', 'Yarim himoyachi', 'Himoyachi', 'Darvozabon'].map((pos) => (
+                  <button
+                    key={pos}
+                    onClick={() => setSelectedPosition(pos)}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition ${
+                      selectedPosition === pos
+                        ? 'bg-white text-black shadow-glow'
+                        : 'text-stone-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {pos === 'ALL' ? 'Barcha Pozitsiyalar' : pos}
+                  </button>
+                ))}
+              </div>
 
-            {/* Age Filter */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10">
-              {[
-                { label: 'Barcha Yoshlar', value: 'ALL' },
-                { label: '16 - 18 Yosh', value: '16-18' },
-                { label: '19 - 21 Yosh', value: '19-21' },
-                { label: '22+ Yosh', value: '22+' }
-              ].map((ag) => (
-                <button
-                  key={ag.value}
-                  onClick={() => setSelectedAge(ag.value)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition ${
-                    selectedAge === ag.value
-                      ? 'bg-white text-black shadow-glow'
-                      : 'text-stone-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {ag.label}
-                </button>
-              ))}
+              {/* Age Filter */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 flex-shrink-0">
+                {[
+                  { label: 'Barcha Yoshlar', value: 'ALL' },
+                  { label: '16 - 18 Yosh', value: '16-18' },
+                  { label: '19 - 21 Yosh', value: '19-21' },
+                  { label: '22+ Yosh', value: '22+' }
+                ].map((ag) => (
+                  <button
+                    key={ag.value}
+                    onClick={() => setSelectedAge(ag.value)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 transition ${
+                      selectedAge === ag.value
+                        ? 'bg-white text-black shadow-glow'
+                        : 'text-stone-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {ag.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Verified Toggle */}
             <button
               onClick={() => setOnlyVerified(!onlyVerified)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition flex items-center gap-2 flex-shrink-0 self-start md:self-auto ${
                 onlyVerified
                   ? 'bg-white text-black border-white shadow-glow'
                   : 'bg-white/[0.03] text-stone-400 border-white/10 hover:text-white hover:border-white/20'
@@ -397,8 +400,9 @@ export default function HomePage() {
                   {/* Image container */}
                   <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-900">
                     <img
-                      src={player.image}
+                      src={player.image || '/images/player.jpg'}
                       alt={player.full_name}
+                      onError={(e) => { e.currentTarget.src = '/images/player.jpg'; }}
                       className="w-full h-full object-cover object-top filter brightness-95 group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/20 to-transparent"></div>

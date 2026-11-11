@@ -238,6 +238,7 @@ def update_profile_image(
     return user
 
 @router.post("/users/{user_id}/videos", response_model=UserVideoOut)
+@router.post("/api/users/{user_id}/videos", response_model=UserVideoOut)
 async def upload_user_video(
     user_id: int,
     file: UploadFile = File(...),
@@ -293,7 +294,8 @@ async def upload_user_video(
         contents = await file.read()
         with open(file_path, "wb") as buffer:
             buffer.write(contents)
-        video_url = f"http://localhost:8000/{file_path}"
+        render_url = os.getenv("RENDER_EXTERNAL_URL") or "https://futbol-platform.onrender.com"
+        video_url = f"{render_url}/{file_path}"
         cloudinary_public_id = None
     
     user_video = UserVideo(user_id=user_id, video_url=video_url)
@@ -303,6 +305,7 @@ async def upload_user_video(
     return user_video
 
 @router.get("/users/{user_id}/videos", response_model=list[UserVideoOut])
+@router.get("/api/users/{user_id}/videos", response_model=list[UserVideoOut])
 def get_user_videos(user_id: int, db: Session = Depends(get_db)):
     return db.query(UserVideo).filter(UserVideo.user_id == user_id).all()
 
