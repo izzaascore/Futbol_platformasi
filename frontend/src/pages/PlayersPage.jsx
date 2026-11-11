@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { 
   Search, Filter, SlidersHorizontal, MapPin, Target, Zap, 
   Shield, X, Send, CheckCircle2, Sparkles, Award, ArrowUpRight, Check,
-  MessageSquare, MessageCircle, CheckCheck, Loader2
+  MessageSquare, MessageCircle, CheckCheck, Loader2, UserPlus, Pin
 } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
 import { API_URL } from '../config';
@@ -244,21 +245,55 @@ const PlayersPage = () => {
     fetch(`${API_URL}/api/players`)
       .then(res => res.json())
       .then(data => {
+        let combined = [];
         if (Array.isArray(data) && data.length > 0) {
-          const merged = data.map((p, idx) => ({
-            ...fallbackPlayers[idx % fallbackPlayers.length],
+          const registered = data.map((p, idx) => ({
             ...p,
-            id: p.id || idx + 1,
-            full_name: p.full_name || p.username || fallbackPlayers[idx % fallbackPlayers.length].full_name,
-            position: (p.position || fallbackPlayers[idx % fallbackPlayers.length].position).toLowerCase(),
-            rating: p.rating || fallbackPlayers[idx % fallbackPlayers.length].rating,
-            age: p.age || fallbackPlayers[idx % fallbackPlayers.length].age,
-            image: p.avatar_url || p.photo_url || fallbackPlayers[idx % fallbackPlayers.length].image
+            id: p.id || idx + 100,
+            full_name: p.full_name || p.username || 'Haqiqiy Futbolchi',
+            position: (p.position || 'hujumchi').toLowerCase(),
+            rating: p.rating || 88,
+            age: p.age || 18,
+            club: p.team || p.club || "Futuro Ro'yxatdan O'tgan",
+            city: p.city || 'Toshkent',
+            market_value: p.market_value || '€500K',
+            image: p.avatar_url || p.photo_url || '/images/player.jpg',
+            stats: p.stats || { pac: 85, sho: 80, pas: 82, dri: 84, def: 60, phy: 78 },
+            is_real_registered: true
           }));
-          setPlayers(merged);
+          combined = [...registered, ...fallbackPlayers];
         } else {
-          setPlayers(fallbackPlayers);
+          combined = [...fallbackPlayers];
         }
+
+        // Agar joriy foydalanuvchi tizimda futbolchi sifatida mavjud bo'lsa, uni eng yuqoriga PIN qilamiz
+        const userStr = localStorage.getItem('talaqCurrentUser');
+        if (userStr) {
+          try {
+            const u = JSON.parse(userStr);
+            if (u && (u.role === 'player' || u.first_name)) {
+              const myProfile = {
+                id: 99999,
+                full_name: `${u.first_name || 'Foydalanuvchi'} ${u.last_name || ''}`.trim(),
+                position: (u.position || 'hujumchi').toLowerCase(),
+                rating: 90,
+                age: u.age || 19,
+                club: u.team || "Mening Profilim (Tasdiqlangan)",
+                city: u.address || 'Toshkent',
+                market_value: '€850K',
+                image: u.profile_image || '/images/player.jpg',
+                stats: { pac: 88, sho: 85, pas: 86, dri: 89, def: 65, phy: 80 },
+                is_real_registered: true,
+                is_pinned: true
+              };
+              if (!combined.some(cp => cp.full_name === myProfile.full_name)) {
+                combined = [myProfile, ...combined];
+              }
+            }
+          } catch (e) {}
+        }
+
+        setPlayers(combined);
         setLoading(false);
       })
       .catch(() => {
@@ -269,6 +304,9 @@ const PlayersPage = () => {
 
   const filteredPlayers = (players || []).filter(p => {
     if (!p) return false;
+    if (filter === 'registered') {
+      return p.is_real_registered || p.is_pinned;
+    }
     const pos = (p.position || '').toLowerCase();
     const matchPos = filter === 'all' || pos === filter || (filter === 'hujumchi' && pos.includes('hujum')) || (filter === 'yarimhimoyachi' && (pos.includes('yarim') || pos.includes('midfield'))) || (filter === 'himoyachi' && pos.includes('himoya')) || (filter === 'darvozabon' && pos.includes('darvoza'));
     const name = (p.full_name || '').toLowerCase();
@@ -282,6 +320,11 @@ const PlayersPage = () => {
     else if (ageFilter === 'senior') matchAge = age > 21;
 
     return matchPos && matchSearch && matchAge;
+  }).sort((a, b) => {
+    // Haqiqiy ro'yxatdan o'tganlar va PIN qilinganlar doimo eng yuqorida turadi
+    if ((a.is_real_registered || a.is_pinned) && !(b.is_real_registered || b.is_pinned)) return -1;
+    if (!(a.is_real_registered || a.is_pinned) && (b.is_real_registered || b.is_pinned)) return 1;
+    return (b.rating || 0) - (a.rating || 0);
   });
 
   return (
@@ -340,6 +383,7 @@ const PlayersPage = () => {
             <div className="w-full lg:w-auto overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 touch-pan-x overscroll-x-contain">
               {[
                 { id: 'all', label: 'Barchasi' },
+                { id: 'registered', label: '📌 Faqat Haqiqiy (Real)' },
                 { id: 'hujumchi', label: 'Hujumchi' },
                 { id: 'yarimhimoyachi', label: 'Yarim himoya' },
                 { id: 'himoyachi', label: 'Himoyachi' },
@@ -397,6 +441,33 @@ const PlayersPage = () => {
 
           </div>
 
+          {/* Real Player Registration Prompt Banner */}
+          <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-stone-900/60 to-[#030303] border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+                <UserPlus className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                    📌 Ochiq Ro'yxat
+                  </span>
+                  <span className="text-[11px] text-stone-400">Haqiqiy futbolchilar</span>
+                </div>
+                <p className="text-white text-xs font-bold mt-0.5">
+                  Siz ham futbolchimisiz? O'z profilingizni bazaga qo'shing va birinchi o'ringa PIN qiling!
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/register"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-heading font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 flex-shrink-0 transition active:scale-95 shadow-lg shadow-emerald-500/20"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              + Ro'yxatdan O'tish
+            </Link>
+          </div>
+
           {/* Players Card Grid (3-Rasm Scouting Look) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
             {filteredPlayers.map((player) => (
@@ -416,10 +487,22 @@ const PlayersPage = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/30 to-transparent"></div>
 
                   {/* Top Badges */}
-                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-                    <span className="px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-md border border-white/20 text-[9px] font-heading font-black uppercase text-white tracking-wider">
-                      {player.position}
-                    </span>
+                  <div className="absolute top-3 left-3 right-3 flex items-start justify-between z-10 gap-2">
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className="px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-md border border-white/20 text-[9px] font-heading font-black uppercase text-white tracking-wider">
+                        {player.position}
+                      </span>
+                      {player.is_real_registered || player.is_pinned ? (
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-stone-950 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md shadow-emerald-500/30">
+                          <Pin className="w-2.5 h-2.5 fill-stone-950" />
+                          PIN: REAL PROFIL
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md bg-stone-900/80 backdrop-blur-md text-stone-400 text-[8px] font-bold uppercase tracking-wider border border-white/10">
+                          Demo Profil
+                        </span>
+                      )}
+                    </div>
                     <span className="px-2.5 py-1 rounded-md bg-white text-black text-[10px] font-heading font-black shadow-glow">
                       REYTING {player.rating || 88}
                     </span>

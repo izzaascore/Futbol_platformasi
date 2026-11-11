@@ -18,7 +18,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 from app.core.database import Base, engine
 from app.core.security import rate_limiter, detect_malicious_payload, get_client_ip
@@ -177,7 +177,10 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
 @app.get("/")
-def home():
+def home(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return RedirectResponse(url="https://futbol-platformasi-alpha.vercel.app", status_code=307)
     return {"message": "Football Platform API ishlayapti!"}
 
 
