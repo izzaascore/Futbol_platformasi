@@ -674,7 +674,7 @@ const PlayersPage = () => {
         {/* Telegram / Instagram Style Direct Chat Modal */}
         {chatPlayer && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl">
-            <div className="relative w-full max-w-lg h-[580px] max-h-[90vh] rounded-3xl bg-[#09090b] border border-white/20 flex flex-col overflow-hidden shadow-2xl">
+            <div className="relative w-full max-w-lg h-[540px] max-h-[85dvh] rounded-3xl bg-[#09090b] border border-white/20 flex flex-col overflow-hidden shadow-2xl">
               
               {/* Chat Header */}
               <div className="p-4 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
@@ -750,13 +750,13 @@ const PlayersPage = () => {
               </div>
 
               {/* Chat Input Bar */}
-              <form onSubmit={handleSendChatMessage} className="p-3 bg-white/[0.03] border-t border-white/10 flex items-center gap-2">
+              <form onSubmit={handleSendChatMessage} className="p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] bg-white/[0.03] border-t border-white/10 flex items-center gap-2">
                 <input 
                   type="text" 
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder={`${chatPlayer.full_name.split(' ')[0]}ga xabar yozing...`}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/15 text-white placeholder-stone-500 text-xs focus:outline-none focus:border-blue-500 transition"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/15 text-white placeholder-stone-500 text-base sm:text-xs focus:outline-none focus:border-blue-500 transition"
                 />
                 <button 
                   type="submit"

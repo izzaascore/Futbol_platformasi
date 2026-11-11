@@ -104,3 +104,18 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #3b3b3b;
 }
+
+/* Mobile Native App Feel */
+html {
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}

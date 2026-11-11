@@ -165,7 +165,7 @@ export default function FeedbackButton() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Fikr bildirish"
-        className="fixed right-4 bottom-24 md:bottom-6 z-[60] flex items-center gap-2 px-4 py-3 rounded-full bg-white text-black text-xs font-heading font-black uppercase tracking-wider shadow-lg hover:bg-stone-200 transition"
+        className="fixed right-4 bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:bottom-6 z-[60] flex items-center gap-2 px-4 py-3 rounded-full bg-white text-black text-xs font-heading font-black uppercase tracking-wider shadow-lg hover:bg-stone-200 active:scale-95 transition"
       >
         <MessageSquare className="w-4 h-4" />
         <span className="hidden sm:inline">Fikr bildirish</span>
@@ -173,7 +173,7 @@ export default function FeedbackButton() {
 
       {open && (
         <div
-          className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm"
           onClick={close}
           role="presentation"
         >
@@ -182,7 +182,7 @@ export default function FeedbackButton() {
             aria-modal="true"
             aria-label="Fikr bildirish"
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-2xl bg-[#0a0a0a] border border-white/15 p-5 text-white"
+            className="w-full max-w-md rounded-2xl bg-[#0a0a0a] border border-white/15 p-5 text-white max-h-[88dvh] overflow-y-auto mb-[env(safe-area-inset-bottom,0px)]"
           >
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-heading font-black text-sm uppercase tracking-wider">Fikringiz bizga muhim</h2>
@@ -208,7 +208,7 @@ export default function FeedbackButton() {
                   onPaste={handlePaste}
                   rows={5}
                   placeholder="Fikringizni shu yerga yozing (skrinshotni Ctrl+V orqali ham qo'yish mumkin)..."
-                  className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/15 text-white placeholder-stone-500 text-sm focus:outline-none focus:border-white/40 resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/15 text-white placeholder-stone-500 text-base sm:text-sm focus:outline-none focus:border-white/40 resize-none"
                 />
 
                 {/* Image Attachment Input & Preview */}

@@ -242,7 +242,7 @@ function PublicLayout({ children }) {
       </header>
 
       {/* Main Page Body */}
-      <main className="flex-grow flex flex-col pb-20 sm:pb-0">
+      <main className="flex-grow flex flex-col pb-[calc(5rem+env(safe-area-inset-bottom,0px))] sm:pb-0">
         {children}
       </main>
 
@@ -329,7 +329,7 @@ function PublicLayout({ children }) {
       </footer>
 
       {/* Bottom Navigation for Mobile */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#030303]/95 backdrop-blur-lg border-t border-white/10 px-2 py-1.5 flex items-center justify-around shadow-2xl">
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#030303]/95 backdrop-blur-lg border-t border-white/10 px-2 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around shadow-2xl">
         <Link
           to="/"
           className={`flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-wider p-1.5 rounded-lg transition-colors ${
