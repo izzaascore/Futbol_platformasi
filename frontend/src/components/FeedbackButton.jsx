@@ -70,12 +70,19 @@ export default function FeedbackButton() {
         setDone(true);
         setText('');
         setTimeout(close, 2200);
-      } else if (res.status === 429) {
-        setError("Juda ko'p urinish. Birozdan keyin qayta urinib ko'ring.");
-      } else if (res.status === 422) {
-        setError('Fikr kamida 3 ta belgidan iborat bo\'lishi kerak.');
       } else {
-        setError("Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+        const data = await res.json().catch(() => ({}));
+        let msg = data.detail;
+        if (Array.isArray(msg) && msg.length > 0) {
+          msg = msg[0].msg || JSON.stringify(msg[0]);
+        }
+        if (res.status === 429) {
+          setError("Juda ko'p urinish. Birozdan keyin qayta urinib ko'ring.");
+        } else if (res.status === 422) {
+          setError(typeof msg === 'string' ? msg : "Matn talabga mos emas.");
+        } else {
+          setError(typeof msg === 'string' ? msg : "Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+        }
       }
     } catch {
       setError("Server bilan aloqa yo'q. Internetni tekshiring.");
