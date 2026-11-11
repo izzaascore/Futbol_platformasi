@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { MessageSquare, X, Send, CheckCircle2 } from 'lucide-react';
 import { API_URL, ADMIN_PATH, ADMIN_BASE } from '../config';
 
-const MAX_LEN = 1000;
+const MAX_WORDS = 1000;
 
 export default function FeedbackButton() {
   const location = useLocation();
@@ -13,6 +13,20 @@ export default function FeedbackButton() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const textareaRef = useRef(null);
+
+  const words = text.trim() ? text.trim().split(/\s+/).filter(Boolean) : [];
+  const wordCount = words.length;
+
+  const handleTextChange = (e) => {
+    const val = e.target.value;
+    const currentWords = val.trim() ? val.trim().split(/\s+/).filter(Boolean) : [];
+    if (currentWords.length <= MAX_WORDS || val.length < text.length) {
+      setText(val);
+      if (error) setError('');
+    } else {
+      setError("Maksimal 1000 ta so'z kiritish mumkin.");
+    }
+  };
 
   // Admin panelda va kirish sahifalarida ko'rsatmaymiz
   const hidden = (ADMIN_PATH && location.pathname.startsWith(ADMIN_BASE)) ||
@@ -36,7 +50,11 @@ export default function FeedbackButton() {
   const submit = async (e) => {
     e.preventDefault();
     const value = text.trim();
-    if (value.length < 3 || sending) return;
+    if (value.length < 3 || wordCount < 1 || sending) return;
+    if (wordCount > MAX_WORDS) {
+      setError("Fikr ko'pi bilan 1000 ta so'zdan iborat bo'lishi mumkin.");
+      return;
+    }
     setSending(true);
     setError('');
     try {
@@ -111,15 +129,16 @@ export default function FeedbackButton() {
                 <textarea
                   ref={textareaRef}
                   value={text}
-                  onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
-                  rows={5}
-                  maxLength={MAX_LEN}
-                  placeholder="Fikringizni shu yerga yozing..."
+                  onChange={handleTextChange}
+                  rows={6}
+                  placeholder="Fikringizni batafsil shu yerga yozing..."
                   className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/15 text-white placeholder-stone-500 text-sm focus:outline-none focus:border-white/40 resize-none"
                 />
                 <div className="flex items-center justify-between mt-1 mb-3 text-[11px] text-stone-500">
                   <span role="alert" className="text-red-400">{error}</span>
-                  <span>{text.length}/{MAX_LEN}</span>
+                  <span className={wordCount >= MAX_WORDS ? 'text-amber-400 font-bold' : ''}>
+                    {wordCount} / {MAX_WORDS} so'z
+                  </span>
                 </div>
                 <button
                   type="submit"

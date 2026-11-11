@@ -649,18 +649,21 @@ class ShopNotifyCreate(BaseModel):
 
 
 class FeedbackCreate(BaseModel):
-    text: str = Field(min_length=3, max_length=1000)
+    text: str = Field(min_length=3, max_length=20000)
     page: str | None = Field(default=None, max_length=100)
 
     @field_validator("text")
     @classmethod
     def clean_text(cls, v: str) -> str:
         v = v.strip()
+        words = [w for w in v.split() if w]
         if len(v) < 3:
             raise ValueError("Fikr juda qisqa")
+        if len(words) > 1000:
+            raise ValueError("Fikr ko'pi bilan 1000 ta so'zdan iborat bo'lishi kerak")
         return v
 
 
 class BotFeedbackCreate(BaseModel):
-    text: str = Field(min_length=3, max_length=1000)
+    text: str = Field(min_length=3, max_length=20000)
     telegram_id: int | None = None
