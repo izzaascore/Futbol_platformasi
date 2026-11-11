@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 # Yo'llarni to'g'ri sozlash (sys.path)
 BACKEND_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BACKEND_DIR.parent
+FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 for p in [str(BACKEND_DIR), str(ROOT_DIR)]:
     if p not in sys.path:
         sys.path.insert(0, p)
@@ -144,8 +145,15 @@ async def security_defense_middleware(request: Request, call_next):
             content={"detail": "Xavfsizlik tizimi: Noqonuniy so'rov (Inyeksiya/Buzish) aniqlandi va IP bloklandi."},
         )
 
-    # 2. Rate Limiting tekshiruvi (Brute-force / DoS spamdan himoya)
+    # 2. Agar brauzer sahifani ochayotgan bo'lsa (SPA marshrutlari: /players, /live, /stadiums, etc.)
     path = request.url.path
+    if request.method == "GET" and "text/html" in request.headers.get("accept", ""):
+        if not path.startswith(("/api/", "/uploads/", "/assets/", "/images/", "/docs", "/openapi.json", "/health", "/ws/")):
+            index_file = FRONTEND_DIST / "index.html"
+            if index_file.exists():
+                return FileResponse(str(index_file))
+
+    # 3. Rate Limiting tekshiruvi (Brute-force / DoS spamdan himoya)
     is_auth_route = any(p in path for p in ["/api/auth/", "/admin/login", "/api/feedback", "/api/shop/notify"])
     allowed, msg = rate_limiter.check(client_ip, is_auth=is_auth_route)
     if not allowed:
