@@ -14,11 +14,11 @@ for p in [str(BACKEND_DIR), str(ROOT_DIR)]:
 
 load_dotenv(ROOT_DIR / ".env")
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 
 from app.core.database import Base, engine
 from app.core.security import rate_limiter, detect_malicious_payload, get_client_ip
@@ -176,14 +176,6 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
-@app.get("/")
-def home(request: Request):
-    accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        return RedirectResponse(url="https://futbol-platformasi-alpha.vercel.app", status_code=307)
-    return {"message": "Football Platform API ishlayapti!"}
-
-
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "Football Platform API"}
@@ -207,6 +199,45 @@ app.include_router(tournaments_router)
 app.include_router(scouts_router)
 app.include_router(shop_router)
 app.include_router(community_router)
+
+
+# Frontend statik fayllari va SPA integratsiyasi
+FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
+if FRONTEND_DIST.exists():
+    if (FRONTEND_DIST / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="frontend-assets")
+    if (FRONTEND_DIST / "images").exists():
+        app.mount("/images", StaticFiles(directory=str(FRONTEND_DIST / "images")), name="frontend-images")
+
+    @app.get("/")
+    def serve_frontend_root():
+        index_file = FRONTEND_DIST / "index.html"
+        if index_file.exists():
+            return FileResponse(str(index_file))
+        return {"message": "Football Platform API ishlayapti!"}
+
+    @app.get("/{full_path:path}")
+    async def serve_spa_fallback(full_path: str):
+        # API marshrutlari, uploads, health va adminkaga tegmaymiz
+        excluded_prefixes = ("api/", "admin/", "uploads/", "health", "docs", "openapi.json")
+        if any(full_path.startswith(p) for p in excluded_prefixes):
+            raise HTTPException(status_code=404, detail="Not Found")
+        
+        file_path = FRONTEND_DIST / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        
+        index_file = FRONTEND_DIST / "index.html"
+        if index_file.exists():
+            return FileResponse(str(index_file))
+        raise HTTPException(status_code=404, detail="Frontend build topilmadi")
+else:
+    @app.get("/")
+    def home(request: Request):
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept:
+            return RedirectResponse(url="https://futbol-platformasi-alpha.vercel.app", status_code=307)
+        return {"message": "Football Platform API ishlayapti!"}
 
 
 if __name__ == "__main__":

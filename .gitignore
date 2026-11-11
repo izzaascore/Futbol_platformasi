@@ -23,8 +23,8 @@ logs/
 .vscode/
 node_modules/
 frontend/node_modules/
-dist/
-frontend/dist/
+/dist/
+!frontend/dist/
 build/
 .gemini/
 .agents/
