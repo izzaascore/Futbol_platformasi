@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { 
   Search, Filter, SlidersHorizontal, MapPin, Target, Zap, 
-  Shield, X, Send, CheckCircle2, Sparkles, Award, ArrowUpRight, Check
+  Shield, X, Send, CheckCircle2, Sparkles, Award, ArrowUpRight, Check,
+  MessageSquare, MessageCircle, CheckCheck, Loader2
 } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
 import { API_URL } from '../config';
@@ -77,6 +78,85 @@ const PlayersPage = () => {
     contact_phone: ''
   });
 
+  // Direct Chat (Telegram / IG style) states
+  const [chatPlayer, setChatPlayer] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const chatMessagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (!chatPlayer) return;
+    const key = `dm_player_${chatPlayer.id}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        setChatMessages(JSON.parse(saved));
+      } catch (e) {
+        initPlayerChat(chatPlayer);
+      }
+    } else {
+      initPlayerChat(chatPlayer);
+    }
+  }, [chatPlayer]);
+
+  useEffect(() => {
+    chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isTyping]);
+
+  const initPlayerChat = (p) => {
+    const initial = [
+      {
+        id: 1,
+        sender: 'them',
+        text: `Assalomu alaykum! Men ${p.full_name} (${p.club}). Futuro platformasida mashg'ulotlarim va natijalarimni kuzatib borishingiz mumkin. Qanday savolingiz yoki taklifingiz bor?`,
+        time: 'Hozir'
+      }
+    ];
+    setChatMessages(initial);
+    localStorage.setItem(`dm_player_${p.id}`, JSON.stringify(initial));
+  };
+
+  const handleSendChatMessage = (e) => {
+    e.preventDefault();
+    if (!chatInput.trim() || !chatPlayer) return;
+    const userText = chatInput.trim();
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const newMsg = {
+      id: Date.now(),
+      sender: 'me',
+      text: userText,
+      time: nowTime
+    };
+    const updated = [...chatMessages, newMsg];
+    setChatMessages(updated);
+    setChatInput('');
+    localStorage.setItem(`dm_player_${chatPlayer.id}`, JSON.stringify(updated));
+
+    // Simulate instant player response
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      const responses = [
+        "Rahmat xabaringiz uchun! Murabbiyim bilan maslahatlashib, albatta ko'rib chiqamiz ⚽️",
+        "Taklifingiz uchun tashakkur! Agar klub nomidan bo'lsa, platformadagi rasmiy ko'rik taklifnomasini ham yuborishingiz mumkin.",
+        "Qiziqish bildirganingiz uchun rahmat! Mashg'ulot videolarim va statistika tahlillarim doimiy yangilanib boradi."
+      ];
+      const replyText = responses[Math.floor(Math.random() * responses.length)];
+      const replyMsg = {
+        id: Date.now() + 1,
+        sender: 'them',
+        text: replyText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setChatMessages(prev => {
+        const next = [...prev, replyMsg];
+        localStorage.setItem(`dm_player_${chatPlayer.id}`, JSON.stringify(next));
+        return next;
+      });
+    }, 1100);
+  };
+
   const handleSendInvitation = async (e) => {
     e.preventDefault();
     if (!selectedPlayer) return;
@@ -127,7 +207,17 @@ const PlayersPage = () => {
     { id: 3, full_name: 'Sardor Rashidov', position: 'himoyachi', city: 'Andijon', rating: 87, age: 20, image: '/images/players/players_1579952363873-27f3ba.jpg', club: 'Andijon FK', market_value: '€700K', stats: { pac: 78, sho: 50, pas: 74, dri: 72, def: 89, phy: 88 } },
     { id: 4, full_name: 'Umidjon Erkinov', position: 'hujumchi', city: 'Buxoro', rating: 89, age: 17, image: '/images/players/players_1534438327276-14e530.jpg', club: 'Buxoro U-19', market_value: '€900K', stats: { pac: 91, sho: 88, pas: 80, dri: 87, def: 40, phy: 78 } },
     { id: 5, full_name: 'Doston Hamdamov', position: 'darvozabon', city: 'Farg\'ona', rating: 86, age: 21, image: '/images/players/players_1506794778202-cad84c.jpg', club: 'Neftchi Farg\'ona', market_value: '€600K', stats: { pac: 70, sho: 40, pas: 72, dri: 65, def: 90, phy: 85 } },
-    { id: 6, full_name: 'Otabek Shukurov', position: 'yarimhimoyachi', city: 'Qarshi', rating: 85, age: 19, image: '/images/players/players_1614632537190-23e414.jpg', club: 'Nasaf Qarshi U-21', market_value: '€750K', stats: { pac: 82, sho: 78, pas: 86, dri: 84, def: 74, phy: 80 } }
+    { id: 6, full_name: 'Otabek Shukurov', position: 'yarimhimoyachi', city: 'Qarshi', rating: 85, age: 19, image: '/images/players/players_1614632537190-23e414.jpg', club: 'Nasaf Qarshi U-21', market_value: '€750K', stats: { pac: 82, sho: 78, pas: 86, dri: 84, def: 74, phy: 80 } },
+    { id: 7, full_name: 'Shoxjahon Ro\'ziyev', position: 'hujumchi', city: 'Toshkent', rating: 90, age: 16, image: '/images/players/players_1431324155629-1a6d0a.jpg', club: 'Paxtakor U-16', market_value: '€1.1M', stats: { pac: 93, sho: 89, pas: 82, dri: 92, def: 38, phy: 76 } },
+    { id: 8, full_name: 'Bekzod To\'rayev', position: 'himoyachi', city: 'Namangan', rating: 88, age: 18, image: '/images/players/players_1431324155629-1a6deb.jpg', club: 'Navbahor U-19', market_value: '€820K', stats: { pac: 84, sho: 45, pas: 79, dri: 75, def: 91, phy: 89 } },
+    { id: 9, full_name: 'Eldor Sayidov', position: 'hujumchi', city: 'Termiz', rating: 89, age: 18, image: '/images/players/players_1518605368461-1ee7e5.jpg', club: 'Surxon Termiz', market_value: '€950K', stats: { pac: 90, sho: 87, pas: 78, dri: 85, def: 42, phy: 84 } },
+    { id: 10, full_name: 'Mirjamol Qosimov', position: 'yarimhimoyachi', city: 'Olmaliq', rating: 87, age: 20, image: '/images/players/players_1531885420367-172551.jpg', club: 'AGMK Olmaliq', market_value: '€700K', stats: { pac: 80, sho: 82, pas: 89, dri: 86, def: 68, phy: 74 } },
+    { id: 11, full_name: 'Asadbek Sobirjonov', position: 'himoyachi', city: 'Toshkent', rating: 86, age: 17, image: '/images/players/players_1552374196-1ab2a1c59.jpg', club: 'Olimpik Toshkent', market_value: '€650K', stats: { pac: 83, sho: 52, pas: 76, dri: 74, def: 88, phy: 83 } },
+    { id: 12, full_name: 'Jasurbek Jaloliddinov', position: 'yarimhimoyachi', city: 'Toshkent', rating: 91, age: 18, image: '/images/players/players_1517466787929-bc9095.jpg', club: 'Lokomotiv Toshkent U-19', market_value: '€1.3M', stats: { pac: 86, sho: 85, pas: 93, dri: 89, def: 60, phy: 77 } },
+    { id: 13, full_name: 'Abduvohid Ne\'matov', position: 'darvozabon', city: 'Qarshi', rating: 90, age: 19, image: '/images/players/players_1506794778202-cad84c.jpg', club: 'Nasaf Akademiya', market_value: '€1.0M', stats: { pac: 72, sho: 42, pas: 75, dri: 68, def: 94, phy: 88 } },
+    { id: 14, full_name: 'Samandar Mavlonqulov', position: 'hujumchi', city: 'Toshkent', rating: 88, age: 16, image: '/images/players/players_1534438327276-14e530.jpg', club: 'Bunyodkor U-16', market_value: '€800K', stats: { pac: 92, sho: 86, pas: 81, dri: 88, def: 39, phy: 75 } },
+    { id: 15, full_name: 'Muhammadali G\'iyosov', position: 'himoyachi', city: 'Bekobod', rating: 85, age: 19, image: '/images/players/players_1579952363873-27f3ba.jpg', club: 'Metallurg Bekobod', market_value: '€580K', stats: { pac: 81, sho: 48, pas: 73, dri: 70, def: 86, phy: 86 } },
+    { id: 16, full_name: 'Shohruh Ibrohimov', position: 'darvozabon', city: 'Muborak', rating: 87, age: 17, image: '/images/player.jpg', club: 'Mash\'al Muborak U-18', market_value: '€720K', stats: { pac: 68, sho: 38, pas: 70, dri: 62, def: 91, phy: 84 } }
   ];
 
   useEffect(() => {
@@ -385,15 +475,27 @@ const PlayersPage = () => {
                       <div className="text-[9px] uppercase font-bold text-stone-400">Taxminiy qiymati</div>
                       <div className="font-heading font-black text-sm text-white">{player.market_value || '€850K'}</div>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPlayer(player);
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white text-white hover:text-black text-xs font-bold uppercase tracking-wider transition flex items-center gap-1 border border-white/15"
-                    >
-                      Profil <ArrowUpRight className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setChatPlayer(player);
+                        }}
+                        title="Xabar yozish (Chat)"
+                        className="p-2 rounded-lg bg-blue-600/15 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 border border-blue-500/20 transition flex items-center justify-center"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPlayer(player);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white text-white hover:text-black text-xs font-bold uppercase tracking-wider transition flex items-center gap-1 border border-white/15"
+                      >
+                        Profil <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </TiltCard>
@@ -453,7 +555,18 @@ const PlayersPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                    <button
+                      onClick={() => {
+                        const target = selectedPlayer;
+                        setSelectedPlayer(null);
+                        setChatPlayer(target);
+                      }}
+                      className="py-3 px-4 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 font-heading font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Chat (DM)
+                    </button>
                     <button
                       onClick={() => setShowInviteModal(true)}
                       className="flex-grow py-3 rounded-xl bg-white text-black font-heading font-black text-xs uppercase tracking-wider shadow-glow hover:bg-stone-200 transition flex items-center justify-center gap-2"
@@ -463,7 +576,7 @@ const PlayersPage = () => {
                     </button>
                     <button
                       onClick={() => setSelectedPlayer(null)}
-                      className="px-5 py-3 rounded-xl bg-white/10 text-white font-bold text-xs uppercase tracking-wider hover:bg-white/20 border border-white/15"
+                      className="px-4 py-3 rounded-xl bg-white/10 text-white font-bold text-xs uppercase tracking-wider hover:bg-white/20 border border-white/15"
                     >
                       Yopish
                     </button>
@@ -554,6 +667,106 @@ const PlayersPage = () => {
                   </button>
                 </form>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Telegram / Instagram Style Direct Chat Modal */}
+        {chatPlayer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl">
+            <div className="relative w-full max-w-lg h-[580px] max-h-[90vh] rounded-3xl bg-[#09090b] border border-white/20 flex flex-col overflow-hidden shadow-2xl">
+              
+              {/* Chat Header */}
+              <div className="p-4 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <img 
+                      src={chatPlayer.image || '/images/player.jpg'} 
+                      alt={chatPlayer.full_name} 
+                      onError={(e) => { e.currentTarget.src = '/images/player.jpg'; }}
+                      className="w-10 h-10 rounded-full object-cover border border-white/20"
+                    />
+                    <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-black"></span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-sm font-bold text-white leading-tight">{chatPlayer.full_name}</h4>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 fill-blue-400/20" />
+                    </div>
+                    <span className="text-[11px] text-emerald-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      Tarmoqda (Faol) • {chatPlayer.club}
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setChatPlayer(null)}
+                  className="p-2 rounded-xl bg-white/10 text-stone-400 hover:text-white transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Chat Messages Body */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#030303]/40">
+                <div className="text-center my-2">
+                  <span className="px-3 py-1 rounded-full bg-white/[0.05] border border-white/10 text-[10px] text-stone-400 font-mono">
+                    Futuro Shaxsiy Chat (Telegram/Instagram uslubida)
+                  </span>
+                </div>
+
+                {chatMessages.map((msg) => {
+                  const isMe = msg.sender === 'me';
+                  return (
+                    <div 
+                      key={msg.id} 
+                      className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                    >
+                      <div 
+                        className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed ${
+                          isMe 
+                            ? 'bg-blue-600 text-white rounded-br-xs shadow-md' 
+                            : 'bg-white/[0.08] text-stone-200 border border-white/10 rounded-bl-xs'
+                        }`}
+                      >
+                        <p>{msg.text}</p>
+                        <div className={`flex items-center justify-end gap-1 mt-1 text-[9px] ${isMe ? 'text-blue-200' : 'text-stone-400'}`}>
+                          <span>{msg.time}</span>
+                          {isMe && <CheckCheck className="w-3 h-3 text-blue-200" />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {isTyping && (
+                  <div className="flex items-center gap-2 text-stone-400 text-xs italic bg-white/[0.04] px-3 py-2 rounded-xl w-fit">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400" />
+                    <span>{chatPlayer.full_name} yozmoqda...</span>
+                  </div>
+                )}
+                <div ref={chatMessagesEndRef} />
+              </div>
+
+              {/* Chat Input Bar */}
+              <form onSubmit={handleSendChatMessage} className="p-3 bg-white/[0.03] border-t border-white/10 flex items-center gap-2">
+                <input 
+                  type="text" 
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder={`${chatPlayer.full_name.split(' ')[0]}ga xabar yozing...`}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/15 text-white placeholder-stone-500 text-xs focus:outline-none focus:border-blue-500 transition"
+                />
+                <button 
+                  type="submit"
+                  disabled={!chatInput.trim()}
+                  className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:hover:bg-blue-600 text-white transition flex items-center justify-center shadow-lg shadow-blue-500/20"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+
             </div>
           </div>
         )}

@@ -1,6 +1,6 @@
 import os
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -377,6 +377,27 @@ def submit_feedback(
     ))
     db.commit()
     return {"ok": True}
+
+
+@router.post("/api/feedback/upload-image")
+async def upload_feedback_image(file: UploadFile = File(...)):
+    import pathlib, uuid
+    allowed = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+    suffix = pathlib.Path(file.filename or "image.jpg").suffix.lower()
+    if suffix not in allowed:
+        raise HTTPException(status_code=400, detail="Faqat rasm fayllari (.jpg, .png, .webp) qabul qilinadi")
+    
+    os.makedirs("uploads/feedback", exist_ok=True)
+    safe_name = f"fb_{uuid.uuid4().hex[:12]}{suffix}"
+    file_path = f"uploads/feedback/{safe_name}"
+    contents = await file.read()
+    if len(contents) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Rasm hajmi 8MB dan oshmasligi kerak")
+    with open(file_path, "wb") as f:
+        f.write(contents)
+    
+    render_url = os.getenv("RENDER_EXTERNAL_URL") or "https://futbol-platform.onrender.com"
+    return {"url": f"{render_url}/{file_path}"}
 
 
 @router.post("/api/bot/feedback", dependencies=[Depends(require_bot_key)])

@@ -172,6 +172,7 @@ async def security_defense_middleware(request: Request, call_next):
 UPLOADS_DIR = ROOT_DIR / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 (UPLOADS_DIR / "videos").mkdir(exist_ok=True)
+(UPLOADS_DIR / "feedback").mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
