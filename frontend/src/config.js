@@ -1,13 +1,15 @@
 // Centralized API configuration for FootballRise with Smart Host Detection
 const getApiUrl = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://localhost:8000';
     }
+  }
+  // Vercel'da eski railway o'zgaruvchisi qolib ketgan bo'lsa ham render'ga o'tkazamiz
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && !envUrl.includes('railway.app')) {
+    return envUrl;
   }
   return 'https://futbol-platform.onrender.com';
 };
