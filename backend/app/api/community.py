@@ -371,12 +371,28 @@ def submit_feedback(
     current_user: User | None = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
-    db.add(Feedback(
+    fb = Feedback(
         text=data.text, page=data.page, source="web",
         user_id=current_user.id if current_user else None,
-    ))
+    )
+    db.add(fb)
     db.commit()
-    return {"ok": True}
+    db.refresh(fb)
+
+    # Zaxira faylga va Telegram orqali Adminga darhol xabar yetkazish
+    try:
+        from app.services.telegram_notify import notify_admin_about_feedback
+        user_name = f"{current_user.first_name} {current_user.last_name or ''}".strip() if current_user else None
+        notify_admin_about_feedback(
+            text=data.text,
+            page=data.page,
+            user_info=user_name,
+            feedback_id=fb.id
+        )
+    except Exception:
+        pass
+
+    return {"ok": True, "id": fb.id}
 
 
 @router.post("/api/feedback/upload-image")

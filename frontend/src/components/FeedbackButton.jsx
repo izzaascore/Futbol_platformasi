@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { MessageSquare, X, Send, CheckCircle2, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { API_URL, ADMIN_PATH, ADMIN_BASE } from '../config';
 
-const MAX_WORDS = 1000;
+const MAX_WORDS = 1000000;
 
 export default function FeedbackButton() {
   const location = useLocation();
@@ -27,7 +27,7 @@ export default function FeedbackButton() {
       setText(val);
       if (error) setError('');
     } else {
-      setError("Maksimal 1000 ta so'z kiritish mumkin.");
+      setError("Maksimal 1 000 000 ta so'z kiritish mumkin.");
     }
   };
 
@@ -98,7 +98,7 @@ export default function FeedbackButton() {
     let value = text.trim();
     if (value.length < 3 || wordCount < 1 || sending) return;
     if (wordCount > MAX_WORDS) {
-      setError("Fikr ko'pi bilan 1000 ta so'zdan iborat bo'lishi mumkin.");
+      setError("Fikr ko'pi bilan 1 000 000 ta so'zdan iborat bo'lishi mumkin.");
       return;
     }
     setSending(true);
@@ -255,7 +255,7 @@ export default function FeedbackButton() {
                 <div className="flex items-center justify-between mt-3 mb-3 text-[11px] text-stone-500">
                   <span role="alert" className="text-red-400">{error}</span>
                   <span className={wordCount >= MAX_WORDS ? 'text-amber-400 font-bold' : ''}>
-                    {wordCount} / {MAX_WORDS} so'z
+                    {wordCount.toLocaleString()} / {MAX_WORDS.toLocaleString()} so'z
                   </span>
                 </div>
                 <button

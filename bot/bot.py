@@ -38,10 +38,10 @@ IS_REAL_TOKEN = bool(
     and RAW_BOT_TOKEN != "your_bot_token_here"
 )
 BOT_TOKEN = RAW_BOT_TOKEN if IS_REAL_TOKEN else "1234567890:AAH_DUMMY_TOKEN_PLEASE_REPLACE"
-# Jonli Railway API manzili:
-API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-dc0f4.up.railway.app")
-# Jonli Vercel Mini App manzili:
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platformasi-alpha.vercel.app")
+# Jonli API va WebApp manzili:
+API_BASE_URL = os.getenv("API_BASE_URL", "https://futbol-platform.onrender.com")
+# Jonli WebApp manzili:
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platform.onrender.com")
 # Admin Telegram ID (muhim shaxsiy xabarlar uchun):
 ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "")
 # Botning API uchun kaliti (admin huquqi bermaydi). Railway Variables da BOT_API_KEY ni o'rnating.
@@ -128,6 +128,13 @@ def get_foot_kb():
 @dp.message(CommandStart())
 async def start_handler(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
+
+    # Admin xabarnomalari uchun ushbu chatni ro'yxatga olamiz
+    try:
+        from app.services.telegram_notify import register_admin_chat
+        register_admin_chat(user_id)
+    except Exception:
+        pass
 
     # API dan o'yinchini tekshiramiz
     async with httpx.AsyncClient() as client:
