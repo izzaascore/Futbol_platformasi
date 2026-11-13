@@ -236,22 +236,37 @@ export default function StadiumsPage() {
 
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Google Maps Tile Layers
-    const TILE_URLS = {
-      street: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-      satellite: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-      dark: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'
+    const createTileLayer = (theme) => {
+      if (theme === 'satellite') {
+        return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19,
+          attribution: 'Tiles &copy; Esri'
+        });
+      }
+      if (theme === 'street') {
+        return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19,
+          subdomains: 'abcd',
+          attribution: '&copy; CartoDB'
+        });
+      }
+      // default: dark
+      return L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '&copy; CartoDB'
+      });
     };
 
-    const initialUrl = TILE_URLS[mapTheme] || TILE_URLS.dark;
-    const tiles = L.tileLayer(initialUrl, {
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    }).addTo(map);
+    const tiles = createTileLayer(mapTheme).addTo(map);
 
     tileLayerRef.current = tiles;
     markersLayerRef.current = L.layerGroup().addTo(map);
     mapInstanceRef.current = map;
+
+    setTimeout(() => {
+      if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
+    }, 200);
 
     return () => {
       map.remove();
@@ -259,15 +274,34 @@ export default function StadiumsPage() {
     };
   }, []);
 
-  // Update Tile Theme (Dark, Street, Satellite)
+  // Update Tile Theme (Dark, Street, Satellite) with zero flickering / blanking
   useEffect(() => {
-    if (!mapInstanceRef.current || !tileLayerRef.current) return;
-    const TILE_URLS = {
-      street: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-      satellite: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-      dark: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'
-    };
-    tileLayerRef.current.setUrl(TILE_URLS[mapTheme] || TILE_URLS.dark);
+    if (!mapInstanceRef.current) return;
+    if (tileLayerRef.current) {
+      mapInstanceRef.current.removeLayer(tileLayerRef.current);
+    }
+    let newTileLayer;
+    if (mapTheme === 'satellite') {
+      newTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Tiles &copy; Esri'
+      });
+    } else if (mapTheme === 'street') {
+      newTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '&copy; CartoDB'
+      });
+    } else {
+      newTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '&copy; CartoDB'
+      });
+    }
+    newTileLayer.addTo(mapInstanceRef.current);
+    tileLayerRef.current = newTileLayer;
+    mapInstanceRef.current.invalidateSize();
   }, [mapTheme]);
 
   // Update Region FlyTo (ONLY IF USER MANUALLY CLICKED A REGION)
@@ -477,20 +511,17 @@ export default function StadiumsPage() {
         </header>
 
         {/* 2. MAIN MAP VIEWPORT */}
-        <div className="relative flex-1 w-full h-full overflow-hidden">
+        <div className="relative flex-1 min-h-0 w-full h-full overflow-hidden">
           
           {/* LEAFLET MAP CANVAS */}
           <div 
             ref={mapContainerRef} 
-            className={`w-full h-full z-10 ${mapTheme === 'dark' ? 'dark-tiles' : ''}`} 
+            className="w-full h-full z-10" 
           />
 
-          {/* Custom CSS for Watermark-Free Luxury Dark Tiles */}
+          {/* Clean Leaflet container background */}
           <style>{`
-            .dark-tiles .leaflet-tile-pane {
-              filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(92%);
-            }
-            .dark-tiles .leaflet-container {
+            .leaflet-container {
               background: #080808;
             }
           `}</style>

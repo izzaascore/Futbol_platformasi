@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShieldHalf, FileText, UserPlus, FileUp, Send, Sparkles } from 'lucide-react';
+import { ShieldHalf, FileText, UserPlus, FileUp, Send, Sparkles, Camera, X } from 'lucide-react';
+import UserAvatar from '../../components/UserAvatar';
 import { API_URL } from '../../config';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [role, setRole] = useState('player');
   const [form, setForm] = useState({
     firstName: '', lastName: '', age: '', password: '', phone: '+998 '
   });
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [playerForm, setPlayerForm] = useState({
     position: '', height: '', weight: '', preferred_foot: '', team: '', video_link: ''
   });
@@ -16,6 +20,7 @@ const RegisterPage = () => {
     organization: '', license_url: ''
   });
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Telegramdan ma'lumotlarni avtomatik to'ldirish
   useEffect(() => {
@@ -33,50 +38,81 @@ const RegisterPage = () => {
     }
   }, []);
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Rasm hajmi 10MB dan oshmasligi kerak");
+        return;
+      }
+      setAvatarFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
     try {
-        const payload = {
-            first_name: form.firstName,
-            last_name: form.lastName,
-            password: form.password,
-            age: form.age ? parseInt(form.age) : null,
-            role: role
-        };
-
-        if (role === 'player') {
-            Object.assign(payload, {
-                position: playerForm.position,
-                height: playerForm.height ? parseInt(playerForm.height) : null,
-                weight: playerForm.weight ? parseInt(playerForm.weight) : null,
-                preferred_foot: playerForm.preferred_foot,
-                team: playerForm.team,
-                video_link: playerForm.video_link
-            });
-        } else {
-            Object.assign(payload, {
-                organization: scoutForm.organization,
-                license_url: scoutForm.license_url
-            });
-        }
-
-        const res = await fetch(`${API_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+      let uploadedAvatarUrl = null;
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append('file', avatarFile);
+        const upRes = await fetch(`${API_URL}/api/auth/upload-avatar`, {
+          method: 'POST',
+          body: formData
         });
-        
-        if (!res.ok) {
-            const err = await res.json();
-            setError(err.detail || 'Xato yuz berdi');
-            return;
+        if (upRes.ok) {
+          const upData = await upRes.json();
+          uploadedAvatarUrl = upData.avatar_url;
         }
-        
-        alert("Profil muvaffaqiyatli yaratildi! Endi tizimga kiring.");
-        navigate('/login');
-        
+      }
+
+      const payload = {
+        first_name: form.firstName,
+        last_name: form.lastName,
+        password: form.password,
+        age: form.age ? parseInt(form.age) : null,
+        role: role,
+        profile_image: uploadedAvatarUrl
+      };
+
+      if (role === 'player') {
+        Object.assign(payload, {
+          position: playerForm.position,
+          height: playerForm.height ? parseInt(playerForm.height) : null,
+          weight: playerForm.weight ? parseInt(playerForm.weight) : null,
+          preferred_foot: playerForm.preferred_foot,
+          team: playerForm.team,
+          video_link: playerForm.video_link
+        });
+      } else {
+        Object.assign(payload, {
+          organization: scoutForm.organization,
+          license_url: scoutForm.license_url
+        });
+      }
+
+      const res = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.detail || 'Xato yuz berdi');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      alert("Profil muvaffaqiyatli yaratildi! Endi tizimga kiring.");
+      navigate('/login');
     } catch (e) {
-        setError("Server bilan bog'lanishda xatolik.");
+      setError("Server bilan bog'lanishda xatolik.");
+      setIsSubmitting(false);
     }
   };
 
@@ -98,6 +134,61 @@ const RegisterPage = () => {
         </Link>
         
         {error && <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded mb-4 text-xs font-bold text-center uppercase tracking-widest">{error}</div>}
+
+        {/* Dynamic Avatar / Profile Picture Upload Section (Telegram-style) */}
+        <div className="flex flex-col items-center justify-center mb-6 p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+          <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            {avatarPreview ? (
+              <img 
+                src={avatarPreview} 
+                alt="Avatar" 
+                className="w-24 h-24 rounded-full object-cover border-2 border-emerald-500 shadow-xl"
+              />
+            ) : (
+              <UserAvatar 
+                name={`${form.firstName || 'F'} ${form.lastName || 'P'}`.trim()} 
+                size="2xl" 
+                className="shadow-xl border-2 border-white/20"
+              />
+            )}
+            <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold">
+              <Camera className="w-5 h-5 mb-0.5" />
+              <span>Rasm yuklash</span>
+            </div>
+            {avatarPreview && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAvatarFile(null);
+                  setAvatarPreview(null);
+                }}
+                className="absolute -top-1 -right-1 p-1 bg-red-600 rounded-full text-white hover:bg-red-700 transition shadow"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleAvatarChange} 
+            accept="image/*" 
+            className="hidden" 
+          />
+          <div className="text-center mt-2.5">
+            <span 
+              onClick={() => fileInputRef.current?.click()} 
+              className="text-xs text-stone-300 hover:text-white cursor-pointer font-bold flex items-center gap-1.5 justify-center"
+            >
+              <Camera className="w-3.5 h-3.5 text-emerald-400" />
+              {avatarPreview ? "Rasmni almashtirish" : "Profil rasmi yuklash (ixtiyoriy)"}
+            </span>
+            <span className="text-[10px] text-stone-500 block mt-0.5">
+              Rasm yuklanmasa, Telegram kabi ism bosh harflari avtomatik belgilanadi
+            </span>
+          </div>
+        </div>
 
         <div className="flex justify-center gap-4 mb-8">
             <button 
@@ -189,8 +280,12 @@ const RegisterPage = () => {
               )}
           </div>
 
-          <button type="submit" className={`w-full py-4 ${role === 'player' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-bold text-xs uppercase tracking-widest rounded transition flex justify-center items-center gap-2 mt-4`}>
-            <UserPlus className="w-4 h-4"/> Yaratish
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className={`w-full py-4 ${role === 'player' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'} disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded transition flex justify-center items-center gap-2 mt-4`}
+          >
+            <UserPlus className="w-4 h-4"/> {isSubmitting ? "Yaratilmoqda..." : "Yaratish"}
           </button>
         </form>
       </div>

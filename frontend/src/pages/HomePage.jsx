@@ -3,106 +3,62 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
   Search, Shield, MapPin, Activity, Trophy, ChevronRight, 
-  Sparkles, CheckCircle2, TrendingUp, ArrowUpRight, Flame, Star, Play
+  Sparkles, CheckCircle2, TrendingUp, ArrowUpRight, Flame, Star, Play, UserPlus
 } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
+import UserAvatar from '../components/UserAvatar';
 import { API_URL } from '../config';
-
-// Fallback high-potential scouted players for immediate display
-const DEFAULT_TALENTS = [
-  {
-    id: 1,
-    full_name: "Azizbek Karimov",
-    position: "Hujumchi (ST)",
-    age: 19,
-    city: "Toshkent",
-    club: "Bunyodkor FK",
-    potential: 94,
-    market_value: "€1.5M",
-    image: "/images/players/players_1552374196-1ab2a1c59.jpg",
-    stats: { pac: 89, sho: 92, pas: 84, dri: 91, def: 45, phy: 82 },
-    is_verified: true,
-    tag: "ENG ZO'R IQTIDOR"
-  },
-  {
-    id: 2,
-    full_name: "Xolqo'zi Rashidoyev",
-    position: "Yarim himoyachi (CAM)",
-    age: 18,
-    city: "Andijon",
-    club: "Navbahor U-19",
-    potential: 91,
-    market_value: "€950K",
-    image: "/images/players/players_1517466787929-bc9095.jpg",
-    stats: { pac: 85, sho: 80, pas: 90, dri: 88, def: 62, phy: 75 },
-    is_verified: true,
-    tag: "PRO SKAUT"
-  },
-  {
-    id: 3,
-    full_name: "Jasur Jalolov",
-    position: "Qanot Hujumchisi (LW)",
-    age: 20,
-    city: "Samarqand",
-    club: "Dinamo Samarqand",
-    potential: 89,
-    market_value: "€800K",
-    image: "/images/players/players_1534438327276-14e530.jpg",
-    stats: { pac: 93, sho: 84, pas: 81, dri: 89, def: 38, phy: 74 },
-    is_verified: true,
-    tag: "PORLAYOTGAN YULDUZ"
-  },
-  {
-    id: 4,
-    full_name: "Sardor Mirzayev",
-    position: "Markaziy Himoyachi (CB)",
-    age: 19,
-    city: "Farg'ona",
-    club: "Neftchi U-21",
-    potential: 88,
-    market_value: "€650K",
-    image: "/images/players/players_1579952363873-27f3ba.jpg",
-    stats: { pac: 78, sho: 50, pas: 74, dri: 72, def: 89, phy: 88 },
-    is_verified: true,
-    tag: "ISHLONCHLI HIMOYA"
-  }
-];
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPosition, setSelectedPosition] = useState('ALL');
   const [selectedAge, setSelectedAge] = useState('ALL');
   const [onlyVerified, setOnlyVerified] = useState(false);
-  const [players, setPlayers] = useState(DEFAULT_TALENTS);
-  const [loading, setLoading] = useState(false);
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch real players from API and merge with default talents
+  // Fetch real players from API - sorted by goals_verified descending
   useEffect(() => {
     fetch(`${API_URL}/api/players`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          const formatted = data.map((p, idx) => ({
-            id: p.id || idx + 10,
-            full_name: p.full_name || p.username || "O'yinchi",
+          const sorted = data.map((p, idx) => ({
+            id: p.id || idx + 1,
+            full_name: p.full_name || p.username || "Futbolchi",
             position: p.position || "Hujumchi",
             age: p.age || 18,
             city: p.city || "Toshkent",
-            club: p.club || "Erkin agent",
-            potential: p.potential || 85,
-            market_value: p.market_value ? `€${p.market_value}` : "€500K",
-            image: p.avatar_url || p.photo_url || DEFAULT_TALENTS[idx % DEFAULT_TALENTS.length].image,
-            stats: p.stats || { pac: 80, sho: 75, pas: 78, dri: 80, def: 60, phy: 70 },
-            is_verified: p.is_verified ?? true,
-            tag: p.tag || "IQTIDOR"
-          }));
-          setPlayers([...formatted, ...DEFAULT_TALENTS.slice(formatted.length >= 4 ? 0 : 0)]);
+            club: p.team || p.club || "Mustaqil",
+            potential: Math.min(99, 82 + (p.goals_verified || 0) * 2),
+            goals_verified: p.goals_verified || 0,
+            market_value: p.market_value || "€850K",
+            image: p.photo_url || p.avatar_url || null,
+            stats: {
+              pac: p.pass_accuracy || 85,
+              sho: Math.min(99, 75 + (p.goals_verified || 0) * 2),
+              pas: p.pass_accuracy || 80,
+              dri: 84,
+              def: 55,
+              phy: p.stamina || 78
+            },
+            is_verified: (p.goals_verified || 0) > 0,
+            tag: idx === 0 ? "#1 REYTING" : (p.goals_verified || 0) > 5 ? "PRO TO'PURAR" : "IQTIDOR"
+          })).sort((a, b) => (b.goals_verified || 0) - (a.goals_verified || 0));
+
+          setPlayers(sorted);
+        } else {
+          setPlayers([]);
         }
+        setLoading(false);
       })
       .catch(() => {
-        // Keep DEFAULT_TALENTS on offline/error
+        setPlayers([]);
+        setLoading(false);
       });
   }, []);
+
+  const topPlayer = players.length > 0 ? players[0] : null;
 
   // Filter logic
   const filteredPlayers = players.filter(p => {
@@ -194,106 +150,139 @@ export default function HomePage() {
 
             </div>
 
-            {/* Right Content: 3D Scouting Card with Intense Glow */}
+            {/* Right Content: Dynamic #1 Player or Register CTA */}
             <div className="lg:col-span-5 flex justify-center items-center relative">
               
               {/* Radial Glass Glow */}
               <div className="glass-glow absolute -inset-8 opacity-75 blur-3xl pointer-events-none"></div>
 
-              {/* Player Card UI */}
-              <div className="relative w-full max-w-[420px] rounded-3xl bg-white/[0.04] border border-white/20 backdrop-blur-2xl shadow-card overflow-hidden group hover:border-white/50 transition-all duration-500">
-                
-                {/* Top Badge */}
-                <div className="px-6 pt-6 pb-2 flex items-center justify-between relative z-10">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-md bg-white text-black text-[10px] font-heading font-black tracking-wider uppercase">
-                      ENG ZO'R IQTIDOR
-                    </span>
-                    <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/20 text-white text-[10px] font-bold tracking-wider">
-                      IMKONIYAT 94
-                    </span>
-                  </div>
-                  <div className="w-8 h-8 rounded-full border border-white/20 overflow-hidden p-0.5 bg-black/60 shadow-sm">
-                    <img src="/images/futuro_icon.jpg" alt="Futuro Icon" className="w-full h-full object-cover rounded-full" />
-                  </div>
-                </div>
-
-                {/* Player Image Section with smooth gradient fade */}
-                <div className="relative h-72 sm:h-80 w-full overflow-hidden flex items-center justify-center bg-stone-900">
-                  <img
-                    src="/images/player.jpg"
-                    alt="Hero Player Action"
-                    onError={(e) => { e.currentTarget.src = '/images/players/players_1552374196-1ab2a1c59.jpg'; }}
-                    className="w-full h-full object-cover object-top filter brightness-95 contrast-105 group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/40 to-transparent"></div>
+              {topPlayer ? (
+                /* Dynamic #1 Top Player Card UI */
+                <div className="relative w-full max-w-[420px] rounded-3xl bg-white/[0.04] border border-white/20 backdrop-blur-2xl shadow-card overflow-hidden group hover:border-white/50 transition-all duration-500">
                   
-                  {/* Floating Price Tag */}
-                  <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
-                    <div>
-                      <div className="text-[10px] uppercase font-bold tracking-widest text-stone-400">Taxminiy Bahosi</div>
-                      <div className="text-3xl font-heading font-black text-white">€1.5M</div>
+                  {/* Top Badge */}
+                  <div className="px-6 pt-6 pb-2 flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-md bg-white text-black text-[10px] font-heading font-black tracking-wider uppercase shadow-glow">
+                        #1 REYTING YETAKCHISI
+                      </span>
+                      <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/20 text-white text-[10px] font-bold tracking-wider">
+                        {topPlayer.goals_verified} TA GOL
+                      </span>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">
-                      Foydali Narx
-                    </span>
+                    <div className="w-8 h-8 rounded-full border border-white/20 overflow-hidden p-0.5 bg-black/60 shadow-sm">
+                      <img src="/images/futuro_icon.jpg" alt="Futuro Icon" className="w-full h-full object-cover rounded-full" />
+                    </div>
                   </div>
+
+                  {/* Player Image Section / UserAvatar */}
+                  <div className="relative h-72 sm:h-80 w-full overflow-hidden flex items-center justify-center bg-stone-900">
+                    {topPlayer.image ? (
+                      <img
+                        src={topPlayer.image}
+                        alt={topPlayer.full_name}
+                        className="w-full h-full object-cover object-top filter brightness-95 contrast-105 group-hover:scale-105 transition-transform duration-700"
+                      />
+                    ) : (
+                      <UserAvatar
+                        name={topPlayer.full_name}
+                        src={topPlayer.image}
+                        size="2xl"
+                        className="w-32 h-32 text-4xl shadow-glow"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/40 to-transparent"></div>
+                    
+                    {/* Floating Price Tag */}
+                    <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
+                      <div>
+                        <div className="text-[10px] uppercase font-bold tracking-widest text-stone-400">Tasdiqlangan Statistika</div>
+                        <div className="text-3xl font-heading font-black text-white">{topPlayer.goals_verified} Gol</div>
+                      </div>
+                      <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">
+                        Tasdiqlangan
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card Info Section */}
+                  <div className="p-6 pt-2 bg-[#030303]/80">
+                    <div className="mb-4">
+                      <h3 className="text-2xl font-heading font-black uppercase text-white tracking-wide truncate">
+                        {topPlayer.full_name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-stone-400 mt-1">
+                        <span className="text-white font-semibold">{topPlayer.club}</span>
+                        <span className="w-1 h-1 rounded-full bg-stone-500"></span>
+                        <span>{topPlayer.city}</span>
+                        <span className="w-1 h-1 rounded-full bg-stone-500"></span>
+                        <span className="text-stone-300 uppercase">{topPlayer.position}</span>
+                      </div>
+                    </div>
+
+                    {/* Radar / Stat Grid */}
+                    <div className="grid grid-cols-6 gap-2 p-3 rounded-xl bg-white/[0.04] border border-white/10 text-center mb-5">
+                      <div>
+                        <div className="text-[9px] font-bold text-stone-400 uppercase">TEZ</div>
+                        <div className="font-heading font-black text-sm text-white">{topPlayer.stats?.pac || 85}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] font-bold text-stone-400 uppercase">ZAR</div>
+                        <div className="font-heading font-black text-sm text-white">{topPlayer.stats?.sho || 82}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] font-bold text-stone-400 uppercase">PAS</div>
+                        <div className="font-heading font-black text-sm text-white">{topPlayer.stats?.pas || 80}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] font-bold text-stone-400 uppercase">DRI</div>
+                        <div className="font-heading font-black text-sm text-white">{topPlayer.stats?.dri || 84}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] font-bold text-stone-400 uppercase">HIM</div>
+                        <div className="font-heading font-black text-sm text-white">{topPlayer.stats?.def || 55}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] font-bold text-stone-400 uppercase">JIS</div>
+                        <div className="font-heading font-black text-sm text-white">{topPlayer.stats?.phy || 78}</div>
+                      </div>
+                    </div>
+
+                    {/* Action Link */}
+                    <Link
+                      to="/players"
+                      className="w-full py-3 rounded-xl bg-white/10 hover:bg-white text-white hover:text-black font-heading font-bold text-xs uppercase tracking-widest transition duration-300 flex items-center justify-center gap-2 border border-white/20"
+                    >
+                      To'liq Skauting Ma'lumotlarini Ko'rish
+                      <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+
                 </div>
-
-                {/* Card Info Section */}
-                <div className="p-6 pt-2 bg-[#030303]/80">
-                  <div className="mb-4">
-                    <h3 className="text-2xl font-heading font-black uppercase text-white tracking-wide">
-                      Azizbek Karimov
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs text-stone-400 mt-1">
-                      <span className="text-white font-semibold">Bunyodkor FK / O'zb U-21</span>
-                      <span className="w-1 h-1 rounded-full bg-stone-500"></span>
-                      <span>19 Yosh</span>
-                      <span className="w-1 h-1 rounded-full bg-stone-500"></span>
-                      <span className="text-stone-300">ST (Hujumchi)</span>
-                    </div>
+              ) : (
+                /* Empty CTA when no players registered yet */
+                <div className="relative w-full max-w-[420px] rounded-3xl bg-white/[0.04] border border-white/20 backdrop-blur-2xl shadow-card p-8 flex flex-col items-center text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-white/[0.06] border border-white/20 flex items-center justify-center mb-5">
+                    <Trophy className="w-10 h-10 text-white" />
                   </div>
-
-                  {/* Radar / Stat Grid */}
-                  <div className="grid grid-cols-6 gap-2 p-3 rounded-xl bg-white/[0.04] border border-white/10 text-center mb-5">
-                    <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">TEZ</div>
-                      <div className="font-heading font-black text-sm text-white">89</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">ZAR</div>
-                      <div className="font-heading font-black text-sm text-white">92</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">PAS</div>
-                      <div className="font-heading font-black text-sm text-white">84</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">DRI</div>
-                      <div className="font-heading font-black text-sm text-white">91</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">HIM</div>
-                      <div className="font-heading font-black text-sm text-white">45</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] font-bold text-stone-400 uppercase">JIS</div>
-                      <div className="font-heading font-black text-sm text-white">82</div>
-                    </div>
-                  </div>
-
-                  {/* Action Link */}
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-wider mb-3">
+                    📌 1-O'rin Hozircha Bo'sh
+                  </span>
+                  <h3 className="text-2xl font-heading font-black text-white uppercase mb-2">
+                    Birinchi Bo'lib Yulduz Bo'ling!
+                  </h3>
+                  <p className="text-stone-400 text-xs leading-relaxed mb-6">
+                    Futuro platformasida ro'yxatdan o'ting, gol videolaringizni yuklang va bosh sahifada #1 iqtidor sifatida aks eting!
+                  </p>
                   <Link
-                    to="/players"
-                    className="w-full py-3 rounded-xl bg-white/10 hover:bg-white text-white hover:text-black font-heading font-bold text-xs uppercase tracking-widest transition duration-300 flex items-center justify-center gap-2 border border-white/20"
+                    to="/register"
+                    className="w-full py-3.5 rounded-xl bg-white text-black font-heading font-black text-xs uppercase tracking-wider shadow-glow hover:bg-stone-200 transition flex items-center justify-center gap-2"
                   >
-                    To'liq Skauting Ma'lumotlarini Ko'rish
-                    <ChevronRight className="w-4 h-4" />
+                    <UserPlus className="w-4 h-4" />
+                    Ro'yxatdan O'tish
                   </Link>
                 </div>
-
-              </div>
+              )}
 
             </div>
 
@@ -397,23 +386,31 @@ export default function HomePage() {
                   key={player.id}
                   className="group relative rounded-2xl bg-white/[0.03] border border-white/10 overflow-hidden hover:border-white/40 transition-all duration-300 flex flex-col justify-between"
                 >
-                  {/* Image container */}
-                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-900">
-                    <img
-                      src={player.image || '/images/player.jpg'}
-                      alt={player.full_name}
-                      onError={(e) => { e.currentTarget.src = '/images/player.jpg'; }}
-                      className="w-full h-full object-cover object-top filter brightness-95 group-hover:scale-105 transition-transform duration-500"
-                    />
+                  {/* Image container / UserAvatar */}
+                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-900 flex items-center justify-center">
+                    {player.image ? (
+                      <img
+                        src={player.image}
+                        alt={player.full_name}
+                        className="w-full h-full object-cover object-top filter brightness-95 group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <UserAvatar
+                        name={player.full_name}
+                        src={player.image}
+                        rounded="2xl"
+                        className="w-32 h-32 text-4xl shadow-glow"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/20 to-transparent"></div>
 
                     {/* Top Badges */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
                       <span className="px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-md border border-white/20 text-[9px] font-heading font-black uppercase text-white tracking-wider">
-                        {player.tag || 'PRO'}
+                        {player.tag || 'IQTIDOR'}
                       </span>
-                      <span className="px-2 py-0.5 rounded-md bg-white text-black text-[10px] font-heading font-black">
-                        IMKONIYAT {player.potential}
+                      <span className="px-2 py-0.5 rounded-md bg-white text-black text-[10px] font-heading font-black shadow-glow">
+                        {player.goals_verified} GOL
                       </span>
                     </div>
 
@@ -468,7 +465,7 @@ export default function HomePage() {
               to="/players"
               className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-white/5 hover:bg-white text-white hover:text-black border border-white/20 hover:border-white font-heading font-bold text-xs uppercase tracking-widest transition duration-300"
             >
-              Barcha 1,250+ O'yinchilarni Ko'rish
+              Barcha Iqtidorlarni Ko'rish
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>

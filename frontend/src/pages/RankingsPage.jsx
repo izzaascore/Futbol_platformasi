@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Trophy, 
   TrendingUp, 
@@ -14,21 +15,12 @@ import {
   Sparkles,
   ChevronRight,
   Flame,
-  X
+  X,
+  UserPlus
 } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
+import UserAvatar from '../components/UserAvatar';
 import { API_URL } from '../config';
-
-const INITIAL_RANKINGS = [
-  { id: 1, name: 'Umidjon Erkinov', club: 'Buxoro U-19', position: 'FW', rating: 92, trend: 'up', points: 2940, image: 'https://images.unsplash.com/photo-1550286395-520556eecdb7?q=80&w=1000&auto=format&fit=crop' },
-  { id: 2, name: 'Azizbek Karimov', club: 'Bunyodkor FK / O\'zb U-21', position: 'FW', rating: 91, trend: 'same', points: 2850, image: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=1000&auto=format&fit=crop' },
-  { id: 3, name: 'Sardor Rashidov', club: 'Andijon FK', position: 'DF', rating: 89, trend: 'up', points: 2710, image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1000&auto=format&fit=crop' },
-  { id: 4, name: 'Jasur Hasanov', club: 'Dinamo Samarqand', position: 'MF', rating: 88, trend: 'up', points: 2620, image: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1000&auto=format&fit=crop' },
-  { id: 5, name: 'Doston Hamdamov', club: 'Neftchi Farg\'ona', position: 'GK', rating: 86, trend: 'down', points: 2590, image: 'https://images.unsplash.com/photo-1518605368461-1ee7c5320746?q=80&w=1000&auto=format&fit=crop' },
-  { id: 6, name: 'Otabek Shukurov', club: 'Nasaf Qarshi U-21', position: 'MF', rating: 85, trend: 'up', points: 2510, image: 'https://images.unsplash.com/photo-1517466787929-bc9095ab716e?q=80&w=1000&auto=format&fit=crop' },
-  { id: 7, name: 'Alisher Jalilov', club: 'Paxtakor U-19', position: 'DF', rating: 84, trend: 'same', points: 2450, image: 'https://images.unsplash.com/photo-1518605368461-1ee7c5320746?q=80&w=1000&auto=format&fit=crop' },
-  { id: 8, name: 'Bobur Davlatov', club: 'Qizilqum Navoiy', position: 'FW', rating: 83, trend: 'down', points: 2380, image: 'https://images.unsplash.com/photo-1550286395-520556eecdb7?q=80&w=1000&auto=format&fit=crop' }
-];
 
 function normalizePosition(pos) {
   if (!pos) return 'FW';
@@ -51,24 +43,37 @@ export default function RankingsPage() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          const formatted = data.map((p, idx) => ({
-            id: p.id,
+          // Deduplicate players by unique full_name
+          const seen = new Set();
+          const unique = [];
+          for (const p of data) {
+            const key = (p.full_name || p.name || '').trim().toLowerCase();
+            if (key && !seen.has(key)) {
+              seen.add(key);
+              unique.push(p);
+            }
+          }
+
+          const formatted = unique.map((p, idx) => ({
+            id: p.id || idx + 1,
             name: p.full_name || p.name || 'Futbolchi',
-            club: p.club || p.city || 'O\'zbekiston',
+            club: p.team || p.club || p.city || 'O\'zbekiston',
             position: normalizePosition(p.position),
-            rating: p.rating || 85,
+            rating: Math.min(99, 82 + (p.goals_verified || 0) * 2),
+            goals_verified: p.goals_verified || 0,
             trend: idx % 3 === 0 ? 'up' : idx % 3 === 1 ? 'same' : 'down',
-            points: (p.rating || 85) * 30 + (p.goals || 0) * 15,
-            image: p.avatar_url || p.photo_url || INITIAL_RANKINGS[idx % INITIAL_RANKINGS.length].image
-          })).sort((a, b) => b.rating - a.rating);
+            points: (p.goals_verified || 0) * 100 + 1500,
+            image: p.photo_url || p.avatar_url || null
+          })).sort((a, b) => (b.goals_verified || 0) - (a.goals_verified || 0));
+
           setRankings(formatted);
         } else {
-          setRankings(INITIAL_RANKINGS);
+          setRankings([]);
         }
         setLoading(false);
       })
       .catch(() => {
-        setRankings(INITIAL_RANKINGS);
+        setRankings([]);
         setLoading(false);
       });
   }, []);
@@ -128,10 +133,12 @@ export default function RankingsPage() {
               >
                 <div className="relative mb-4">
                   <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-stone-300 p-1 shadow-card overflow-hidden bg-stone-900 group-hover:scale-105 transition-transform duration-300">
-                    <img 
+                    <UserAvatar 
+                      name={filteredRankings[1].name} 
                       src={filteredRankings[1].image} 
-                      alt="Silver" 
-                      className="w-full h-full rounded-full object-cover"
+                      size="2xl" 
+                      rounded="full" 
+                      className="w-full h-full text-3xl"
                     />
                   </div>
                   <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 bg-stone-300 text-black font-heading font-black text-base flex items-center justify-center rounded-full border-4 border-[#030303] shadow-lg">2</div>
@@ -154,10 +161,12 @@ export default function RankingsPage() {
               >
                 <div className="relative mb-5">
                   <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full border-4 border-white p-1.5 shadow-glow group-hover:scale-105 transition-transform duration-500 overflow-hidden bg-stone-900">
-                    <img 
+                    <UserAvatar 
+                      name={filteredRankings[0].name} 
                       src={filteredRankings[0].image} 
-                      alt="Gold" 
-                      className="w-full h-full rounded-full object-cover" 
+                      size="2xl" 
+                      rounded="full" 
+                      className="w-full h-full text-4xl shadow-glow"
                     />
                   </div>
                   <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-12 bg-white text-black font-heading font-black text-xl flex items-center justify-center rounded-full border-4 border-[#030303] shadow-glow">
@@ -183,10 +192,12 @@ export default function RankingsPage() {
               >
                 <div className="relative mb-4">
                   <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-amber-600/70 p-1 shadow-card overflow-hidden bg-stone-900 group-hover:scale-105 transition-transform duration-300">
-                    <img 
+                    <UserAvatar 
+                      name={filteredRankings[2].name} 
                       src={filteredRankings[2].image} 
-                      alt="Bronze" 
-                      className="w-full h-full rounded-full object-cover" 
+                      size="2xl" 
+                      rounded="full" 
+                      className="w-full h-full text-3xl"
                     />
                   </div>
                   <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 bg-amber-600 text-white font-heading font-black text-base flex items-center justify-center rounded-full border-4 border-[#030303] shadow-lg">3</div>
@@ -258,10 +269,13 @@ export default function RankingsPage() {
               ))}
             </div>
           ) : filteredRankings.length === 0 ? (
-            <div className="text-center py-16 bg-white/[0.02] rounded-2xl border border-white/10 max-w-md mx-auto">
+            <div className="text-center py-20 bg-white/[0.02] rounded-3xl border border-white/10 max-w-md mx-auto">
               <Trophy className="w-12 h-12 text-stone-600 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-white uppercase tracking-wider">O'yinchi topilmadi</h3>
-              <p className="text-xs text-stone-400 mt-1">Qidiruv so'zini yoki tanlangan pozitsiyani o'zgartiring.</p>
+              <h3 className="text-base font-bold text-white uppercase tracking-wider">Hozircha o'yinchilar yo'q</h3>
+              <p className="text-xs text-stone-400 mt-1 max-w-xs mx-auto">Birinchi bo'lib ro'yxatdan o'ting va milliy reyting peshqadamiga aylaning!</p>
+              <Link to="/register" className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-black font-bold text-xs uppercase tracking-wider shadow-glow">
+                <UserPlus className="w-4 h-4" /> Ro'yxatdan O'tish
+              </Link>
             </div>
           ) : (
             <div className="space-y-3">
@@ -281,11 +295,13 @@ export default function RankingsPage() {
                     </div>
 
                     {/* Avatar */}
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden bg-stone-900 border border-white/15 flex-shrink-0 mr-4">
-                      <img 
+                    <div className="mr-4 flex-shrink-0">
+                      <UserAvatar 
+                        name={player.name} 
                         src={player.image} 
-                        alt={player.name} 
-                        className="w-full h-full object-cover" 
+                        size="md"
+                        rounded="xl"
+                        className="w-11 h-11 sm:w-12 sm:h-12 border border-white/15"
                       />
                     </div>
 
@@ -296,7 +312,7 @@ export default function RankingsPage() {
                           {player.name}
                         </h4>
                         <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-white/10 border border-white/15 text-stone-300">
-                          normalizePosition(player.position) === 'FW' ? 'Hujumchi' : normalizePosition(player.position) === 'MF' ? 'Yarim himoya' : normalizePosition(player.position) === 'DF' ? 'Himoyachi' : 'Darvozabon'
+                          {normalizePosition(player.position) === 'FW' ? 'Hujumchi' : normalizePosition(player.position) === 'MF' ? 'Yarim himoya' : normalizePosition(player.position) === 'DF' ? 'Himoyachi' : 'Darvozabon'}
                         </span>
                       </div>
                       <p className="text-xs text-stone-400 truncate mt-0.5">{player.club}</p>

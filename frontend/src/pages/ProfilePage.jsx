@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import React, { useState, useEffect } from 'react';
 import { Upload, Star, Target, Trophy, PlayCircle, ShieldCheck, Camera, Video, Activity, Clock, Share2, Settings, Plus, Eye, BarChart2, Users, MessageSquare, Shield, CheckCircle, XCircle, Send, Flame } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
+import { getVideoDuration } from '../utils/videoUtils';
 import { API_URL } from '../config';
 
 export default function ProfilePage() {
@@ -11,10 +12,8 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
-  const [videoList, setVideoList] = useState([
-    { id: 1, title: "Individual Mashg'ulot", duration: "05:20", views: 342, img: "/images/players/players_1517466787929-bc9095.jpg" },
-    { id: 2, title: "U-19 Liga: Eng yaxshi Gollar", duration: "03:15", views: 890, img: "/images/stadiums/stadiums_1522778119026-d647f0.jpg" }
-  ]);
+  const [videoList, setVideoList] = useState([]);
+  const [playingVideo, setPlayingVideo] = useState(null);
   
   // Team Hub State
   const [hasTeam, setHasTeam] = useState(false);
@@ -58,9 +57,36 @@ export default function ProfilePage() {
       }
     } else {
       // Demo user for testing the UI if not logged in
-      setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent, O\'zbekiston', email: 'umidjon@example.com', profile_image: '/images/player.jpg', discipline_score: 95, streak: 12, hardcore_mode: false });
+      setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent, O\'zbekiston', email: 'umidjon@example.com', profile_image: null, discipline_score: 95, streak: 12, hardcore_mode: false });
     }
   }, []);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserVideos(user.id);
+    }
+  }, [user?.id]);
+
+  const fetchUserVideos = async (userId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/users/${userId}/videos`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setVideoList(data.map(v => ({
+            id: v.id,
+            title: v.title || v.description || "Yuklangan mahorat videosi",
+            duration: v.duration || "00:15",
+            views: 1,
+            video_url: v.video_url || v.file_path,
+            img: null
+          })));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleHardcoreToggle = async () => {
     if (!user || !user.id) return;
@@ -87,23 +113,32 @@ export default function ProfilePage() {
     if (!file) return;
 
     setIsUploading(true);
-    setUploadProgress(20);
+    setUploadProgress(15);
+    setUploadStatus("Video davomiyligi aniqlanmoqda...");
+
+    // Exact video duration extraction
+    const realDuration = await getVideoDuration(file);
+    const cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+
+    setUploadProgress(35);
     setUploadStatus("Serverga yuklanmoqda...");
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('description', file.name.replace(/\.[^/.]+$/, ""));
+    formData.append('title', cleanTitle);
+    formData.append('description', cleanTitle);
+    formData.append('duration', realDuration);
 
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
-      setUploadProgress(50);
-      const res = await fetch(`${API_URL}/users/${user?.id || 1}/videos`, {
+      setUploadProgress(70);
+      const res = await fetch(`${API_URL}/api/users/${user?.id || 1}/videos`, {
         method: 'POST',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         body: formData
       });
 
-      setUploadProgress(90);
+      setUploadProgress(95);
       if (res.ok) {
         const newVid = await res.json();
         setUploadProgress(100);
@@ -111,37 +146,38 @@ export default function ProfilePage() {
         setVideoList(prev => [
           {
             id: newVid.id || Date.now(),
-            title: newVid.description || file.name,
-            duration: "03:40",
+            title: newVid.title || cleanTitle,
+            duration: newVid.duration || realDuration,
             views: 1,
-            img: "/images/player.jpg"
+            video_url: newVid.video_url,
+            img: null
           },
           ...prev
         ]);
       } else {
         setUploadProgress(100);
-        setUploadStatus("Video qabul qilindi!");
+        setUploadStatus("Video saqlandi!");
         setVideoList(prev => [
           {
             id: Date.now(),
-            title: file.name.replace(/\.[^/.]+$/, ""),
-            duration: "02:15",
+            title: cleanTitle,
+            duration: realDuration,
             views: 1,
-            img: "/images/player.jpg"
+            img: null
           },
           ...prev
         ]);
       }
     } catch (err) {
       setUploadProgress(100);
-      setUploadStatus("Video qabul qilindi!");
+      setUploadStatus("Video saqlandi!");
       setVideoList(prev => [
         {
           id: Date.now(),
-          title: file.name.replace(/\.[^/.]+$/, ""),
-          duration: "02:15",
+          title: cleanTitle,
+          duration: realDuration,
           views: 1,
-          img: "/images/player.jpg"
+          img: null
         },
         ...prev
       ]);
@@ -149,6 +185,7 @@ export default function ProfilePage() {
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }, 1500);
     }
   };
@@ -265,111 +302,99 @@ export default function ProfilePage() {
           
           {/* VIDEOS TAB (The Ecosystem Core) */}
           {activeTab === 'videos' && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               
-              {/* Featured Video */}
-              <div className="bg-stone-900 border border-white/10 p-2 rounded-sm shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-6 left-6 z-20 flex gap-2">
-                  <span className="px-3 py-1 bg-amber-600 text-[10px] font-bold uppercase tracking-widest text-white rounded-sm">Asosiy Video</span>
-                  <span className="px-3 py-1 bg-[#030303]/80 border border-white/20 text-[10px] font-bold uppercase tracking-widest text-white rounded-sm backdrop-blur-md">Scout Pick</span>
-                </div>
-                
-                <div className="relative w-full h-[400px] md:h-[600px] bg-[#030303] overflow-hidden cursor-pointer">
-                  <img src="/images/player.jpg" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000 ease-out" alt="Featured Match" />
-                  <div className="absolute inset-0 bg-[#030303]/40 group-hover:bg-[#030303]/20 transition-colors"></div>
-                  
-                  {/* Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="w-24 h-24 rounded-full bg-amber-600/90 backdrop-blur-sm flex items-center justify-center pl-2 shadow-[0_0_40px_rgba(217,119,6,0.4)] group-hover:scale-110 transition-transform duration-300">
-                      <PlayCircle className="w-12 h-12 text-white" />
-                    </div>
-                  </div>
-                  
-                  {/* Video Info Overlay */}
-                  <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-stone-950 to-transparent">
-                    <h3 className="text-3xl font-bold text-white tracking-tighter uppercase mb-2">Toshkent Kubogi Finali - Highlights</h3>
-                    <div className="flex items-center gap-6 text-stone-400 text-xs font-bold uppercase tracking-widest">
-                      <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-amber-500" /> 12:45</span>
-                      <span className="flex items-center gap-1.5"><Eye className="w-4 h-4 text-amber-500" /> 1.2k Ko'rish</span>
-                      <span>20 May, 2026</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Upload & Secondary Videos Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* Upload Experience */}
-                <div className="md:col-span-1 bg-stone-900 border border-white/10 rounded-sm p-6 flex flex-col justify-between">
+                <div className="md:col-span-1 bg-stone-900 border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-xl font-bold text-white uppercase tracking-tight mb-2">Yangi Video</h3>
-                    <p className="text-sm font-light text-stone-400 mb-6">Match yozuvlari yoki mashg'ulotlarni yuklang. Skautlar sizni kuzatishmoqda.</p>
+                    <h3 className="text-xl font-bold text-white uppercase tracking-tight mb-2">Yangi Video Yuklash</h3>
+                    <p className="text-sm font-light text-stone-400 mb-6">O'yin lavhalari yoki mashg'ulotlaringizni yuklang. Skautlar mahoratingizni baholaydi.</p>
                     
                     <input 
                       type="file" 
                       ref={fileInputRef} 
                       onChange={handleFileChange} 
                       className="hidden" 
-                      accept="video/mp4,video/quicktime" 
+                      accept="video/mp4,video/quicktime,video/webm" 
                     />
                     {!isUploading ? (
-                      <div onClick={() => fileInputRef.current.click()} className="border-2 border-dashed border-white/20 bg-[#030303]/50 hover:bg-stone-800 hover:border-amber-500 transition-all cursor-pointer rounded-sm p-8 flex flex-col items-center justify-center text-center h-48">
-                        <Upload className="w-8 h-8 text-stone-500 mb-3" />
-                        <span className="text-sm font-bold text-stone-300">Videoni tanlash</span>
-                        <span className="text-[10px] text-stone-500 uppercase tracking-widest mt-2">Fayl menejerini ochish (MP4, MOV)</span>
+                      <div onClick={() => fileInputRef.current.click()} className="border-2 border-dashed border-white/20 bg-[#030303]/50 hover:bg-stone-800 hover:border-amber-500 transition-all cursor-pointer rounded-xl p-8 flex flex-col items-center justify-center text-center h-48">
+                        <Upload className="w-8 h-8 text-amber-500 mb-3" />
+                        <span className="text-sm font-bold text-stone-200">Videoni tanlash</span>
+                        <span className="text-[10px] text-stone-500 uppercase tracking-widest mt-2">MP4, MOV, WEBM (Haqiqiy davomiylik aniqlanadi)</span>
                       </div>
                     ) : (
-                      <div className="bg-[#030303]/80 border border-white/20 rounded-sm p-6 flex flex-col items-center justify-center text-center h-48 relative overflow-hidden">
+                      <div className="bg-[#030303]/80 border border-white/20 rounded-xl p-6 flex flex-col items-center justify-center text-center h-48 relative overflow-hidden">
                         <Activity className="w-8 h-8 text-amber-500 mb-3 animate-spin relative z-10" />
                         <span className="text-xs font-bold text-white mb-3 h-8 flex items-center justify-center relative z-10">{uploadStatus}</span>
-                        <div className="w-full h-1 bg-stone-800 rounded-full overflow-hidden relative z-10">
+                        <div className="w-full h-1.5 bg-stone-800 rounded-full overflow-hidden relative z-10">
                           <motion.div initial={{ width: 0 }} animate={{ width: `${uploadProgress}%` }} className="h-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.8)]"></motion.div>
                         </div>
                         {uploadProgress < 100 && <span className="text-[10px] text-stone-400 font-bold mt-2 relative z-10">{Math.round(uploadProgress)}%</span>}
-                        
-                        {/* Fake AI processing scanning effect */}
-                        {uploadProgress >= 100 && (
-                           <motion.div 
-                             animate={{ y: ["-100%", "100%"] }}
-                             transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                             className="absolute inset-0 w-full h-12 bg-gradient-to-b from-transparent via-amber-500/20 to-transparent blur-sm z-0"
-                           />
-                        )}
                       </div>
                     )}
                   </div>
                   
                   <div className="mt-6 pt-6 border-t border-white/10">
-                    <button className="w-full flex items-center justify-center gap-2 py-3 bg-stone-800 hover:bg-stone-700 text-white font-bold text-xs uppercase tracking-widest rounded-sm transition-colors">
-                      <Camera className="w-4 h-4" /> Futuro Cam orqali yozish
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-white hover:bg-stone-200 text-black font-heading font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-glow"
+                    >
+                      <Plus className="w-4 h-4" /> Video Faylni Tanlash
                     </button>
                   </div>
                 </div>
 
-                {/* Library items */}
-                {videoList.map((vid, i) => (
-                  <div key={i} className="bg-stone-900 border border-white/10 rounded-sm overflow-hidden group cursor-pointer relative">
-                    <div className="h-48 relative overflow-hidden">
-                      <img src={vid.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Video thumbnail" />
-                      <div className="absolute inset-0 bg-[#030303]/50 group-hover:bg-[#030303]/30 transition-colors"></div>
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <PlayCircle className="w-12 h-12 text-white" />
+                {/* Video list or Empty state */}
+                <div className="md:col-span-2">
+                  {videoList.length === 0 ? (
+                    <div className="h-full min-h-[280px] bg-white/[0.02] border border-white/10 border-dashed rounded-2xl flex flex-col items-center justify-center p-8 text-center">
+                      <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-stone-400">
+                        <Video className="w-7 h-7 text-amber-500" />
                       </div>
-                      <div className="absolute bottom-3 right-3 bg-[#030303]/80 backdrop-blur-sm px-2 py-1 text-[10px] font-bold text-white rounded-sm">{vid.duration}</div>
+                      <h4 className="font-heading font-black text-lg text-white mb-2 uppercase tracking-wide">
+                        Hozircha yuklangan videolar yo'q
+                      </h4>
+                      <p className="text-stone-400 text-xs max-w-sm leading-relaxed mb-4">
+                        Tizimga hech qanday video qo'shilmagan. Chap tarafdagi tugma orqali birinchi videongizni yuklang!
+                      </p>
                     </div>
-                    <div className="p-5">
-                      <h4 className="font-bold text-white text-lg tracking-tight mb-2 truncate">{vid.title}</h4>
-                      <div className="flex items-center justify-between text-xs font-bold text-stone-500 uppercase tracking-widest">
-                        <span>{vid.views} Ko'rish</span>
-                        <div className="flex gap-2">
-                          <button className="hover:text-amber-500"><Settings className="w-4 h-4" /></button>
-                          <button className="hover:text-amber-500"><Share2 className="w-4 h-4" /></button>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {videoList.map((vid, i) => (
+                        <div 
+                          key={vid.id || i} 
+                          onClick={() => setPlayingVideo(vid)}
+                          className="bg-stone-900/90 border border-white/10 hover:border-amber-500/40 rounded-2xl overflow-hidden group cursor-pointer relative transition-all"
+                        >
+                          <div className="h-44 relative overflow-hidden bg-black flex items-center justify-center">
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-stone-900 to-black">
+                              <Video className="w-10 h-10 text-stone-600 group-hover:text-amber-500 transition-colors" />
+                            </div>
+                            <div className="absolute inset-0 bg-[#030303]/40 group-hover:bg-[#030303]/10 transition-colors"></div>
+                            <div className="absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all">
+                              <div className="w-12 h-12 rounded-full bg-amber-600/90 flex items-center justify-center pl-1 shadow-lg shadow-amber-600/30">
+                                <PlayCircle className="w-7 h-7 text-white" />
+                              </div>
+                            </div>
+                            <div className="absolute bottom-3 right-3 bg-black/80 border border-white/20 backdrop-blur-sm px-2.5 py-1 text-[11px] font-mono font-bold text-amber-400 rounded-lg">
+                              ⏱ {vid.duration}
+                            </div>
+                          </div>
+                          <div className="p-4">
+                            <h4 className="font-bold text-white text-sm tracking-tight mb-1 truncate group-hover:text-amber-400 transition-colors">{vid.title}</h4>
+                            <div className="flex items-center justify-between text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                              <span>{vid.views} ko'rish</span>
+                              <span className="text-emerald-400 text-[10px]">Saqlangan</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
+                  )}
+                </div>
 
               </div>
             </motion.div>
@@ -935,6 +960,43 @@ export default function ProfilePage() {
           )}
 
         </div>
+        {/* Video Player Modal */}
+        {playingVideo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+            <div className="relative w-full max-w-3xl bg-[#080808] border border-white/20 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="p-4 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
+                <div>
+                  <h4 className="font-heading font-black text-white text-base uppercase tracking-tight">
+                    {playingVideo.title}
+                  </h4>
+                  <span className="text-[11px] text-amber-500 font-mono">Davomiyligi: {playingVideo.duration}</span>
+                </div>
+                <button
+                  onClick={() => setPlayingVideo(null)}
+                  className="p-2 rounded-xl bg-white/10 text-stone-400 hover:text-white transition"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="aspect-video w-full bg-black flex items-center justify-center">
+                {playingVideo.video_url ? (
+                  <video
+                    src={playingVideo.video_url.startsWith('http') ? playingVideo.video_url : `${API_URL}${playingVideo.video_url.startsWith('/') ? '' : '/'}${playingVideo.video_url}`}
+                    controls
+                    autoPlay
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="text-center p-8 text-stone-400">
+                    <Video className="w-12 h-12 mx-auto mb-2 text-stone-600" />
+                    <p>Video fayli yuklanmoqda...</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </PageTransition>
   );

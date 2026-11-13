@@ -40,34 +40,37 @@ def auto_migrate_db():
         inspector = inspect(engine)
         tables = inspector.get_table_names()
 
-        # 1. Products table columns (har bir ustun alohida tranzaksiyada, DEFAULT bir tirnoqda)
-        if "products" in tables:
-            product_cols = [c["name"] for c in inspector.get_columns("products")]
-            if "category" not in product_cols:
+        # 1. User videos columns (title, duration)
+        if "user_videos" in tables:
+            uv_cols = [c["name"] for c in inspector.get_columns("user_videos")]
+            if "title" not in uv_cols:
                 try:
                     with engine.begin() as conn:
-                        conn.execute(text("ALTER TABLE products ADD COLUMN category VARCHAR(50) DEFAULT 'smart'"))
-                        print("[Auto-Migration] 'products' jadvaliga 'category' ustuni qo'shildi.")
+                        conn.execute(text("ALTER TABLE user_videos ADD COLUMN title VARCHAR(255)"))
+                        print("[Auto-Migration] 'user_videos' jadvaliga 'title' ustuni qo'shildi.")
                 except Exception as e:
-                    print(f"[Auto-Migration Notice category] {e}")
+                    print(f"[Auto-Migration Notice title] {e}")
 
-            if "badge" not in product_cols:
+            if "duration" not in uv_cols:
                 try:
                     with engine.begin() as conn:
-                        conn.execute(text("ALTER TABLE products ADD COLUMN badge VARCHAR(50)"))
-                        print("[Auto-Migration] 'products' jadvaliga 'badge' ustuni qo'shildi.")
+                        conn.execute(text("ALTER TABLE user_videos ADD COLUMN duration VARCHAR(50) DEFAULT '00:00'"))
+                        print("[Auto-Migration] 'user_videos' jadvaliga 'duration' ustuni qo'shildi.")
                 except Exception as e:
-                    print(f"[Auto-Migration Notice badge] {e}")
+                    print(f"[Auto-Migration Notice duration] {e}")
 
-            if "stock" not in product_cols:
+        # 2. Players table photo_url column
+        if "players" in tables:
+            player_cols = [c["name"] for c in inspector.get_columns("players")]
+            if "photo_url" not in player_cols:
                 try:
                     with engine.begin() as conn:
-                        conn.execute(text("ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT 10"))
-                        print("[Auto-Migration] 'products' jadvaliga 'stock' ustuni qo'shildi.")
+                        conn.execute(text("ALTER TABLE players ADD COLUMN photo_url VARCHAR(255)"))
+                        print("[Auto-Migration] 'players' jadvaliga 'photo_url' ustuni qo'shildi.")
                 except Exception as e:
-                    print(f"[Auto-Migration Notice stock] {e}")
+                    print(f"[Auto-Migration Notice photo_url] {e}")
 
-        # 2. Scout invitations check
+        # 3. Scout invitations check
         if "scout_invitations" in tables:
             scout_cols = [c["name"] for c in inspector.get_columns("scout_invitations")]
             if "status" not in scout_cols:
@@ -98,12 +101,18 @@ async def lifespan(app: FastAPI):
     bot_task = None
     bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
     if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and bot_token != "your_bot_token_here":
-        try:
-            from bot.bot import bot, dp
-            print("🚀 Bulutda 24/7 Telegram Bot avtomatik ishga tushirilmoqda...")
-            bot_task = asyncio.create_task(dp.start_polling(bot))
-        except Exception as e:
-            print(f"⚠️ Telegram botni fonda ishga tushirishda ogohlantirish: {e}")
+        async def run_bot_polling():
+            try:
+                from bot.bot import bot, dp
+                print("🚀 Bulutda 24/7 Telegram Bot tekshirilmoqda va ishga tushirilmoqda...")
+                await bot.delete_webhook(drop_pending_updates=False)
+                await dp.start_polling(bot, handle_signals=False)
+            except asyncio.CancelledError:
+                print("🛑 Telegram bot polling to'xtatildi.")
+            except Exception as e:
+                print(f"⚠️ Telegram bot polling xatosi: {e}")
+
+        bot_task = asyncio.create_task(run_bot_polling())
 
     yield
 
@@ -198,6 +207,7 @@ UPLOADS_DIR = ROOT_DIR / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 (UPLOADS_DIR / "videos").mkdir(exist_ok=True)
 (UPLOADS_DIR / "feedback").mkdir(exist_ok=True)
+(UPLOADS_DIR / "avatars").mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
@@ -213,7 +223,6 @@ from app.api import (
     matches_router,
     tournaments_router,
     scouts_router,
-    shop_router,
     community_router,
 )
 
@@ -222,7 +231,6 @@ app.include_router(players_router)
 app.include_router(matches_router)
 app.include_router(tournaments_router)
 app.include_router(scouts_router)
-app.include_router(shop_router)
 app.include_router(community_router)
 
 

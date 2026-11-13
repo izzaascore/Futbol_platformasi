@@ -7,6 +7,7 @@ import {
   MessageSquare, MessageCircle, CheckCheck, Loader2, UserPlus, Pin
 } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
+import UserAvatar from '../components/UserAvatar';
 import { API_URL } from '../config';
 
 const TiltCard = ({ children, className, onClick }) => {
@@ -227,44 +228,70 @@ const PlayersPage = () => {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          // Faqat haqiqiy ro'yxatdan o'tgan foydalanuvchilarni ko'rsatamiz
-          // Soxta / demo profillar yo'q!
-          const registered = data.map((p, idx) => ({
-            ...p,
-            id: p.id || idx + 100,
-            full_name: p.full_name || p.username || 'Futbolchi',
-            position: (p.position || 'hujumchi').toLowerCase(),
-            rating: p.rating || 85,
-            age: p.age || 18,
-            club: p.team || p.club || "Mustaqil Futbolchi",
-            city: p.city || 'Toshkent',
-            market_value: p.market_value || '—',
-            image: p.avatar_url || p.photo_url || '/images/player.jpg',
-            stats: p.stats || { pac: 82, sho: 78, pas: 80, dri: 82, def: 58, phy: 76 },
-            is_real_registered: true
-          }));
+          // Faqat haqiqiy ro'yxatdan o'tgan futbolchilarni olamiz va takrorlanishlarni tozalaymiz
+          const seen = new Set();
+          const registered = [];
 
-          // Agar joriy foydalanuvchi login qilgan bo'lsa, uni PIN qilamiz
+          for (let idx = 0; idx < data.length; idx++) {
+            const p = data[idx];
+            if (!p) continue;
+            const fullName = (p.full_name || p.username || '').trim();
+            const normKey = fullName.toLowerCase() || `player_${p.id || idx}`;
+            if (seen.has(normKey)) continue;
+            seen.add(normKey);
+
+            registered.push({
+              ...p,
+              id: p.id || idx + 100,
+              full_name: fullName || 'Futbolchi',
+              position: (p.position || 'hujumchi').toLowerCase(),
+              rating: p.rating || 85,
+              age: p.age || 18,
+              club: p.team || p.club || "Mustaqil Futbolchi",
+              city: p.city || 'Toshkent',
+              market_value: p.market_value || '—',
+              image: p.photo_url || p.avatar_url || p.profile_image || null,
+              stats: p.stats || { pac: 82, sho: 78, pas: 80, dri: 82, def: 58, phy: 76 },
+              is_real_registered: true
+            });
+          }
+
+          // Agar joriy foydalanuvchi login qilgan bo'lsa, uni topib PIN qilamiz (takrorlamasdan!)
           const userStr = localStorage.getItem('talaqCurrentUser');
           if (userStr) {
             try {
               const u = JSON.parse(userStr);
               if (u && (u.role === 'player' || u.first_name)) {
-                const myProfile = {
-                  id: 99999,
-                  full_name: `${u.first_name || 'Foydalanuvchi'} ${u.last_name || ''}`.trim(),
-                  position: (u.position || 'hujumchi').toLowerCase(),
-                  rating: u.rating || 88,
-                  age: u.age || 19,
-                  club: u.team || "Mening Profilim",
-                  city: u.address || 'Toshkent',
-                  market_value: u.market_value || '—',
-                  image: u.profile_image || '/images/player.jpg',
-                  stats: { pac: 88, sho: 85, pas: 86, dri: 89, def: 65, phy: 80 },
-                  is_real_registered: true,
-                  is_pinned: true
-                };
-                if (!registered.some(cp => cp.id === 99999)) {
+                const myName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
+                const existingIdx = registered.findIndex(cp => 
+                  (u.id && cp.user_id === u.id) || 
+                  (myName && cp.full_name.toLowerCase() === myName.toLowerCase())
+                );
+
+                if (existingIdx !== -1) {
+                  // Foydalanuvchi allaqachon ro'yxatda bor - uni yangilab, boshiga PIN qilamiz
+                  const existing = registered[existingIdx];
+                  existing.is_pinned = true;
+                  if (u.profile_image) existing.image = u.profile_image;
+                  registered.splice(existingIdx, 1);
+                  registered.unshift(existing);
+                } else if (myName) {
+                  // Ro'yxatda hali yo'q bo'lsa, birinchi o'ringa qo'shamiz
+                  const myProfile = {
+                    id: u.id || 99999,
+                    user_id: u.id,
+                    full_name: myName,
+                    position: (u.position || 'hujumchi').toLowerCase(),
+                    rating: u.rating || 88,
+                    age: u.age || 19,
+                    club: u.team || "Mening Profilim",
+                    city: u.address || 'Toshkent',
+                    market_value: u.market_value || '—',
+                    image: u.profile_image || null,
+                    stats: { pac: 88, sho: 85, pas: 86, dri: 89, def: 65, phy: 80 },
+                    is_real_registered: true,
+                    is_pinned: true
+                  };
                   registered.unshift(myProfile);
                 }
               }
@@ -481,14 +508,21 @@ const PlayersPage = () => {
                 className="group cursor-pointer rounded-2xl bg-white/[0.03] border border-white/10 overflow-hidden hover:border-white/40 transition-all duration-300 flex flex-col justify-between"
               >
                 {/* Image Section */}
-                <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-900">
-                  <img
-                    src={player.image || '/images/player.jpg'}
-                    alt={player.full_name}
-                    onError={(e) => { e.currentTarget.src = '/images/player.jpg'; }}
-                    className="w-full h-full object-cover object-top filter brightness-95 group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/30 to-transparent"></div>
+                <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-900 flex items-center justify-center">
+                  {player.image && !player.image.includes('player.jpg') ? (
+                    <img
+                      src={player.image}
+                      alt={player.full_name}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      className="w-full h-full object-cover object-top filter brightness-95 group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-stone-900 via-stone-950 to-black p-4">
+                      <UserAvatar name={player.full_name} size="2xl" rounded="2xl" className="shadow-2xl border-2 border-white/20 mb-2" />
+                      <span className="text-[10px] font-mono tracking-widest uppercase text-stone-500">Futuro Player</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/30 to-transparent pointer-events-none"></div>
 
                   {/* Top Badges */}
                   <div className="absolute top-3 left-3 right-3 flex items-start justify-between z-10 gap-2">
@@ -613,8 +647,12 @@ const PlayersPage = () => {
               </button>
 
               <div className="flex flex-col sm:flex-row gap-6 items-start">
-                <div className="w-full sm:w-48 aspect-[3/4] rounded-2xl overflow-hidden bg-stone-900 border border-white/15 flex-shrink-0">
-                  <img src={selectedPlayer.image} alt={selectedPlayer.full_name} className="w-full h-full object-cover object-top" />
+                <div className="w-full sm:w-48 aspect-[3/4] rounded-2xl overflow-hidden bg-stone-900 border border-white/15 flex-shrink-0 flex items-center justify-center">
+                  {selectedPlayer.image && !selectedPlayer.image.includes('player.jpg') ? (
+                    <img src={selectedPlayer.image} alt={selectedPlayer.full_name} className="w-full h-full object-cover object-top" />
+                  ) : (
+                    <UserAvatar name={selectedPlayer.full_name} size="2xl" rounded="2xl" className="border-2 border-white/20" />
+                  )}
                 </div>
                 <div className="flex-grow">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[10px] font-heading font-black text-white uppercase tracking-wider mb-2">
@@ -763,13 +801,12 @@ const PlayersPage = () => {
               <div className="p-4 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <img 
-                      src={chatPlayer.image || '/images/player.jpg'} 
-                      alt={chatPlayer.full_name} 
-                      onError={(e) => { e.currentTarget.src = '/images/player.jpg'; }}
-                      className="w-10 h-10 rounded-full object-cover border border-white/20"
+                    <UserAvatar 
+                      name={chatPlayer.full_name} 
+                      src={chatPlayer.image} 
+                      size="sm" 
                     />
-                    <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-black"></span>
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-black"></span>
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">

@@ -40,7 +40,17 @@ def get_all_players(
         query = query.filter(Player.city.ilike(f"%{city}%"))
     if position:
         query = query.filter(Player.position.ilike(f"%{position}%"))
-    return query.all()
+    
+    all_players = query.order_by(Player.goals_verified.desc()).all()
+    # Deduplicate: har bir haqiqiy o'yinchi faqat 1 marta ko'rsatiladi
+    unique_players = []
+    seen = set()
+    for p in all_players:
+        key = (p.user_id if p.user_id else (p.full_name or '').strip().lower())
+        if key and key not in seen:
+            seen.add(key)
+            unique_players.append(p)
+    return unique_players
 
 
 @router.get("/api/scout/players", response_model=list[PlayerOut], dependencies=[Depends(RequireRole(["scout", "admin"]))])

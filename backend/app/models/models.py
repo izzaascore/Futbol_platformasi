@@ -73,6 +73,8 @@ class UserVideo(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     video_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    duration: Mapped[str | None] = mapped_column(String(50), nullable=True, default="00:00")
     status: Mapped[VerificationStatus] = mapped_column(Enum(VerificationStatus), default=VerificationStatus.PENDING)
     
     # AI Auto-Clipping (Avtomatik Highlights)
@@ -98,6 +100,7 @@ class Player(Base):
     position: Mapped[str | None] = mapped_column(String(50), nullable=True)
     preferred_foot: Mapped[str | None] = mapped_column(String(20), nullable=True)
     team: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    photo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Statistika
     goals_claimed: Mapped[int] = mapped_column(Integer, default=0)
@@ -223,32 +226,6 @@ class ScoutInvitation(Base):
     message: Mapped[str] = mapped_column(Text, nullable=False)
     contact_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     status: Mapped[str] = mapped_column(String(30), default="kutilmoqda") # kutilmoqda, qabul_qilindi, rad_etildi
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-class Product(Base):
-    __tablename__ = "products"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    category: Mapped[str | None] = mapped_column(String(50), default="smart") # smart, equip, kit, boots
-    price: Mapped[int] = mapped_column(Integer, nullable=False, default=0) # Narxi UZS da
-    image_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    badge: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    stock: Mapped[int | None] = mapped_column(Integer, default=10)
-
-class ShopOrder(Base):
-    __tablename__ = "shop_orders"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    customer_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    customer_phone: Mapped[str] = mapped_column(String(50), nullable=False)
-    shipping_city: Mapped[str] = mapped_column(String(100), default="Toshkent")
-    shipping_address: Mapped[str] = mapped_column(Text, nullable=False)
-    payment_method: Mapped[str] = mapped_column(String(50), default="click")
-    total_price: Mapped[int] = mapped_column(Integer, nullable=False)
-    items_json: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[str] = mapped_column(String(50), default="kutilmoqda")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class Tournament(Base):
@@ -552,15 +529,6 @@ class VideoVote(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     entry_id: Mapped[int] = mapped_column(ForeignKey("video_battle_entries.id"), nullable=False, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-
-class ShopNotify(Base):
-    """Do'kon ochilganda xabar olmoqchi bo'lganlar telefon raqamlari."""
-    __tablename__ = "shop_notify"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    phone: Mapped[str] = mapped_column(String(20), unique=True, index=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

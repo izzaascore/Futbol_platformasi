@@ -19,7 +19,6 @@ import PlayerDashboard from './pages/player/PlayerDashboard';
 import HomePage from './pages/HomePage';
 import PlayersPage from './pages/PlayersPage';
 import ScoutsPage from './pages/ScoutsPage';
-import ShopPage from './pages/ShopPage';
 import TournamentsPage from './pages/TournamentsPage';
 import NewsPage from './pages/NewsPage';
 import RankingsPage from './pages/RankingsPage';
@@ -29,6 +28,7 @@ import ReelsPage from './pages/ReelsPage';
 import ManifestoPage from './pages/ManifestoPage';
 import StadiumsPage from './pages/StadiumsPage';
 import DailyDrillsPage from './pages/DailyDrillsPage';
+import UserAvatar from './components/UserAvatar';
 
 // Public layout wrapper for normal pages (like Home, News, etc.)
 function PublicLayout({ children }) {
@@ -50,7 +50,6 @@ function PublicLayout({ children }) {
     { to: '/stadiums', label: 'Maydonlar', icon: <MapPin className="w-3.5 h-3.5 text-white" /> },
     { to: '/rankings', label: 'Reyting' },
     { to: '/tournaments', label: 'Turnirlar' },
-    { to: '/shop', label: "Do'kon", icon: <ShoppingBag className="w-3.5 h-3.5" /> },
     { 
       to: '/live', 
       label: 'Jonli Efir', 
@@ -122,9 +121,12 @@ function PublicLayout({ children }) {
                   }
                   className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition"
                 >
-                  <div className="w-7 h-7 rounded-md bg-stone-800 flex items-center justify-center font-bold text-xs uppercase text-white border border-white/20">
-                    {user.full_name ? user.full_name.charAt(0) : 'U'}
-                  </div>
+                  <UserAvatar
+                    name={user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || 'Foydalanuvchi'}
+                    src={user.profile_image || user.photo_url}
+                    size="xs"
+                    rounded="xl"
+                  />
                   <div className="flex flex-col text-left">
                     <span className="text-xs font-bold text-white leading-tight truncate max-w-[120px]">
                       {user.full_name || user.username || 'Foydalanuvchi'}
@@ -438,7 +440,6 @@ function App() {
         <Route path="/tournaments" element={<PublicLayout><TournamentsPage /></PublicLayout>} />
         <Route path="/rankings" element={<PublicLayout><RankingsPage /></PublicLayout>} />
         <Route path="/reels" element={<PublicLayout><ReelsPage /></PublicLayout>} />
-        <Route path="/shop" element={<PublicLayout><ShopPage /></PublicLayout>} />
         <Route path="/news" element={<PublicLayout><NewsPage /></PublicLayout>} />
         <Route path="/drills" element={<PublicLayout><DailyDrillsPage /></PublicLayout>} />
         <Route path="/profile" element={<PublicLayout><ProfilePage /></PublicLayout>} />

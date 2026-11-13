@@ -23,6 +23,7 @@ class UserCreate(UserBase):
     password: str
     role: UserRole = UserRole.PLAYER
     kyc_document_url: str | None = None
+    profile_image: str | None = None
     # Player fields
     position: str | None = None
     height: int | None = None
@@ -59,6 +60,8 @@ class UserProfileImageUpdate(BaseModel):
 
 class UserVideoBase(BaseModel):
     video_url: str
+    title: str | None = None
+    duration: str | None = "00:00"
     is_ai_processed: bool = False
     highlight_url: str | None = None
 
@@ -79,6 +82,8 @@ class PlayerBase(BaseModel):
     position: str | None = None
     preferred_foot: str | None = None
     team: str | None = None
+    photo_url: str | None = None
+    user_id: int | None = None
     goals_claimed: int = 0
     height: int | None = None
     weight: int | None = None
@@ -198,50 +203,6 @@ class ScoutCreate(ScoutBase):
 
 class ScoutOut(ScoutBase):
     id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-# --- PRODUCT SCHEMAS ---
-class ProductBase(BaseModel):
-    name: str
-    description: str | None = None
-    category: str | None = "smart"
-    price: int = 0
-    image_url: str | None = None
-    badge: str | None = None
-    stock: int | None = 10
-
-class ProductCreate(ProductBase):
-    pass
-
-class ProductOut(ProductBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-# --- SHOP ORDER SCHEMAS ---
-class ShopOrderCreate(BaseModel):
-    # total_price YO'Q: narx serverda bazadagi Product.price dan hisoblanadi
-    customer_name: str = Field(min_length=2, max_length=100)
-    customer_phone: str = Field(min_length=7, max_length=50)
-    shipping_city: str = Field(default="Toshkent", max_length=100)
-    shipping_address: str = Field(min_length=3, max_length=500)
-    payment_method: str = Field(default="click", max_length=50)
-    items_json: str = Field(max_length=5000)  # [{"id": 1, "qty": 2}, ...]
-
-class ShopOrderOut(BaseModel):
-    id: int
-    customer_name: str
-    customer_phone: str
-    shipping_city: str
-    shipping_address: str
-    payment_method: str
-    total_price: int
-    items_json: str
-    status: str
     created_at: datetime
 
     class Config:
@@ -632,20 +593,6 @@ class StadiumOut(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-class ShopNotifyCreate(BaseModel):
-    phone: str = Field(min_length=7, max_length=30)
-
-    @field_validator("phone")
-    @classmethod
-    def normalize_phone(cls, v: str) -> str:
-        digits = re.sub(r"\D", "", v)
-        if len(digits) == 9:          # 901234567 -> 998901234567
-            digits = "998" + digits
-        if len(digits) != 12 or not digits.startswith("998"):
-            raise ValueError("Telefon raqami noto'g'ri")
-        return "+" + digits
 
 
 class FeedbackCreate(BaseModel):

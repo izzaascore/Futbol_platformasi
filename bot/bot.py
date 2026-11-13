@@ -254,19 +254,43 @@ async def process_foot(message: types.Message, state: FSMContext):
 
 # --- PROFILNI KO'RISH ---
 
-@dp.message(F.text == "👤 Profilim")
-async def show_profile(message: types.Message):
-    async with httpx.AsyncClient() as client:
+@dp.message(F.text.in_(["👤 Profilim", "/profil", "/profile", "Profilim"]))
+async def show_profile(message: types.Message, state: FSMContext):
+    await state.clear()
+    async with httpx.AsyncClient(timeout=10) as client:
         try:
             res = await client.get(f"{API_BASE_URL}/players?telegram_id={message.from_user.id}")
             players = res.json() if res.status_code == 200 else []
             user = players[0] if players else None
         except Exception:
-            await message.answer("Ma'lumotlarni yuklab bo'lmadi.")
-            return
+            # Lokal DB dan zaxira tekshirish
+            try:
+                from app.core.database import SessionLocal
+                from app.models import Player
+                with SessionLocal() as db:
+                    p = db.query(Player).filter(Player.telegram_id == message.from_user.id).first()
+                    if p:
+                        user = {
+                            "full_name": p.full_name,
+                            "age": p.age or "Kiritilmagan",
+                            "city": p.city or "Kiritilmagan",
+                            "position": p.position or "Hujumchi",
+                            "preferred_foot": p.preferred_foot or "O'ng",
+                            "goals_verified": p.goals_verified or 0,
+                            "goals_claimed": p.goals_claimed or 0
+                        }
+                    else:
+                        user = None
+            except Exception:
+                user = None
 
     if not user:
-        await message.answer("Profilingiz topilmadi. /start buyrug'ini bosing.")
+        await message.answer(
+            "⚠️ <b>Profilingiz hali yaratilmagan.</b>\n\n"
+            "Profil yaratish uchun /start buyrug'ini bosing yoki quyidagi Mini App orqali to'g'ridan-to'g'ri ro'yxatdan o'ting:",
+            parse_mode="HTML",
+            reply_markup=get_webapp_inline_kb()
+        )
         return
 
     profile_text = (
@@ -276,19 +300,21 @@ async def show_profile(message: types.Message):
         f"📍 <b>Shahar:</b> {user['city']}\n"
         f"⚡ <b>Pozitsiya:</b> {user['position']}\n"
         f"👟 <b>Zarba oyog'i:</b> {user['preferred_foot']}\n\n"
-        f"✅ <b>Tasdiqlangan gollar:</b> {user['goals_verified']} ta\n"
-        f"📊 <b>Umumiy aytilgan gollar:</b> {user['goals_claimed']} ta"
+        f"✅ <b>Tasdiqlangan gollar:</b> {user.get('goals_verified', 0)} ta\n"
+        f"📊 <b>Umumiy aytilgan gollar:</b> {user.get('goals_claimed', 0)} ta"
     )
-    await message.answer(profile_text, parse_mode="HTML")
+    await message.answer(profile_text, parse_mode="HTML", reply_markup=get_main_menu())
 
 
 # --- VIDEO YUBORISH JARAYONI ---
 
-@dp.message(F.text == "⚽ Gol videosini yuborish")
+@dp.message(F.text.in_(["⚽ Gol videosini yuborish", "Gol videosini yuborish", "/gol", "/video"]))
 async def start_submit_goal(message: types.Message, state: FSMContext):
+    await state.clear()
     await message.answer(
         "📹 <b>Gol yoki xavfli vaziyat aks etgan qisqa videoni yuboring:</b>\n"
-        "(Video telegram orqali to'g'ridan-to'g'ri video formatida yuborilishi kerak)",
+        "(Video telegram orqali to'g'ridan-to'g'ri video formatida yuborilishi kerak)\n\n"
+        "Bekor qilish uchun: /bekor",
         parse_mode="HTML",
         reply_markup=ReplyKeyboardRemove()
     )
@@ -361,29 +387,54 @@ async def process_caption(message: types.Message, state: FSMContext):
 
 # --- TOP O'YINCHILAR REYTINGI ---
 
-@dp.message(F.text == "🏆 Reyting (Top o'yinchilar)")
-async def show_leaderboard(message: types.Message):
-    async with httpx.AsyncClient() as client:
+@dp.message(F.text.in_(["🏆 Reyting", "🏆 Reyting (Top o'yinchilar)", "Reyting", "/reyting", "/leaderboard"]))
+async def show_leaderboard(message: types.Message, state: FSMContext):
+    await state.clear()
+    players = []
+    async with httpx.AsyncClient(timeout=10) as client:
         try:
             res = await client.get(f"{API_BASE_URL}/players")
-            players = res.json()
+            if res.status_code == 200:
+                players = res.json()
         except Exception:
-            await message.answer("Reytingni yuklab bo'lmadi.")
-            return
+            pass
+
+    if not players:
+        # Fallback to local DB
+        try:
+            from app.core.database import SessionLocal
+            from app.models import Player
+            with SessionLocal() as db:
+                db_players = db.query(Player).all()
+                players = [
+                    {
+                        "full_name": p.full_name,
+                        "city": p.city,
+                        "goals_verified": p.goals_verified or 0
+                    }
+                    for p in db_players
+                ]
+        except Exception:
+            players = []
 
     # Tasdiqlangan gollar bo'yicha saralash
     sorted_players = sorted(players, key=lambda x: x.get("goals_verified", 0), reverse=True)[:10]
 
     if not sorted_players:
-        await message.answer("Platforma test jarayonida  ma'lum vaqtdan keyin futbolchialar reytingi yangilanib boradi")
+        await message.answer(
+            "🏆 <b>Futuro Milliy Reytingi</b>\n\n"
+            "Platforma yangi boshlanmoqda. Birinchi bo'lib gol videongizni yuboring va reytingning 1-o'rniga chiqing!",
+            parse_mode="HTML",
+            reply_markup=get_main_menu()
+        )
         return
 
     text = "🏆 <b>Eng ko'p tasdiqlangan gol urganlar TOP-10:</b>\n\n"
     for i, p in enumerate(sorted_players, 1):
         medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
-        text += f"{medal} <b>{p['full_name']}</b> ({p['city'] or 'Nomaʼlum'}) — <b>{p['goals_verified']} ta gol</b>\n"
+        text += f"{medal} <b>{p['full_name']}</b> ({p.get('city') or 'Nomaʼlum'}) — <b>{p.get('goals_verified', 0)} ta gol</b>\n"
 
-    await message.answer(text, parse_mode="HTML")
+    await message.answer(text, parse_mode="HTML", reply_markup=get_main_menu())
 
 
 # ==============================================================
@@ -396,11 +447,12 @@ class FeedbackState(StatesGroup):
     waiting_text = State()
 
 
-@dp.message(F.text == "💬 Fikr / Muammo bildirish")
+@dp.message(F.text.in_(["💬 Fikr / Muammo bildirish", "Fikr / Muammo bildirish", "/fikr", "/muammo", "/shikoyat"]))
 @dp.message(Command("fikr"))
 @dp.message(Command("muammo"))
 @dp.message(Command("shikoyat"))
 async def feedback_start(message: types.Message, state: FSMContext):
+    await state.clear()
     await state.set_state(FeedbackState.waiting_text)
     await message.answer(
         "💬 <b>Fikr, taklif yoki muammo bildirish:</b>\n\n"
@@ -810,6 +862,7 @@ async def main():
 
     print("[Telegram Bot] Muvaffaqiyatli ishga tushdi...")
     try:
+        await bot.delete_webhook(drop_pending_updates=False)
         await bot.set_chat_menu_button(
             menu_button=MenuButtonWebApp(text="Ilova", web_app=WebAppInfo(url=WEBAPP_URL))
         )

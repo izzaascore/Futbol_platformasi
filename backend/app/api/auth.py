@@ -2,7 +2,7 @@ import os
 import secrets
 import pathlib
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
@@ -124,17 +124,33 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user)
     
     if user.role == UserRole.PLAYER:
-        player = Player(
-            user_id=user.id,
-            full_name=f"{user.first_name} {user.last_name}",
-            age=user.age,
-            position=player_fields["position"],
-            height=player_fields["height"],
-            weight=player_fields["weight"],
-            preferred_foot=player_fields["preferred_foot"],
-            team=player_fields["team"]
-        )
-        db.add(player)
+        player_name = f"{user.first_name} {user.last_name}".strip()
+        existing_p = db.query(Player).filter(
+            (Player.user_id == user.id) | (Player.full_name == player_name)
+        ).first()
+        if existing_p:
+            existing_p.user_id = user.id
+            existing_p.age = user.age
+            existing_p.position = player_fields["position"]
+            existing_p.height = player_fields["height"]
+            existing_p.weight = player_fields["weight"]
+            existing_p.preferred_foot = player_fields["preferred_foot"]
+            existing_p.team = player_fields["team"]
+            existing_p.photo_url = user.profile_image
+            player = existing_p
+        else:
+            player = Player(
+                user_id=user.id,
+                full_name=player_name,
+                age=user.age,
+                position=player_fields["position"],
+                height=player_fields["height"],
+                weight=player_fields["weight"],
+                preferred_foot=player_fields["preferred_foot"],
+                team=player_fields["team"],
+                photo_url=user.profile_image
+            )
+            db.add(player)
         db.commit()
         db.refresh(player)
         if player_fields["video_link"]:
@@ -237,11 +253,30 @@ def update_profile_image(
     db.refresh(user)
     return user
 
+@router.post("/api/auth/upload-avatar")
+async def upload_avatar(file: UploadFile = File(...)):
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".webp"}
+    import pathlib
+    suffix = pathlib.Path(file.filename or "avatar.jpg").suffix.lower()
+    if suffix not in allowed_extensions:
+        suffix = ".jpg"
+    import uuid
+    os.makedirs("uploads/avatars", exist_ok=True)
+    safe_name = f"avatar_{uuid.uuid4().hex}{suffix}"
+    file_path = f"uploads/avatars/{safe_name}"
+    contents = await file.read()
+    with open(file_path, "wb") as buffer:
+        buffer.write(contents)
+    return {"url": f"/{file_path}"}
+
 @router.post("/users/{user_id}/videos", response_model=UserVideoOut)
 @router.post("/api/users/{user_id}/videos", response_model=UserVideoOut)
 async def upload_user_video(
     user_id: int,
     file: UploadFile = File(...),
+    title: str = Form(None),
+    description: str = Form(None),
+    duration: str = Form("00:00"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -258,6 +293,9 @@ async def upload_user_video(
     if suffix not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Faqat video fayllari ruxsat etilgan (.mp4, .webm, .mov, .avi)")
     
+    video_title = title or description or (file.filename.replace(suffix, "") if file.filename else "Mahorat videosi")
+    video_duration = duration if (duration and duration != "00:00") else "00:05"
+
     # --- CLOUDINARY YUKLASH ---
     cloudinary_name = os.getenv("CLOUDINARY_CLOUD_NAME")
     cloudinary_key = os.getenv("CLOUDINARY_API_KEY")
@@ -286,7 +324,7 @@ async def upload_user_video(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Cloudinary yuklashda xatolik: {str(e)}")
     else:
-        # Cloudinary sozlanmagan — lokal saqlash (ishlab chiqish uchun)
+        # Cloudinary sozlanmagan — lokal saqlash
         import uuid
         os.makedirs("uploads/videos", exist_ok=True)
         safe_name = f"{user_id}_{uuid.uuid4().hex}{suffix}"
@@ -294,11 +332,15 @@ async def upload_user_video(
         contents = await file.read()
         with open(file_path, "wb") as buffer:
             buffer.write(contents)
-        render_url = os.getenv("RENDER_EXTERNAL_URL") or "https://futbol-platform.onrender.com"
-        video_url = f"{render_url}/{file_path}"
+        video_url = f"/{file_path}"
         cloudinary_public_id = None
     
-    user_video = UserVideo(user_id=user_id, video_url=video_url)
+    user_video = UserVideo(
+        user_id=user_id,
+        video_url=video_url,
+        title=video_title,
+        duration=video_duration
+    )
     db.add(user_video)
     db.commit()
     db.refresh(user_video)

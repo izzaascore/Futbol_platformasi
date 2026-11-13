@@ -12,51 +12,15 @@ const TournamentsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
 
-  const fallbackTournaments = [
-    { 
-      id: 1, 
-      name: "Futuro Cadets Kubogi 2026", 
-      description: "O'zbekistonning eng iqtidorli yoshlar akademiyalari o'rtasidagi asosiy kubok musobaqasi. Xalqaro va mahalliy skautlar to'liq kuzatuvi ostida.", 
-      prize: "€10,000 & Yevropa Ko'rigi", 
-      status: "Aktiv", 
-      image: "https://images.unsplash.com/photo-1518605368461-1ee7c5320746?q=80&w=2670&auto=format&fit=crop", 
-      teams_count: 16, 
-      start_date: "15 Iyun, 2026", 
-      location: "Toshkent, Jar Stadioni" 
-    },
-    { 
-      id: 2, 
-      name: "U-18 Toshkent Yoshlar Ligasi", 
-      description: "Respublika miqyosidagi ixtisoslashtirilgan futbol maktablari (BOSM, SSOR) va xususiy akademiyalar o'rtasidagi yirik mavsumiy liga.", 
-      prize: "Professional Shartnomalar", 
-      status: "Tez kunda", 
-      image: "https://images.unsplash.com/photo-1550286395-520556eecdb7?q=80&w=2500&auto=format&fit=crop", 
-      teams_count: 32, 
-      start_date: "10 Avgust, 2026", 
-      location: "Toshkent, Paxtakor Stadioni" 
-    },
-    { 
-      id: 3, 
-      name: "Vodiy Yulduzlari Superkubogi", 
-      description: "Andijon, Farg'ona va Namangan viloyatlarining eng sara U-17 jamoalari to'qnashuvi. Superliga klublari murabbiylari ishtirokida.", 
-      prize: "Klublar Akademiyasiga Qabul", 
-      status: "Tez kunda", 
-      image: "https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=2500&auto=format&fit=crop", 
-      teams_count: 16, 
-      start_date: "20 Sentyabr, 2026", 
-      location: "Andijon, Bobur Arena" 
-    }
-  ];
-
   useEffect(() => {
     fetch(`${API_URL}/api/tournaments`)
       .then(res => res.json())
       .then(data => {
-        setTournaments(Array.isArray(data) && data.length > 0 ? data : fallbackTournaments);
+        setTournaments(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => {
-        setTournaments(fallbackTournaments);
+        setTournaments([]);
         setLoading(false);
       });
   }, []);
@@ -106,6 +70,18 @@ const TournamentsPage = () => {
               <div className="h-96 bg-white/[0.03] animate-pulse rounded-3xl border border-white/10"></div>
               <div className="h-96 bg-white/[0.03] animate-pulse rounded-3xl border border-white/10"></div>
             </div>
+          ) : tournaments.length === 0 ? (
+            <div className="py-24 text-center rounded-3xl bg-white/[0.02] border border-white/10 border-dashed max-w-2xl mx-auto p-8 my-8">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 text-stone-400">
+                <Trophy className="w-8 h-8" />
+              </div>
+              <h3 className="font-heading font-black text-2xl uppercase text-white mb-2">
+                Hozircha rasmiy turnirlar yo'q
+              </h3>
+              <p className="text-stone-400 text-sm max-w-md mx-auto leading-relaxed">
+                Yaqin orada yangi turnirlar, kuboklar va skautlar ko'rigi e'lon qilinadi. Yangiliklarni kuzatib boring!
+              </p>
+            </div>
           ) : (
             <div className="space-y-10">
               {tournaments.map((tournament, index) => (
@@ -121,7 +97,7 @@ const TournamentsPage = () => {
                   <div className="relative h-72 lg:h-auto lg:w-3/5 overflow-hidden bg-stone-900">
                     <img 
                       loading="lazy"
-                      src={tournament.image || fallbackTournaments[0].image} 
+                      src={tournament.image || '/images/stadiums/stadiums_1574629810360-7efbb6.jpg'} 
                       alt={tournament.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />

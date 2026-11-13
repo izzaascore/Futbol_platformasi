@@ -16,6 +16,7 @@ export default function MatchCenterPage() {
   const isAdmin = currentUser?.role === 'admin' || localStorage.getItem('role') === 'admin';
   const [matches, setMatches] = useState([]);
   const [selectedMatch, setSelectedMatch] = useState(null);
+  const [tournaments, setTournaments] = useState([]);
 
   // Tezkor O'yinchi Qidirish (SOS) States
   const [callouts, setCallouts] = useState([]);
@@ -49,6 +50,14 @@ export default function MatchCenterPage() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setCallouts(data);
+      })
+      .catch(() => {});
+
+    // Turnirlarni yuklash
+    fetch(`${API_URL}/api/tournaments`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setTournaments(data);
       })
       .catch(() => {});
   }, []);
@@ -454,25 +463,39 @@ export default function MatchCenterPage() {
             </motion.div>
           )}
 
-          {/* TAB 3: TURNIRLAR (Mavjud) */}
+          {/* TAB 3: TURNIRLAR (Dinamik) */}
           {activeTab === 'tournaments' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { name: "O'zbekiston Yoshlar Kubogi", teams: 16, status: "Pley-off bosqichi", img: "/images/stadiums/stadiums_1574629810360-7efbb6.jpg" },
-                { name: "Toshkent Chempionati U-18", teams: 12, status: "3-Tur", img: "/images/stadiums/stadiums_1522778119026-d647f0.jpg" }
-              ].map((t, i) => (
-                <div key={i} className="relative h-72 rounded-2xl overflow-hidden group cursor-pointer border border-white/10">
-                  <img src={t.img} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" alt="Tournament"/>
-                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/60 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 p-6 w-full">
-                    <div className="px-3 py-1 bg-white/10 border border-white/20 text-white text-[10px] font-heading font-black uppercase tracking-widest inline-block mb-2 rounded-md">{t.status}</div>
-                    <h3 className="font-heading text-2xl font-black text-white uppercase tracking-tighter mb-1">{t.name}</h3>
-                    <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-stone-400">
-                      <span className="flex items-center gap-1"><Users className="w-4 h-4"/> {t.teams} Jamoa</span>
-                    </div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              {(!tournaments || tournaments.length === 0) ? (
+                <div className="py-20 bg-white/[0.02] border border-white/10 rounded-2xl text-center flex flex-col items-center justify-center p-8">
+                  <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-3">
+                    <Trophy className="w-7 h-7 text-stone-400" />
                   </div>
+                  <h4 className="font-heading font-black text-xl text-white mb-2 uppercase tracking-wide">
+                    Hozircha turnirlar yo'q
+                  </h4>
+                  <p className="text-stone-400 text-sm max-w-md">
+                    Rasmiy chempionatlar va turnirlar e'lon qilinganda bu yerda ko'rinadi.
+                  </p>
                 </div>
-              ))}
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {tournaments.map((t, i) => (
+                    <div key={t.id || i} className="relative h-72 rounded-2xl overflow-hidden group cursor-pointer border border-white/10">
+                      <img src={t.image || "/images/stadiums/stadiums_1574629810360-7efbb6.jpg"} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" alt={t.name}/>
+                      <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/60 to-transparent"></div>
+                      <div className="absolute bottom-0 left-0 p-6 w-full">
+                        <div className="px-3 py-1 bg-white/10 border border-white/20 text-white text-[10px] font-heading font-black uppercase tracking-widest inline-block mb-2 rounded-md">{t.status || 'Tez kunda'}</div>
+                        <h3 className="font-heading text-2xl font-black text-white uppercase tracking-tighter mb-1">{t.name}</h3>
+                        <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-stone-400">
+                          <span className="flex items-center gap-1"><Users className="w-4 h-4"/> {t.teams_count || 16} Jamoa</span>
+                          {t.location && <span className="flex items-center gap-1"><MapPin className="w-4 h-4"/> {t.location}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
 

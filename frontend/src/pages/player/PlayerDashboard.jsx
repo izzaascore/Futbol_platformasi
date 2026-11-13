@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Calendar, MapPin, CheckCircle, XCircle, Shield, Award, PlaySquare, Video, ArrowUpRight, Play, Film, Loader2 } from 'lucide-react';
+import { getVideoDuration } from '../../utils/videoUtils';
 import { API_URL } from '../../config';
 
 const PlayerDashboard = () => {
@@ -10,9 +11,7 @@ const PlayerDashboard = () => {
   const [loadingInvites, setLoadingInvites] = useState(true);
   const [actionMessage, setActionMessage] = useState('');
 
-  const [videoList, setVideoList] = useState([
-    { id: 1, title: "Individual Mashg'ulot & Dribling", duration: "03:20", date: "Bugun", views: 42 }
-  ]);
+  const [videoList, setVideoList] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
   const videoInputRef = useRef(null);
@@ -29,19 +28,19 @@ const PlayerDashboard = () => {
       const res = await fetch(`${API_URL}/api/users/${playerId}/videos`);
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setVideoList(data.map(v => ({
             id: v.id,
-            title: v.description || "Yuklangan mahorat videosi",
-            duration: "02:45",
-            date: "Yaqinda",
-            views: 12,
-            url: v.video_url
+            title: v.title || v.description || "Yuklangan mahorat videosi",
+            duration: v.duration || "00:15",
+            date: "Saqlangan",
+            views: 1,
+            url: v.video_url || v.file_path
           })));
         }
       }
     } catch (e) {
-      // keep default initial videos
+      // ignore
     }
   };
 
@@ -125,11 +124,16 @@ const PlayerDashboard = () => {
     }
 
     setIsUploading(true);
-    setUploadMsg("Video serverga yuklanmoqda...");
+    setUploadMsg("Video davomiyligi aniqlanmoqda va yuklanmoqda...");
+
+    const realDuration = await getVideoDuration(file);
+    const cleanTitle = file.name.replace(/\.[^/.]+$/, "");
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('description', file.name.replace(/\.[^/.]+$/, ""));
+    formData.append('title', cleanTitle);
+    formData.append('description', cleanTitle);
+    formData.append('duration', realDuration);
 
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
@@ -144,41 +148,40 @@ const PlayerDashboard = () => {
         setVideoList(prev => [
           {
             id: newVid.id || Date.now(),
-            title: newVid.description || file.name.replace(/\.[^/.]+$/, ""),
-            duration: "03:10",
+            title: newVid.title || cleanTitle,
+            duration: newVid.duration || realDuration,
             date: "Hozir",
             views: 1,
             url: newVid.video_url
           },
           ...prev
         ]);
-        setUploadMsg("Video muvaffaqiyatli yuklandi va skautlar bazasiga qo'shildi!");
+        setUploadMsg("Video muvaffaqiyatli yuklandi va saqlandi!");
       } else {
-        // Fallback simulated save
         setVideoList(prev => [
           {
             id: Date.now(),
-            title: file.name.replace(/\.[^/.]+$/, ""),
-            duration: "03:10",
+            title: cleanTitle,
+            duration: realDuration,
             date: "Hozir",
             views: 1
           },
           ...prev
         ]);
-        setUploadMsg("Video qabul qilindi va profildagi mediateka ro'yxatiga saqlandi!");
+        setUploadMsg("Video saqlandi!");
       }
     } catch (err) {
       setVideoList(prev => [
         {
           id: Date.now(),
-          title: file.name.replace(/\.[^/.]+$/, ""),
-          duration: "03:10",
+          title: cleanTitle,
+          duration: realDuration,
           date: "Hozir",
           views: 1
         },
         ...prev
       ]);
-      setUploadMsg("Video qabul qilindi!");
+      setUploadMsg("Video saqlandi!");
     } finally {
       setIsUploading(false);
       if (videoInputRef.current) videoInputRef.current.value = '';
@@ -387,23 +390,33 @@ const PlayerDashboard = () => {
         )}
 
         {/* Video List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left mt-6">
-          {videoList.map((vid) => (
-            <div key={vid.id} className="p-4 bg-stone-950/60 border border-white/10 rounded-2xl flex items-center gap-4 hover:border-amber-500/30 transition group">
-              <div className="w-14 h-14 rounded-xl bg-stone-800 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500/20 transition">
-                <Play className="w-6 h-6 text-amber-500 fill-amber-500/30" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-white text-xs font-bold truncate group-hover:text-amber-400 transition">{vid.title}</h4>
-                <div className="flex items-center gap-2 mt-1 text-[10px] text-stone-400 font-mono">
-                  <span>⏱ {vid.duration}</span>
-                  <span>•</span>
-                  <span>👁 {vid.views} ko'rish</span>
+        {videoList.length === 0 ? (
+          <div className="py-12 px-4 bg-white/[0.02] border border-white/10 border-dashed rounded-2xl text-center mt-6">
+            <Video className="w-8 h-8 text-stone-500 mx-auto mb-2" />
+            <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-1">Hozircha videolar yo'q</h4>
+            <p className="text-stone-400 text-[11px] max-w-xs mx-auto">
+              Yuqoridagi tugma orqali mashg'ulot yoki o'yin videolaringizni yuklang.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left mt-6">
+            {videoList.map((vid) => (
+              <div key={vid.id} className="p-4 bg-stone-950/60 border border-white/10 rounded-2xl flex items-center gap-4 hover:border-amber-500/30 transition group">
+                <div className="w-14 h-14 rounded-xl bg-stone-800 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500/20 transition">
+                  <Play className="w-6 h-6 text-amber-500 fill-amber-500/30" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-white text-xs font-bold truncate group-hover:text-amber-400 transition">{vid.title}</h4>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-stone-400 font-mono">
+                    <span>⏱ {vid.duration}</span>
+                    <span>•</span>
+                    <span>👁 {vid.views} ko'rish</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>
