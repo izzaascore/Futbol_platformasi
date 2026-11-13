@@ -15,13 +15,14 @@ for p in [str(BACKEND_DIR), str(ROOT_DIR)]:
 
 load_dotenv(ROOT_DIR / ".env")
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse, FileResponse
+from sqlalchemy.orm import Session
 
-from app.core.database import Base, engine
+from app.core.database import Base, engine, get_db
 from app.core.security import rate_limiter, detect_malicious_payload, get_client_ip
 
 
@@ -58,6 +59,14 @@ def auto_migrate_db():
                         print("[Auto-Migration] 'user_videos' jadvaliga 'duration' ustuni qo'shildi.")
                 except Exception as e:
                     print(f"[Auto-Migration Notice duration] {e}")
+
+            if "telegram_file_id" not in uv_cols:
+                try:
+                    with engine.begin() as conn:
+                        conn.execute(text("ALTER TABLE user_videos ADD COLUMN telegram_file_id VARCHAR(255)"))
+                        print("[Auto-Migration] 'user_videos' jadvaliga 'telegram_file_id' ustuni qo'shildi.")
+                except Exception as e:
+                    print(f"[Auto-Migration Notice telegram_file_id] {e}")
 
         # 2. Players table photo_url column
         if "players" in tables:
@@ -114,10 +123,33 @@ async def lifespan(app: FastAPI):
 
         bot_task = asyncio.create_task(run_bot_polling())
 
+    # Render diskidan o'chib ketgan videolarni Telegramdan avtomatik tiklash (Self-Healing Storage)
+    async def auto_restore_all_videos():
+        await asyncio.sleep(4)
+        try:
+            from app.core.database import SessionLocal
+            from app.models.models import UserVideo
+            from app.services.telegram_storage import restore_video_from_telegram
+            with SessionLocal() as db:
+                videos_with_tg = db.query(UserVideo).filter(UserVideo.telegram_file_id.isnot(None)).all()
+                for v in videos_with_tg:
+                    if v.video_url and not v.video_url.startswith("http"):
+                        clean_fname = os.path.basename(v.video_url)
+                        target_disk_path = ROOT_DIR / "uploads" / "videos" / clean_fname
+                        if not target_disk_path.exists() or target_disk_path.stat().st_size == 0:
+                            print(f"🔄 [Self-Healing] Render diskidan o'chgan video Telegramdan tiklanmoqda: {clean_fname}")
+                            await restore_video_from_telegram(v.telegram_file_id, str(target_disk_path))
+        except Exception as e:
+            print(f"[Self-Healing Startup Notice]: {e}")
+
+    restore_task = asyncio.create_task(auto_restore_all_videos())
+
     yield
 
     if bot_task:
         bot_task.cancel()
+    if restore_task:
+        restore_task.cancel()
 
 
 app = FastAPI(
@@ -208,6 +240,30 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 (UPLOADS_DIR / "videos").mkdir(exist_ok=True)
 (UPLOADS_DIR / "feedback").mkdir(exist_ok=True)
 (UPLOADS_DIR / "avatars").mkdir(exist_ok=True)
+
+# Self-Healing On-Demand Video Restore (Render disk tozalanganda avtomatik qaytarish)
+@app.get("/uploads/videos/{filename}")
+async def serve_or_restore_video(filename: str, db: Session = Depends(get_db)):
+    local_path = UPLOADS_DIR / "videos" / filename
+    if local_path.exists() and local_path.stat().st_size > 0:
+        return FileResponse(local_path)
+
+    # Agar Render qayta yuklanib lokal fayl o'chgan bo'lsa, Telegram bulutidan on-the-fly qayta yuklaymiz
+    try:
+        from app.models.models import UserVideo
+        from app.services.telegram_storage import restore_video_from_telegram
+        video_rec = db.query(UserVideo).filter(UserVideo.video_url.like(f"%{filename}%")).first()
+        if video_rec and video_rec.telegram_file_id:
+            restored = await restore_video_from_telegram(video_rec.telegram_file_id, str(local_path))
+            if restored and local_path.exists():
+                return FileResponse(local_path)
+    except Exception as e:
+        print(f"[On-Demand Restore Notice]: {e}")
+
+    if local_path.exists():
+        return FileResponse(local_path)
+    raise HTTPException(status_code=404, detail="Video topilmadi")
+
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 

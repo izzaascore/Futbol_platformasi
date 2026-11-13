@@ -62,6 +62,7 @@ class UserVideoBase(BaseModel):
     video_url: str
     title: str | None = None
     duration: str | None = "00:00"
+    telegram_file_id: str | None = None
     is_ai_processed: bool = False
     highlight_url: str | None = None
 

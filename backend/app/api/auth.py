@@ -324,8 +324,9 @@ async def upload_user_video(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Cloudinary yuklashda xatolik: {str(e)}")
     else:
-        # Cloudinary sozlanmagan — lokal saqlash
+        # Cloudinary sozlanmagan — lokal saqlash + Telegram Cloud zaxirasi
         import uuid
+        from app.services.telegram_storage import backup_video_to_telegram
         os.makedirs("uploads/videos", exist_ok=True)
         safe_name = f"{user_id}_{uuid.uuid4().hex}{suffix}"
         file_path = f"uploads/videos/{safe_name}"
@@ -334,12 +335,16 @@ async def upload_user_video(
             buffer.write(contents)
         video_url = f"/{file_path}"
         cloudinary_public_id = None
+        
+        # Telegram bulutiga zaxira yuklash (Render diskni tozalab yuborganda avtomatik qaytarish uchun)
+        tg_file_id = await backup_video_to_telegram(contents, safe_name, caption=f"{video_title} (Foydalanuvchi: {user_id})")
     
     user_video = UserVideo(
         user_id=user_id,
         video_url=video_url,
         title=video_title,
-        duration=video_duration
+        duration=video_duration,
+        telegram_file_id=tg_file_id if not cloudinary_name else None
     )
     db.add(user_video)
     db.commit()

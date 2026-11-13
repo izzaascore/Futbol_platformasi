@@ -75,6 +75,7 @@ class UserVideo(Base):
     video_url: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     duration: Mapped[str | None] = mapped_column(String(50), nullable=True, default="00:00")
+    telegram_file_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[VerificationStatus] = mapped_column(Enum(VerificationStatus), default=VerificationStatus.PENDING)
     
     # AI Auto-Clipping (Avtomatik Highlights)
