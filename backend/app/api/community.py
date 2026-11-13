@@ -418,8 +418,20 @@ async def upload_feedback_image(file: UploadFile = File(...)):
 
 @router.post("/api/bot/feedback", dependencies=[Depends(require_bot_key)])
 def submit_bot_feedback(data: BotFeedbackCreate, db: Session = Depends(get_db)):
-    db.add(Feedback(text=data.text.strip(), source="telegram", telegram_id=data.telegram_id))
+    fb = Feedback(text=data.text.strip(), source="telegram", telegram_id=data.telegram_id)
+    db.add(fb)
     db.commit()
+    db.refresh(fb)
+    try:
+        from app.services.telegram_notify import notify_admin_about_feedback
+        notify_admin_about_feedback(
+            text=data.text.strip(),
+            page="telegram_bot",
+            user_info=f"Telegram ID: {data.telegram_id}",
+            feedback_id=fb.id
+        )
+    except Exception:
+        pass
     return {"ok": True}
 
 

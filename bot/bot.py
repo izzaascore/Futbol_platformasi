@@ -101,9 +101,9 @@ def get_webapp_inline_kb():
 
 def get_main_menu():
     kb = [
-        [KeyboardButton(text="📱 FootballRise Ilovasi (Mini App)", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [KeyboardButton(text="📱 Futuro Ilovasi (Mini App)", web_app=WebAppInfo(url=WEBAPP_URL))],
         [KeyboardButton(text="👤 Profilim"), KeyboardButton(text="⚽ Gol videosini yuborish")],
-        [KeyboardButton(text="🏆 Reyting (Top o'yinchilar)")]
+        [KeyboardButton(text="🏆 Reyting"), KeyboardButton(text="💬 Fikr / Muammo bildirish")]
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
@@ -396,19 +396,70 @@ class FeedbackState(StatesGroup):
     waiting_text = State()
 
 
+@dp.message(F.text == "💬 Fikr / Muammo bildirish")
 @dp.message(Command("fikr"))
+@dp.message(Command("muammo"))
+@dp.message(Command("shikoyat"))
 async def feedback_start(message: types.Message, state: FSMContext):
     await state.set_state(FeedbackState.waiting_text)
     await message.answer(
-        "💬 Fikr-mulohazangizni bitta xabar qilib yozing (nima yoqmadi, nima ishlamadi, nima qo'shaylik).\n\n"
-        "Bekor qilish: /bekor"
+        "💬 <b>Fikr, taklif yoki muammo bildirish:</b>\n\n"
+        "Platformada qanday muammo yoki xatolik ko'rdingiz? Nimani to'g'irlashimiz yoki qo'shishimiz kerak?\n\n"
+        "📝 <i>Fikringizni matn ko'rinishida yozing yoki to'g'ridan-to'g'ri skrinshot (rasm) qilib yuboring!</i>\n\n"
+        "Bekor qilish uchun: /bekor",
+        parse_mode="HTML"
     )
 
 
 @dp.message(FeedbackState.waiting_text, Command("bekor"))
 async def feedback_cancel(message: types.Message, state: FSMContext):
     await state.clear()
-    await message.answer("Bekor qilindi.")
+    await message.answer("Bekor qilindi.", reply_markup=get_main_menu())
+
+
+@dp.message(FeedbackState.waiting_text, F.photo)
+async def feedback_receive_photo(message: types.Message, state: FSMContext):
+    caption = message.caption or "Rasm / Skrinshot orqali muammo yuborildi"
+    user_id = message.from_user.id
+    user_name = message.from_user.full_name
+    username = f"@{message.from_user.username}" if message.from_user.username else "username yo'q"
+    photo_id = message.photo[-1].file_id
+
+    # 1. Adminga to'g'ridan-to'g'ri Telegramdan skrinshotni yuboramiz
+    target_admin = ADMIN_TELEGRAM_ID or "8692713738"
+    try:
+        await bot.send_photo(
+            target_admin,
+            photo=photo_id,
+            caption=(
+                f"📸 <b>BOTDAN YANGI SKRINSHOT / MUAMMO KELDI!</b>\n\n"
+                f"👤 <b>Kimdan:</b> {user_name} ({username})\n"
+                f"🆔 <b>Telegram ID:</b> <code>{user_id}</code>\n"
+                f"📝 <b>Izoh / Muammo:</b>\n<i>{caption}</i>"
+            ),
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        print(f"Admin photo alert error: {e}")
+
+    # 2. API ga ham saqlaymiz
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(
+                f"{API_BASE_URL}/api/bot/feedback",
+                json={"text": f"[Skrinshot/Rasm]: {caption}", "telegram_id": user_id},
+                headers=BOT_HEADERS,
+            )
+    except Exception:
+        pass
+
+    await state.clear()
+    await message.answer(
+        "✅ <b>Katta rahmat!</b>\n\n"
+        "Skrinshot va xabaringiz to'g'ridan-to'g'ri platforma rahbariga yetkazildi. Tez orada ko'rib chiqiladi!",
+        parse_mode="HTML",
+        reply_markup=get_main_menu()
+    )
 
 
 @dp.message(FeedbackState.waiting_text, F.text)
@@ -417,29 +468,51 @@ async def feedback_receive(message: types.Message, state: FSMContext):
     if text.startswith("/"):
         await message.answer("Fikringizni oddiy matn ko'rinishida yozing yoki /bekor ni bosing.")
         return
-    if len(text) < 3 or len(text) > 1000:
-        await message.answer("Fikr 3 dan 1000 gacha belgidan iborat bo'lishi kerak. Qayta yozing yoki /bekor.")
+    if len(text) < 3:
+        await message.answer("Fikr kamida 3 ta belgidan iborat bo'lishi kerak. Qayta yozing yoki /bekor.")
         return
+
+    user_id = message.from_user.id
+    user_name = message.from_user.full_name
+    username = f"@{message.from_user.username}" if message.from_user.username else "username yo'q"
+
+    # 1. Adminga to'g'ridan-to'g'ri Telegramdan xabar yuboramiz
+    target_admin = ADMIN_TELEGRAM_ID or "8692713738"
+    try:
+        await bot.send_message(
+            target_admin,
+            f"📬 <b>BOTDAN YANGI FIKR / MUAMMO KELDI!</b>\n\n"
+            f"👤 <b>Kimdan:</b> {user_name} ({username})\n"
+            f"🆔 <b>Telegram ID:</b> <code>{user_id}</code>\n\n"
+            f"📝 <b>Matn:</b>\n<i>{text}</i>",
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        print(f"Admin alert error: {e}")
+
+    # 2. API ga saqlaymiz
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            res = await client.post(
+            await client.post(
                 f"{API_BASE_URL}/api/bot/feedback",
-                json={"text": text, "telegram_id": message.from_user.id},
+                json={"text": text, "telegram_id": user_id},
                 headers=BOT_HEADERS,
             )
-        ok = res.status_code == 200
     except Exception:
-        ok = False
-    if ok:
-        await state.clear()
-        await message.answer("✅ Rahmat! Fikringiz qabul qilindi.")
-    else:
-        await message.answer("⚠️ Hozir yuborib bo'lmadi. Birozdan keyin qayta yozing yoki /bekor.")
+        pass
+
+    await state.clear()
+    await message.answer(
+        "✅ <b>Rahmat! Fikr-mulohazangiz qabul qilindi.</b>\n"
+        "Xabaringiz to'g'ridan-to'g'ri platforma rahbariga yetkazildi!",
+        parse_mode="HTML",
+        reply_markup=get_main_menu()
+    )
 
 
 @dp.message(FeedbackState.waiting_text)
 async def feedback_wrong_type(message: types.Message):
-    await message.answer("Iltimos, fikringizni matn ko'rinishida yozing yoki /bekor ni bosing.")
+    await message.answer("Iltimos, matn yoki rasm/skrinshot yuboring yoki /bekor ni bosing.")
 
 
 @dp.message(Command("leave_room"))
