@@ -202,25 +202,6 @@ const PlayersPage = () => {
     min_pass: 0
   });
 
-  const fallbackPlayers = [
-    { id: 1, full_name: 'Azizbek Karimov', position: 'hujumchi', city: 'Toshkent', rating: 92, age: 19, image: '/images/players/players_1552374196-1ab2a1c59.jpg', club: 'Bunyodkor FK / O\'zb U-21', market_value: '€1.5M', stats: { pac: 89, sho: 92, pas: 84, dri: 91, def: 45, phy: 82 } },
-    { id: 2, full_name: 'Jasur Hasanov', position: 'yarimhimoyachi', city: 'Samarqand', rating: 88, age: 18, image: '/images/players/players_1517466787929-bc9095.jpg', club: 'Dinamo Samarqand', market_value: '€850K', stats: { pac: 85, sho: 80, pas: 90, dri: 88, def: 62, phy: 75 } },
-    { id: 3, full_name: 'Sardor Rashidov', position: 'himoyachi', city: 'Andijon', rating: 87, age: 20, image: '/images/players/players_1579952363873-27f3ba.jpg', club: 'Andijon FK', market_value: '€700K', stats: { pac: 78, sho: 50, pas: 74, dri: 72, def: 89, phy: 88 } },
-    { id: 4, full_name: 'Umidjon Erkinov', position: 'hujumchi', city: 'Buxoro', rating: 89, age: 17, image: '/images/players/players_1534438327276-14e530.jpg', club: 'Buxoro U-19', market_value: '€900K', stats: { pac: 91, sho: 88, pas: 80, dri: 87, def: 40, phy: 78 } },
-    { id: 5, full_name: 'Doston Hamdamov', position: 'darvozabon', city: 'Farg\'ona', rating: 86, age: 21, image: '/images/players/players_1506794778202-cad84c.jpg', club: 'Neftchi Farg\'ona', market_value: '€600K', stats: { pac: 70, sho: 40, pas: 72, dri: 65, def: 90, phy: 85 } },
-    { id: 6, full_name: 'Otabek Shukurov', position: 'yarimhimoyachi', city: 'Qarshi', rating: 85, age: 19, image: '/images/players/players_1614632537190-23e414.jpg', club: 'Nasaf Qarshi U-21', market_value: '€750K', stats: { pac: 82, sho: 78, pas: 86, dri: 84, def: 74, phy: 80 } },
-    { id: 7, full_name: 'Shoxjahon Ro\'ziyev', position: 'hujumchi', city: 'Toshkent', rating: 90, age: 16, image: '/images/players/players_1431324155629-1a6d0a.jpg', club: 'Paxtakor U-16', market_value: '€1.1M', stats: { pac: 93, sho: 89, pas: 82, dri: 92, def: 38, phy: 76 } },
-    { id: 8, full_name: 'Bekzod To\'rayev', position: 'himoyachi', city: 'Namangan', rating: 88, age: 18, image: '/images/players/players_1431324155629-1a6deb.jpg', club: 'Navbahor U-19', market_value: '€820K', stats: { pac: 84, sho: 45, pas: 79, dri: 75, def: 91, phy: 89 } },
-    { id: 9, full_name: 'Eldor Sayidov', position: 'hujumchi', city: 'Termiz', rating: 89, age: 18, image: '/images/players/players_1518605368461-1ee7e5.jpg', club: 'Surxon Termiz', market_value: '€950K', stats: { pac: 90, sho: 87, pas: 78, dri: 85, def: 42, phy: 84 } },
-    { id: 10, full_name: 'Mirjamol Qosimov', position: 'yarimhimoyachi', city: 'Olmaliq', rating: 87, age: 20, image: '/images/players/players_1531885420367-172551.jpg', club: 'AGMK Olmaliq', market_value: '€700K', stats: { pac: 80, sho: 82, pas: 89, dri: 86, def: 68, phy: 74 } },
-    { id: 11, full_name: 'Asadbek Sobirjonov', position: 'himoyachi', city: 'Toshkent', rating: 86, age: 17, image: '/images/players/players_1552374196-1ab2a1c59.jpg', club: 'Olimpik Toshkent', market_value: '€650K', stats: { pac: 83, sho: 52, pas: 76, dri: 74, def: 88, phy: 83 } },
-    { id: 12, full_name: 'Jasurbek Jaloliddinov', position: 'yarimhimoyachi', city: 'Toshkent', rating: 91, age: 18, image: '/images/players/players_1517466787929-bc9095.jpg', club: 'Lokomotiv Toshkent U-19', market_value: '€1.3M', stats: { pac: 86, sho: 85, pas: 93, dri: 89, def: 60, phy: 77 } },
-    { id: 13, full_name: 'Abduvohid Ne\'matov', position: 'darvozabon', city: 'Qarshi', rating: 90, age: 19, image: '/images/players/players_1506794778202-cad84c.jpg', club: 'Nasaf Akademiya', market_value: '€1.0M', stats: { pac: 72, sho: 42, pas: 75, dri: 68, def: 94, phy: 88 } },
-    { id: 14, full_name: 'Samandar Mavlonqulov', position: 'hujumchi', city: 'Toshkent', rating: 88, age: 16, image: '/images/players/players_1534438327276-14e530.jpg', club: 'Bunyodkor U-16', market_value: '€800K', stats: { pac: 92, sho: 86, pas: 81, dri: 88, def: 39, phy: 75 } },
-    { id: 15, full_name: 'Muhammadali G\'iyosov', position: 'himoyachi', city: 'Bekobod', rating: 85, age: 19, image: '/images/players/players_1579952363873-27f3ba.jpg', club: 'Metallurg Bekobod', market_value: '€580K', stats: { pac: 81, sho: 48, pas: 73, dri: 70, def: 86, phy: 86 } },
-    { id: 16, full_name: 'Shohruh Ibrohimov', position: 'darvozabon', city: 'Muborak', rating: 87, age: 17, image: '/images/player.jpg', club: 'Mash\'al Muborak U-18', market_value: '€720K', stats: { pac: 68, sho: 38, pas: 70, dri: 62, def: 91, phy: 84 } }
-  ];
-
   useEffect(() => {
     // Only track on desktop pointer devices to avoid mobile lag & battery drain
     if (typeof window === 'undefined' || !window.matchMedia('(pointer: fine)').matches || window.innerWidth < 768) {
@@ -245,67 +226,68 @@ const PlayersPage = () => {
     fetch(`${API_URL}/api/players`)
       .then(res => res.json())
       .then(data => {
-        let combined = [];
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
+          // Faqat haqiqiy ro'yxatdan o'tgan foydalanuvchilarni ko'rsatamiz
+          // Soxta / demo profillar yo'q!
           const registered = data.map((p, idx) => ({
             ...p,
             id: p.id || idx + 100,
-            full_name: p.full_name || p.username || 'Haqiqiy Futbolchi',
+            full_name: p.full_name || p.username || 'Futbolchi',
             position: (p.position || 'hujumchi').toLowerCase(),
-            rating: p.rating || 88,
+            rating: p.rating || 85,
             age: p.age || 18,
-            club: p.team || p.club || "Futuro Ro'yxatdan O'tgan",
+            club: p.team || p.club || "Mustaqil Futbolchi",
             city: p.city || 'Toshkent',
-            market_value: p.market_value || '€500K',
+            market_value: p.market_value || '—',
             image: p.avatar_url || p.photo_url || '/images/player.jpg',
-            stats: p.stats || { pac: 85, sho: 80, pas: 82, dri: 84, def: 60, phy: 78 },
+            stats: p.stats || { pac: 82, sho: 78, pas: 80, dri: 82, def: 58, phy: 76 },
             is_real_registered: true
           }));
-          combined = [...registered, ...fallbackPlayers];
-        } else {
-          combined = [...fallbackPlayers];
-        }
 
-        // Agar joriy foydalanuvchi tizimda futbolchi sifatida mavjud bo'lsa, uni eng yuqoriga PIN qilamiz
-        const userStr = localStorage.getItem('talaqCurrentUser');
-        if (userStr) {
-          try {
-            const u = JSON.parse(userStr);
-            if (u && (u.role === 'player' || u.first_name)) {
-              const myProfile = {
-                id: 99999,
-                full_name: `${u.first_name || 'Foydalanuvchi'} ${u.last_name || ''}`.trim(),
-                position: (u.position || 'hujumchi').toLowerCase(),
-                rating: 90,
-                age: u.age || 19,
-                club: u.team || "Mening Profilim (Tasdiqlangan)",
-                city: u.address || 'Toshkent',
-                market_value: '€850K',
-                image: u.profile_image || '/images/player.jpg',
-                stats: { pac: 88, sho: 85, pas: 86, dri: 89, def: 65, phy: 80 },
-                is_real_registered: true,
-                is_pinned: true
-              };
-              if (!combined.some(cp => cp.full_name === myProfile.full_name)) {
-                combined = [myProfile, ...combined];
+          // Agar joriy foydalanuvchi login qilgan bo'lsa, uni PIN qilamiz
+          const userStr = localStorage.getItem('talaqCurrentUser');
+          if (userStr) {
+            try {
+              const u = JSON.parse(userStr);
+              if (u && (u.role === 'player' || u.first_name)) {
+                const myProfile = {
+                  id: 99999,
+                  full_name: `${u.first_name || 'Foydalanuvchi'} ${u.last_name || ''}`.trim(),
+                  position: (u.position || 'hujumchi').toLowerCase(),
+                  rating: u.rating || 88,
+                  age: u.age || 19,
+                  club: u.team || "Mening Profilim",
+                  city: u.address || 'Toshkent',
+                  market_value: u.market_value || '—',
+                  image: u.profile_image || '/images/player.jpg',
+                  stats: { pac: 88, sho: 85, pas: 86, dri: 89, def: 65, phy: 80 },
+                  is_real_registered: true,
+                  is_pinned: true
+                };
+                if (!registered.some(cp => cp.id === 99999)) {
+                  registered.unshift(myProfile);
+                }
               }
-            }
-          } catch (e) {}
-        }
+            } catch (e) {}
+          }
 
-        setPlayers(combined);
+          setPlayers(registered);
+        } else {
+          setPlayers([]);
+        }
         setLoading(false);
       })
       .catch(() => {
-        setPlayers(fallbackPlayers);
+        setPlayers([]);
         setLoading(false);
       });
   }, []);
 
   const filteredPlayers = (players || []).filter(p => {
     if (!p) return false;
+    // "Faqat PIN qilingan" filtri — tizimga kirgan foydalanuvchi
     if (filter === 'registered') {
-      return p.is_real_registered || p.is_pinned;
+      return p.is_pinned === true;
     }
     const pos = (p.position || '').toLowerCase();
     const matchPos = filter === 'all' || pos === filter || (filter === 'hujumchi' && pos.includes('hujum')) || (filter === 'yarimhimoyachi' && (pos.includes('yarim') || pos.includes('midfield'))) || (filter === 'himoyachi' && pos.includes('himoya')) || (filter === 'darvozabon' && pos.includes('darvoza'));
@@ -321,9 +303,9 @@ const PlayersPage = () => {
 
     return matchPos && matchSearch && matchAge;
   }).sort((a, b) => {
-    // Haqiqiy ro'yxatdan o'tganlar va PIN qilinganlar doimo eng yuqorida turadi
-    if ((a.is_real_registered || a.is_pinned) && !(b.is_real_registered || b.is_pinned)) return -1;
-    if (!(a.is_real_registered || a.is_pinned) && (b.is_real_registered || b.is_pinned)) return 1;
+    // PIN qilingan (tizimga kirgan foydalanuvchi) doimo eng birinchi
+    if (a.is_pinned && !b.is_pinned) return -1;
+    if (!a.is_pinned && b.is_pinned) return 1;
     return (b.rating || 0) - (a.rating || 0);
   });
 
@@ -383,7 +365,7 @@ const PlayersPage = () => {
             <div className="w-full lg:w-auto overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 touch-pan-x overscroll-x-contain">
               {[
                 { id: 'all', label: 'Barchasi' },
-                { id: 'registered', label: '📌 Faqat Haqiqiy (Real)' },
+                { id: 'registered', label: '📌 Mening Profilim' },
                 { id: 'hujumchi', label: 'Hujumchi' },
                 { id: 'yarimhimoyachi', label: 'Yarim himoya' },
                 { id: 'himoyachi', label: 'Himoyachi' },
@@ -468,6 +450,28 @@ const PlayersPage = () => {
             </Link>
           </div>
 
+          {/* Bo'sh holat: Hali hech kim ro'yxatdan o'tmagan */}
+          {!loading && players.length === 0 && (
+            <div className="mt-10 py-20 text-center rounded-3xl bg-white/[0.02] border border-white/10 border-dashed flex flex-col items-center gap-5">
+              <div className="w-20 h-20 rounded-full bg-white/[0.04] border border-white/15 flex items-center justify-center">
+                <UserPlus className="w-9 h-9 text-stone-400" />
+              </div>
+              <div>
+                <h3 className="font-heading font-black text-2xl uppercase text-white mb-2">Hali Hech Kim Yo'q</h3>
+                <p className="text-stone-400 text-sm max-w-sm mx-auto leading-relaxed">
+                  Bu platforma yangi boshlanyapti. Birinchi bo'lib ro'yxatdan o'ting va profilingiz bazaning <span className="text-white font-bold">birinchi o'rnida</span> turadi!
+                </p>
+              </div>
+              <Link
+                to="/register"
+                className="px-8 py-3.5 rounded-xl bg-white text-black font-heading font-black text-xs uppercase tracking-wider shadow-glow hover:bg-stone-200 transition flex items-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                Ro'yxatdan O'tish — Bepul
+              </Link>
+            </div>
+          )}
+
           {/* Players Card Grid (3-Rasm Scouting Look) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
             {filteredPlayers.map((player) => (
@@ -495,13 +499,9 @@ const PlayersPage = () => {
                       {player.is_real_registered || player.is_pinned ? (
                         <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-stone-950 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md shadow-emerald-500/30">
                           <Pin className="w-2.5 h-2.5 fill-stone-950" />
-                          PIN: REAL PROFIL
+                          {player.is_pinned ? 'Mening Profilim' : 'Tasdiqlangan'}
                         </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-md bg-stone-900/80 backdrop-blur-md text-stone-400 text-[8px] font-bold uppercase tracking-wider border border-white/10">
-                          Demo Profil
-                        </span>
-                      )}
+                      ) : null}
                     </div>
                     <span className="px-2.5 py-1 rounded-md bg-white text-black text-[10px] font-heading font-black shadow-glow">
                       REYTING {player.rating || 88}
