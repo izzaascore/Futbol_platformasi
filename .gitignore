@@ -16,8 +16,7 @@ venv/
 *.sqlite
 *.sqlite3
 *.bak
-data/*.db
-data/*.sqlite
+data/
 uploads/
 logs/
 .vscode/

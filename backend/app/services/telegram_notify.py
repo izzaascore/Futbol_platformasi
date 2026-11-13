@@ -39,11 +39,17 @@ def register_admin_chat(chat_id: int | str):
         logger.warning(f"Admin chat saqlashda ogohlantirish: {e}")
 
 
+DEFAULT_ADMIN_CHAT_ID = "8692713738"
+
 def get_target_admin_chats(bot_token: str) -> set[str]:
     """Barcha faol admin chat ID larini yig'ish."""
     target_chats = set()
 
-    # 1. Muhit o'zgaruvchisidan (.env / Render)
+    # 1. Asosiy administrator (fallback)
+    if DEFAULT_ADMIN_CHAT_ID:
+        target_chats.add(DEFAULT_ADMIN_CHAT_ID)
+
+    # 2. Muhit o'zgaruvchisidan (.env / Render)
     env_admin = (os.getenv("ADMIN_TELEGRAM_ID") or "").strip()
     if env_admin:
         for cid in env_admin.split(","):
