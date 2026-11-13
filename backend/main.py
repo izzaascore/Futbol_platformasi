@@ -33,33 +33,50 @@ def auto_migrate_db():
     """
     Self-healing database schema synchronizer.
     Ensures existing SQLite / Postgres tables contain newly added model columns.
+    Uses PostgreSQL-compliant single quotes for DEFAULT string literals.
     """
     try:
         from sqlalchemy import inspect, text
         inspector = inspect(engine)
         tables = inspector.get_table_names()
 
-        # 1. Products table columns
+        # 1. Products table columns (har bir ustun alohida tranzaksiyada, DEFAULT bir tirnoqda)
         if "products" in tables:
             product_cols = [c["name"] for c in inspector.get_columns("products")]
-            with engine.begin() as conn:
-                if "category" not in product_cols:
-                    conn.execute(text('ALTER TABLE products ADD COLUMN category VARCHAR(50) DEFAULT "smart"'))
-                    print("[Auto-Migration] 'products' jadvaliga 'category' ustuni qo'shildi.")
-                if "badge" not in product_cols:
-                    conn.execute(text('ALTER TABLE products ADD COLUMN badge VARCHAR(50)'))
-                    print("[Auto-Migration] 'products' jadvaliga 'badge' ustuni qo'shildi.")
-                if "stock" not in product_cols:
-                    conn.execute(text('ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT 10'))
-                    print("[Auto-Migration] 'products' jadvaliga 'stock' ustuni qo'shildi.")
+            if "category" not in product_cols:
+                try:
+                    with engine.begin() as conn:
+                        conn.execute(text("ALTER TABLE products ADD COLUMN category VARCHAR(50) DEFAULT 'smart'"))
+                        print("[Auto-Migration] 'products' jadvaliga 'category' ustuni qo'shildi.")
+                except Exception as e:
+                    print(f"[Auto-Migration Notice category] {e}")
+
+            if "badge" not in product_cols:
+                try:
+                    with engine.begin() as conn:
+                        conn.execute(text("ALTER TABLE products ADD COLUMN badge VARCHAR(50)"))
+                        print("[Auto-Migration] 'products' jadvaliga 'badge' ustuni qo'shildi.")
+                except Exception as e:
+                    print(f"[Auto-Migration Notice badge] {e}")
+
+            if "stock" not in product_cols:
+                try:
+                    with engine.begin() as conn:
+                        conn.execute(text("ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT 10"))
+                        print("[Auto-Migration] 'products' jadvaliga 'stock' ustuni qo'shildi.")
+                except Exception as e:
+                    print(f"[Auto-Migration Notice stock] {e}")
 
         # 2. Scout invitations check
         if "scout_invitations" in tables:
             scout_cols = [c["name"] for c in inspector.get_columns("scout_invitations")]
-            with engine.begin() as conn:
-                if "status" not in scout_cols:
-                    conn.execute(text('ALTER TABLE scout_invitations ADD COLUMN status VARCHAR(30) DEFAULT "kutilmoqda"'))
-                    print("[Auto-Migration] 'scout_invitations' jadvaliga 'status' ustuni qo'shildi.")
+            if "status" not in scout_cols:
+                try:
+                    with engine.begin() as conn:
+                        conn.execute(text("ALTER TABLE scout_invitations ADD COLUMN status VARCHAR(30) DEFAULT 'kutilmoqda'"))
+                        print("[Auto-Migration] 'scout_invitations' jadvaliga 'status' ustuni qo'shildi.")
+                except Exception as e:
+                    print(f"[Auto-Migration Notice status] {e}")
 
     except Exception as e:
         print(f"[Auto-Migration Notice] {e}")

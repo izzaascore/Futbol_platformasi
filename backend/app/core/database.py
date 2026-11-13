@@ -22,9 +22,12 @@ elif DATABASE_URL.startswith("sqlite:///./data/"):
     rel_path = DATABASE_URL.replace("sqlite:///./", "")
     DATABASE_URL = f"sqlite:///{(ROOT_DIR / rel_path).as_posix()}"
 
-# Railway yoki tashqi bulut provayderlari beradigan 'postgres://' prefiksini SQLAlchemy talabiga moslash
+# Bulut provayderlari (Render, Railway, Supabase) beradigan 'postgres://' yoki 'postgresql://' prefiksini
+# SQLAlchemy 2.0+ talabiga binoan psycopg2 drayveriga to'g'ri moslaymiz (ModuleNotFoundError: 'psycopg' oldini olish)
 if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 # SQLite uchun maxsus parametr, PostgreSQL uchun shart emas
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
