@@ -9,7 +9,7 @@ for p in [str(BACKEND_DIR), str(ROOT_DIR)]:
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, F, types
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart, Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import (
@@ -29,20 +29,16 @@ load_dotenv(ROOT_DIR / '.env')
 
 logging.basicConfig(level=logging.INFO)
 
-RAW_BOT_TOKEN = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
-# Haqiqiy Telegram token borligini tekshirish:
-IS_REAL_TOKEN = bool(
-    RAW_BOT_TOKEN 
-    and ":" in RAW_BOT_TOKEN 
-    and not RAW_BOT_TOKEN.startswith("1234567890") 
-    and RAW_BOT_TOKEN != "your_bot_token_here"
-)
-BOT_TOKEN = RAW_BOT_TOKEN if IS_REAL_TOKEN else "1234567890:AAH_DUMMY_TOKEN_PLEASE_REPLACE"
+DEFAULT_BOT_TOKEN = "9026677560:AAGN8_bXDm5GgxQcE3AW5w4tEVN3MH1UDfU"
+RAW_BOT_TOKEN = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or DEFAULT_BOT_TOKEN).strip()
+BOT_TOKEN = RAW_BOT_TOKEN if (":" in RAW_BOT_TOKEN and not RAW_BOT_TOKEN.startswith("1234567890")) else DEFAULT_BOT_TOKEN
+
 # Jonli API va WebApp manzili:
 API_BASE_URL = os.getenv("API_BASE_URL", "https://futbol-platform.onrender.com")
 # Jonli WebApp manzili:
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platform.onrender.com")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platformasi-alpha.vercel.app")
 # Admin Telegram ID (muhim shaxsiy xabarlar uchun):
+ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "8692713738").strip()
 ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "")
 # Botning API uchun kaliti (admin huquqi bermaydi). Railway Variables da BOT_API_KEY ni o'rnating.
 BOT_API_KEY = os.getenv("BOT_API_KEY", "").strip()
@@ -96,7 +92,7 @@ class SubmitGoalState(StatesGroup):
 
 def get_webapp_inline_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⚡ FootballRise Mini App (Ilovani ochish)", web_app=WebAppInfo(url=WEBAPP_URL))]
+        [InlineKeyboardButton(text="⚡ Futuro Mini App (Ilovani ochish)", web_app=WebAppInfo(url=WEBAPP_URL))]
     ])
 
 def get_main_menu():
@@ -125,9 +121,11 @@ def get_foot_kb():
 
 # --- /start HANDLER ---
 
-@dp.message(CommandStart())
+@dp.message(CommandStart(), StateFilter("*"))
 async def start_handler(message: types.Message, state: FSMContext):
+    await state.clear()
     user_id = message.from_user.id
+    full_name = message.from_user.full_name or "Futbolchi"
 
     # Admin xabarnomalari uchun ushbu chatni ro'yxatga olamiz
     try:
@@ -136,42 +134,48 @@ async def start_handler(message: types.Message, state: FSMContext):
     except Exception:
         pass
 
-    # API dan o'yinchini tekshiramiz
-    async with httpx.AsyncClient() as client:
-        try:
-            res = await client.get(f"{API_BASE_URL}/players?telegram_id={user_id}")
-            players = res.json() if res.status_code == 200 else []
-            current_player = players[0] if players else None
-        except Exception:
-            await message.answer("⚠️ Server bilan aloqa o'rnatib bo'lmadi. Keyinroq urinib ko'ring.")
-            return
+    # Bazadan to'g'ridan-to'g'ri bir zumda tekshiramiz (0 millisekund kechikish)
+    current_player = None
+    try:
+        from app.core.database import SessionLocal
+        from app.models.models import Player
+        with SessionLocal() as db:
+            p = db.query(Player).filter(Player.telegram_id == user_id).first()
+            if p:
+                current_player = {
+                    "full_name": p.full_name,
+                    "position": p.position or "Hujumchi",
+                    "rating": p.rating or 85,
+                    "goals_verified": p.goals_verified or 0
+                }
+    except Exception as e:
+        print(f"[DB Check in /start]: {e}")
 
     if current_player:
         await message.answer(
-            f"Salom, {current_player['full_name']}! 👋\n\n"
-            "FootballRise platformasiga xush kelibsiz. Quyidagi tugma orqali ilovani to'g'ridan-to'g'ri Telegram ichida ochishingiz mumkin:",
-            reply_markup=get_webapp_inline_kb()
+            f"Assalomu alaykum, <b>{current_player['full_name']}</b>! 👋⚽️\n\n"
+            f"🎯 <b>Pozitsiya:</b> {current_player['position']}\n"
+            f"🏆 <b>OVR Reyting:</b> {current_player['rating']}\n"
+            f"⚽️ <b>Tasdiqlangan gollar:</b> {current_player['goals_verified']} ta\n\n"
+            "Pastdagi bosh menyu tugmalari orqali platformadan to'liq foydalanishingiz mumkin:",
+            parse_mode="HTML",
+            reply_markup=get_main_menu()
         )
-        await message.answer("Yoki bot menyusidan foydalaning:", reply_markup=get_main_menu())
     else:
-        # Auto-Sync: Ism va familiyani avtomatik olamiz
-        full_name = message.from_user.full_name
-        await state.update_data(full_name=full_name)
-        
         await message.answer(
-            f"Assalomu alaykum, {full_name}! ⚽\n\n"
-            "FootballRise platformasiga xush kelibsiz. Ilovani Telegram ichida to'g'ridan-to'g'ri ochishingiz mumkin:",
-            reply_markup=get_webapp_inline_kb()
+            f"Assalomu alaykum, <b>{full_name}</b>! ⚽️\n\n"
+            "<b>Futuro — O'zbekiston Futbol Iqtidorlari Ekotizimi</b>ga xush kelibsiz!\n\n"
+            "Bu yerda siz o'z gollaringiz va mahoratingiz videosini yuborishingiz, milliy reytingda ko'tarilishingiz va professional skautlar e'tiboriga tushishingiz mumkin.\n\n"
+            "👇 <i>Pastdagi bosh menyu tugmalaridan birini tanlang:</i>",
+            parse_mode="HTML",
+            reply_markup=get_main_menu()
         )
 
-        kb = [[KeyboardButton(text="📱 Telefon raqamni yuborish", request_contact=True)]]
-        markup = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
-
-        await message.answer(
-            "Yoki bot orqali profil yaratish uchun telefon raqamingizni tasdiqlang:",
-            reply_markup=markup
-        )
-        await state.set_state(RegistrationState.phone)
+    await message.answer(
+        "📱 <b>Futuro Ilovasi (Mini App)</b>ni to'g'ridan-to'g'ri Telegram ichida ochish uchun bosing:",
+        parse_mode="HTML",
+        reply_markup=get_webapp_inline_kb()
+    )
 
 # --- RO'YXATDAN O'TISH BOSQICHLARI ---
 
@@ -254,43 +258,49 @@ async def process_foot(message: types.Message, state: FSMContext):
 
 # --- PROFILNI KO'RISH ---
 
-@dp.message(F.text.in_(["👤 Profilim", "/profil", "/profile", "Profilim"]))
+@dp.message(F.text.in_(["👤 Profilim", "/profil", "/profile", "Profilim"]), StateFilter("*"))
 async def show_profile(message: types.Message, state: FSMContext):
     await state.clear()
-    async with httpx.AsyncClient(timeout=10) as client:
+    user = None
+    # 1. Lokal DB dan bir zumda tekshirish (0 millisekund kechikish)
+    try:
+        from app.core.database import SessionLocal
+        from app.models.models import Player
+        with SessionLocal() as db:
+            p = db.query(Player).filter(Player.telegram_id == message.from_user.id).first()
+            if p:
+                user = {
+                    "full_name": p.full_name,
+                    "age": p.age or "18",
+                    "city": p.city or "Toshkent",
+                    "position": p.position or "Hujumchi",
+                    "preferred_foot": p.preferred_foot or "O'ng",
+                    "goals_verified": p.goals_verified or 0,
+                    "goals_claimed": p.goals_claimed or 0,
+                    "rating": p.rating or 85
+                }
+    except Exception as e:
+        print(f"[Profile DB Error]: {e}")
+
+    # 2. Agar lokal DB da topilmasa, API orqali tezkor tekshirish
+    if not user:
         try:
-            res = await client.get(f"{API_BASE_URL}/players?telegram_id={message.from_user.id}")
-            players = res.json() if res.status_code == 200 else []
-            user = players[0] if players else None
+            async with httpx.AsyncClient(timeout=3) as client:
+                res = await client.get(f"{API_BASE_URL}/players?telegram_id={message.from_user.id}")
+                if res.status_code == 200 and res.json():
+                    user = res.json()[0]
         except Exception:
-            # Lokal DB dan zaxira tekshirish
-            try:
-                from app.core.database import SessionLocal
-                from app.models import Player
-                with SessionLocal() as db:
-                    p = db.query(Player).filter(Player.telegram_id == message.from_user.id).first()
-                    if p:
-                        user = {
-                            "full_name": p.full_name,
-                            "age": p.age or "Kiritilmagan",
-                            "city": p.city or "Kiritilmagan",
-                            "position": p.position or "Hujumchi",
-                            "preferred_foot": p.preferred_foot or "O'ng",
-                            "goals_verified": p.goals_verified or 0,
-                            "goals_claimed": p.goals_claimed or 0
-                        }
-                    else:
-                        user = None
-            except Exception:
-                user = None
+            pass
 
     if not user:
         await message.answer(
-            "⚠️ <b>Profilingiz hali yaratilmagan.</b>\n\n"
-            "Profil yaratish uchun /start buyrug'ini bosing yoki quyidagi Mini App orqali to'g'ridan-to'g'ri ro'yxatdan o'ting:",
+            f"Salom, <b>{message.from_user.full_name}</b>! 👋\n\n"
+            "⚠️ Profilingiz hali bazada ro'yxatdan o'tmagan.\n\n"
+            "Profil yaratish uchun Mini App'ni oching yoki sayt orqali ro'yxatdan o'ting:",
             parse_mode="HTML",
             reply_markup=get_webapp_inline_kb()
         )
+        await message.answer("Yoki bot menyusidan foydalaning:", reply_markup=get_main_menu())
         return
 
     profile_text = (
@@ -299,16 +309,17 @@ async def show_profile(message: types.Message, state: FSMContext):
         f"🎂 <b>Yosh:</b> {user['age']}\n"
         f"📍 <b>Shahar:</b> {user['city']}\n"
         f"⚡ <b>Pozitsiya:</b> {user['position']}\n"
-        f"👟 <b>Zarba oyog'i:</b> {user['preferred_foot']}\n\n"
+        f"👟 <b>Zarba oyog'i:</b> {user['preferred_foot']}\n"
+        f"🏆 <b>OVR Reyting:</b> {user.get('rating', 85)}\n\n"
         f"✅ <b>Tasdiqlangan gollar:</b> {user.get('goals_verified', 0)} ta\n"
-        f"📊 <b>Umumiy aytilgan gollar:</b> {user.get('goals_claimed', 0)} ta"
+        f"📊 <b>Kutilayotgan gollar:</b> {user.get('goals_claimed', 0)} ta"
     )
     await message.answer(profile_text, parse_mode="HTML", reply_markup=get_main_menu())
 
 
 # --- VIDEO YUBORISH JARAYONI ---
 
-@dp.message(F.text.in_(["⚽ Gol videosini yuborish", "Gol videosini yuborish", "/gol", "/video"]))
+@dp.message(F.text.in_(["⚽ Gol videosini yuborish", "Gol videosini yuborish", "/gol", "/video"]), StateFilter("*"))
 async def start_submit_goal(message: types.Message, state: FSMContext):
     await state.clear()
     await message.answer(
@@ -387,35 +398,35 @@ async def process_caption(message: types.Message, state: FSMContext):
 
 # --- TOP O'YINCHILAR REYTINGI ---
 
-@dp.message(F.text.in_(["🏆 Reyting", "🏆 Reyting (Top o'yinchilar)", "Reyting", "/reyting", "/leaderboard"]))
+@dp.message(F.text.in_(["🏆 Reyting", "🏆 Reyting (Top o'yinchilar)", "Reyting", "/reyting", "/leaderboard"]), StateFilter("*"))
 async def show_leaderboard(message: types.Message, state: FSMContext):
     await state.clear()
     players = []
-    async with httpx.AsyncClient(timeout=10) as client:
-        try:
-            res = await client.get(f"{API_BASE_URL}/players")
-            if res.status_code == 200:
-                players = res.json()
-        except Exception:
-            pass
+    # 1. Lokal DB dan bir zumda olish (0 ms)
+    try:
+        from app.core.database import SessionLocal
+        from app.models.models import Player
+        with SessionLocal() as db:
+            db_players = db.query(Player).all()
+            players = [
+                {
+                    "full_name": p.full_name,
+                    "city": p.city,
+                    "goals_verified": p.goals_verified or 0
+                }
+                for p in db_players
+            ]
+    except Exception:
+        players = []
 
     if not players:
-        # Fallback to local DB
         try:
-            from app.core.database import SessionLocal
-            from app.models import Player
-            with SessionLocal() as db:
-                db_players = db.query(Player).all()
-                players = [
-                    {
-                        "full_name": p.full_name,
-                        "city": p.city,
-                        "goals_verified": p.goals_verified or 0
-                    }
-                    for p in db_players
-                ]
+            async with httpx.AsyncClient(timeout=3) as client:
+                res = await client.get(f"{API_BASE_URL}/players")
+                if res.status_code == 200:
+                    players = res.json()
         except Exception:
-            players = []
+            pass
 
     # Tasdiqlangan gollar bo'yicha saralash
     sorted_players = sorted(players, key=lambda x: x.get("goals_verified", 0), reverse=True)[:10]
@@ -447,10 +458,10 @@ class FeedbackState(StatesGroup):
     waiting_text = State()
 
 
-@dp.message(F.text.in_(["💬 Fikr / Muammo bildirish", "Fikr / Muammo bildirish", "/fikr", "/muammo", "/shikoyat"]))
-@dp.message(Command("fikr"))
-@dp.message(Command("muammo"))
-@dp.message(Command("shikoyat"))
+@dp.message(F.text.in_(["💬 Fikr / Muammo bildirish", "Fikr / Muammo bildirish", "/fikr", "/muammo", "/shikoyat"]), StateFilter("*"))
+@dp.message(Command("fikr"), StateFilter("*"))
+@dp.message(Command("muammo"), StateFilter("*"))
+@dp.message(Command("shikoyat"), StateFilter("*"))
 async def feedback_start(message: types.Message, state: FSMContext):
     await state.clear()
     await state.set_state(FeedbackState.waiting_text)

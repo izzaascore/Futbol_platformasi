@@ -108,8 +108,9 @@ IS_PRODUCTION = (
 async def lifespan(app: FastAPI):
     # 24/7 Bulutli Bot: Agar BOT_TOKEN mavjud bo'lsa, botni bitta serverda fonda yurgizamiz
     bot_task = None
-    bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
-    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and bot_token != "your_bot_token_here":
+    DEFAULT_BOT_TOKEN = "9026677560:AAGN8_bXDm5GgxQcE3AW5w4tEVN3MH1UDfU"
+    bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or DEFAULT_BOT_TOKEN).strip()
+    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890"):
         async def run_bot_polling():
             try:
                 from bot.bot import bot, dp
