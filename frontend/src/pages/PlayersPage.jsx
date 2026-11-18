@@ -528,7 +528,14 @@ const PlayersPage = () => {
                   <div className="absolute top-3 left-3 right-3 flex items-start justify-between z-10 gap-2">
                     <div className="flex flex-col gap-1 items-start">
                       <span className="px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-md border border-white/20 text-[9px] font-heading font-black uppercase text-white tracking-wider">
-                        {player.position}
+                        {(() => {
+                          const pos = (player.position || '').toLowerCase();
+                          if (pos.includes('hujum') || pos === 'fw') return 'Hujumchi';
+                          if (pos.includes('yarim') || pos === 'mf') return 'Yarim Himoya';
+                          if (pos.includes('himoya') || pos === 'df') return 'Himoyachi';
+                          if (pos.includes('darvoza') || pos === 'gk') return 'Darvozabon';
+                          return player.position || 'Hujumchi';
+                        })()}
                       </span>
                       {player.is_real_registered || player.is_pinned ? (
                         <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-stone-950 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md shadow-emerald-500/30">

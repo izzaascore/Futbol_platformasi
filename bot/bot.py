@@ -145,7 +145,7 @@ async def start_handler(message: types.Message, state: FSMContext):
                 current_player = {
                     "full_name": p.full_name,
                     "position": p.position or "Hujumchi",
-                    "rating": p.rating or 85,
+                    "rating": min(99, 82 + (p.goals_verified or 0) * 2),
                     "goals_verified": p.goals_verified or 0
                 }
     except Exception as e:

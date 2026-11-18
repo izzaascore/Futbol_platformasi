@@ -15,6 +15,83 @@ from app.schemas import (
 
 router = APIRouter(tags=["Players"])
 
+
+# --- ADMIN: DATABASE CLEANUP (Takroriy players tozalash) ---
+
+@router.post("/api/admin/cleanup-duplicate-players", dependencies=[Depends(RequireRole(["admin"]))])
+def cleanup_duplicate_players(db: Session = Depends(get_db)):
+    """
+    Render DB'dagi takroriy player yozuvlarini tozalaydi.
+    Faqat admin ishlatishi mumkin.
+    Mantiq: user_id yoki telegram_id bo'yicha birinchi yozuvni saqlaydi, qolganlarini o'chiradi.
+    """
+    all_players = db.query(Player).order_by(Player.id.asc()).all()
+    
+    seen_user_ids: set = set()
+    seen_tg_ids: set = set()
+    seen_names: set = set()
+    to_delete = []
+
+    for p in all_players:
+        keep = False
+        if p.user_id is not None:
+            if p.user_id not in seen_user_ids:
+                seen_user_ids.add(p.user_id)
+                keep = True
+        elif p.telegram_id is not None:
+            if p.telegram_id not in seen_tg_ids:
+                seen_tg_ids.add(p.telegram_id)
+                keep = True
+        else:
+            name_key = (p.full_name or '').strip().lower()
+            if name_key and name_key not in seen_names:
+                seen_names.add(name_key)
+                keep = True
+
+        if not keep:
+            to_delete.append(p.id)
+
+    deleted_count = 0
+    for pid in to_delete:
+        player = db.query(Player).filter(Player.id == pid).first()
+        if player:
+            db.delete(player)
+            deleted_count += 1
+
+    db.commit()
+    return {
+        "message": f"Tozalash yakunlandi. {deleted_count} ta takroriy yozuv o'chirildi.",
+        "deleted_count": deleted_count,
+        "remaining_count": len(all_players) - deleted_count
+    }
+
+
+@router.post("/api/admin/cleanup-dummy-tournaments", dependencies=[Depends(RequireRole(["admin"]))])
+def cleanup_dummy_tournaments(db: Session = Depends(get_db)):
+    """
+    Render DB'dagi dummy/hardcoded turnirlarni tozalaydi.
+    Faqat admin ishlatishi mumkin.
+    """
+    from app.models import Tournament
+    DUMMY_NAMES = [
+        "futuro cadets kubogi", "u-18 toshkent yoshlar ligasi", "toshkent chempionati u-18",
+        "o'zbekiston yoshlar kubogi", "futuro cadets kubogi 2026", "yoshlar ligasi",
+        "toshkent yoshlar ligasi", "sample tournament", "test turnir"
+    ]
+    all_tournaments = db.query(Tournament).all()
+    deleted = 0
+    for t in all_tournaments:
+        name_lower = (t.name or '').lower()
+        if any(dummy in name_lower for dummy in DUMMY_NAMES):
+            db.delete(t)
+            deleted += 1
+    db.commit()
+    return {
+        "message": f"{deleted} ta dummy turnir o'chirildi.",
+        "deleted_count": deleted
+    }
+
+
 # --- O'YINCHILAR ---
 
 @router.post("/players", response_model=PlayerOut, dependencies=[Depends(require_bot_key)])  # faqat Telegram bot
@@ -42,14 +119,39 @@ def get_all_players(
         query = query.filter(Player.position.ilike(f"%{position}%"))
     
     all_players = query.order_by(Player.goals_verified.desc()).all()
+    
     # Deduplicate: har bir haqiqiy o'yinchi faqat 1 marta ko'rsatiladi
+    # Priority: user_id > telegram_id > full_name
     unique_players = []
-    seen = set()
+    seen_user_ids: set = set()
+    seen_tg_ids: set = set()
+    seen_names: set = set()
+
     for p in all_players:
-        key = (p.user_id if p.user_id else (p.full_name or '').strip().lower())
-        if key and key not in seen:
-            seen.add(key)
-            unique_players.append(p)
+        # 1. user_id bo'yicha dedup (web orqali ro'yxatdan o'tganlar)
+        if p.user_id is not None:
+            if p.user_id in seen_user_ids:
+                continue
+            seen_user_ids.add(p.user_id)
+        # 2. telegram_id bo'yicha dedup (bot orqali ro'yxatdan o'tganlar)
+        elif p.telegram_id is not None:
+            if p.telegram_id in seen_tg_ids:
+                continue
+            seen_tg_ids.add(p.telegram_id)
+        else:
+            # 3. Faqat ism bo'yicha dedup
+            name_key = (p.full_name or '').strip().lower()
+            if not name_key or name_key in seen_names:
+                continue
+            seen_names.add(name_key)
+
+        # Ismni ham seen_names'ga qo'shamiz (barcha turdagi entries uchun)
+        name_key = (p.full_name or '').strip().lower()
+        if name_key:
+            seen_names.add(name_key)
+
+        unique_players.append(p)
+
     return unique_players
 
 

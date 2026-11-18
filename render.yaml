@@ -12,6 +12,8 @@ services:
         value: 3.11.9
       - key: ENVIRONMENT
         value: production
+      - key: RENDER_EXTERNAL_URL
+        value: https://futbol-platform.onrender.com
       - key: TRUSTED_PROXY_HOPS
         value: "1"
       - key: SECRET_KEY

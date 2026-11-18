@@ -106,27 +106,47 @@ IS_PRODUCTION = (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 24/7 Bulutli Bot: Agar BOT_TOKEN mavjud bo'lsa, botni bitta serverda fonda yurgizamiz
-    bot_task = None
     DEFAULT_BOT_TOKEN = "9026677560:AAGN8_bXDm5GgxQcE3AW5w4tEVN3MH1UDfU"
     bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or DEFAULT_BOT_TOKEN).strip()
-    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890"):
-        async def run_bot_polling():
-            try:
-                from bot.bot import bot, dp
-                print("🚀 Bulutda 24/7 Telegram Bot tekshirilmoqda va ishga tushirilmoqda...")
-                await bot.delete_webhook(drop_pending_updates=False)
-                await dp.start_polling(bot, handle_signals=False)
-            except asyncio.CancelledError:
-                print("🛑 Telegram bot polling to'xtatildi.")
-            except Exception as e:
-                print(f"⚠️ Telegram bot polling xatosi: {e}")
 
-        bot_task = asyncio.create_task(run_bot_polling())
+    # --- WEBHOOK yoki POLLING rejimini avtomatik tanlash ---
+    RENDER_URL = os.getenv("RENDER_EXTERNAL_URL", "").strip()
+    USE_WEBHOOK = bool(RENDER_URL)  # Render'da WEBHOOK, lokalda POLLING
+
+    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890"):
+        from bot.bot import bot, dp
+
+        if USE_WEBHOOK:
+            # === WEBHOOK rejimi (Render production) ===
+            WEBHOOK_PATH = "/bot/webhook"
+            WEBHOOK_URL = f"{RENDER_URL}{WEBHOOK_PATH}"
+            try:
+                await bot.set_webhook(
+                    url=WEBHOOK_URL,
+                    allowed_updates=["message", "callback_query", "inline_query"],
+                    drop_pending_updates=True,  # eski qolgan xabarlarni tashlash
+                )
+                print(f"✅ Telegram Webhook o'rnatildi: {WEBHOOK_URL}")
+            except Exception as e:
+                print(f"⚠️ Webhook o'rnatishda xato: {e}")
+
+        else:
+            # === POLLING rejimi (lokal ishlab chiqish) ===
+            async def run_bot_polling():
+                try:
+                    print("🚀 Lokal: Telegram Bot polling ishga tushirildi...")
+                    await bot.delete_webhook(drop_pending_updates=True)
+                    await dp.start_polling(bot, handle_signals=False)
+                except asyncio.CancelledError:
+                    print("🛑 Telegram bot polling to'xtatildi.")
+                except Exception as e:
+                    print(f"⚠️ Telegram bot polling xatosi: {e}")
+
+            asyncio.create_task(run_bot_polling())
 
     # Render diskidan o'chib ketgan videolarni Telegramdan avtomatik tiklash (Self-Healing Storage)
     async def auto_restore_all_videos():
-        await asyncio.sleep(4)
+        await asyncio.sleep(5)
         try:
             from app.core.database import SessionLocal
             from app.models.models import UserVideo
@@ -143,14 +163,16 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"[Self-Healing Startup Notice]: {e}")
 
-    restore_task = asyncio.create_task(auto_restore_all_videos())
+    asyncio.create_task(auto_restore_all_videos())
 
     yield
 
-    if bot_task:
-        bot_task.cancel()
-    if restore_task:
-        restore_task.cancel()
+    # Shutdown: webhook rejimida sessiyani yopamiz
+    try:
+        from bot.bot import bot as _bot
+        await _bot.session.close()
+    except Exception:
+        pass
 
 
 app = FastAPI(
@@ -207,7 +229,7 @@ async def security_defense_middleware(request: Request, call_next):
     # 2. Agar brauzer sahifani ochayotgan bo'lsa (SPA marshrutlari: /players, /live, /stadiums, etc.)
     path = request.url.path
     if request.method == "GET" and "text/html" in request.headers.get("accept", ""):
-        if not path.startswith(("/api/", "/uploads/", "/assets/", "/images/", "/docs", "/openapi.json", "/health", "/ws/")):
+        if not path.startswith(("/api/", "/uploads/", "/assets/", "/images/", "/docs", "/openapi.json", "/health", "/ws/", "/bot/")):
             index_file = FRONTEND_DIST / "index.html"
             if index_file.exists():
                 return FileResponse(str(index_file))
@@ -273,6 +295,22 @@ def health_check():
     return {"status": "healthy", "service": "Football Platform API"}
 
 
+# --- TELEGRAM WEBHOOK ENDPOINT ---
+# Telegram har bir xabarni shu manzilga POST qiladi (Webhook rejimida)
+@app.post("/bot/webhook")
+async def telegram_webhook(request: Request):
+    try:
+        from bot.bot import bot, dp
+        from aiogram.types import Update
+        data = await request.json()
+        update = Update.model_validate(data, context={"bot": bot})
+        await dp.feed_update(bot=bot, update=update)
+        return {"ok": True}
+    except Exception as e:
+        print(f"[Webhook Error]: {e}")
+        return {"ok": False, "error": str(e)}
+
+
 # Barcha API marshrutlarini ulash
 from app.api import (
     auth_router,
@@ -309,7 +347,7 @@ if FRONTEND_DIST.exists():
     @app.get("/{full_path:path}")
     async def serve_spa_fallback(full_path: str):
         # API marshrutlari, uploads, health va adminkaga tegmaymiz
-        excluded_prefixes = ("api/", "admin/", "uploads/", "health", "docs", "openapi.json")
+        excluded_prefixes = ("api/", "admin/", "uploads/", "health", "docs", "openapi.json", "bot/")
         if any(full_path.startswith(p) for p in excluded_prefixes):
             raise HTTPException(status_code=404, detail="Not Found")
         
