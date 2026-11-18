@@ -62,6 +62,15 @@ from app.services.ai_assistant import (
     INTENT_ADMIN_ALERT,
     INTENT_MATCHMAKER_SOS,
     INTENT_PREMATCH_AI,
+    INTENT_BECOME_PRO,
+    INTENT_SURPRISE_SKEPTICISM,
+    INTENT_SCOUTS_INFO,
+    INTENT_PRICING_FREE,
+    INTENT_VIDEO_GUIDE,
+    INTENT_AGE_LIMIT,
+    INTENT_LOCATION_INFO,
+    INTENT_TRAINING_ADVICE,
+    INTENT_CASUAL_CHAT,
     INTENT_FAREWELL,
     INTENT_GREETING,
     INTENT_GRATITUDE,
@@ -74,6 +83,15 @@ from app.services.ai_assistant import (
     INTENT_GENERAL,
     get_sos_callouts_response,
     get_prematch_ai_response,
+    get_become_pro_response,
+    get_surprise_skepticism_response,
+    get_scouts_info_response,
+    get_pricing_free_response,
+    get_video_guide_response,
+    get_age_limit_response,
+    get_location_info_response,
+    get_training_advice_response,
+    get_casual_chat_response,
     get_farewell_response,
     get_greeting_response,
     get_gratitude_response,
@@ -919,73 +937,127 @@ async def adaptive_ai_handler(message: types.Message, state: FSMContext):
     # 2. Rustam agenti xabarning niyatini (Intent) tahlil qiladi
     intent = classify_intent(text)
 
-    # 1. Xayrlashuv va yaxshi tilaklar
-    if intent == INTENT_FAREWELL:
+    # 1. Professional futbolchi bo'lish, kelajak va skautlar
+    if intent == INTENT_BECOME_PRO:
+        reply = get_become_pro_response(user_name)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 2. Ajablanish, ishonchsizlik va qiziqish ("yoge", "rostdanmi")
+    elif intent == INTENT_SURPRISE_SKEPTICISM:
+        reply = get_surprise_skepticism_response(user_name)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 3. Skautlar, klublar va kimlar ko'rishi
+    elif intent == INTENT_SCOUTS_INFO:
+        reply = get_scouts_info_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 4. Narx, to'lov va bepullik
+    elif intent == INTENT_PRICING_FREE:
+        reply = get_pricing_free_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 5. Gol videosi talablari va qoidalari
+    elif intent == INTENT_VIDEO_GUIDE:
+        reply = get_video_guide_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 6. Yosh chegaralari va toifalar
+    elif intent == INTENT_AGE_LIMIT:
+        reply = get_age_limit_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 7. Viloyatlar va shaharlar
+    elif intent == INTENT_LOCATION_INFO:
+        reply = get_location_info_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 8. Futbol mashg'ulotlari va mahorat oshirish
+    elif intent == INTENT_TRAINING_ADVICE:
+        reply = get_training_advice_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 9. Do'stona kichik muloqot va replikalar
+    elif intent == INTENT_CASUAL_CHAT:
+        reply = get_casual_chat_response(text, user_name)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 10. Xayrlashuv va yaxshi tilaklar
+    elif intent == INTENT_FAREWELL:
         reply = get_farewell_response(user_name)
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 2. Minnatdorchilik va tasanno
+    # 11. Minnatdorchilik va tasanno
     elif intent == INTENT_GRATITUDE:
         reply = get_gratitude_response(user_name)
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 3. Agentlar jamoasi va kim mas'ulligi
+    # 12. Agentlar jamoasi va kim mas'ulligi
     elif intent == INTENT_AGENTS_INFO:
         reply = get_agents_info_response()
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 4. Salomlashish, start va umumiy kirish
+    # 13. Salomlashish, start va umumiy kirish
     elif intent == INTENT_GREETING:
         reply = get_greeting_response(user_name)
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 5. Loyiha egasi va rahbar haqida
+    # 14. Loyiha egasi va rahbar haqida
     elif intent == INTENT_OWNER_INFO:
         reply = get_owner_info_response()
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 6. Javob berish tezligi
+    # 15. Javob berish tezligi
     elif intent == INTENT_RESPONSE_TIME:
         reply = get_response_time_response()
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 7. Boshqa o'yinchilar va jamiyat
+    # 16. Boshqa o'yinchilar va jamiyat
     elif intent == INTENT_COMMUNITY_PLAYERS:
         reply = get_community_players_response()
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 8. Reyting va OVR qoidalari
+    # 17. Reyting va OVR qoidalari
     elif intent == INTENT_RATING_INFO:
         reply = get_rating_info_response()
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 9. Bot yordam va yo'riqnoma
+    # 18. Bot yordam va yo'riqnoma
     elif intent == INTENT_HELP:
         reply = get_help_response()
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 10. Jamoa tarkibi va 10-13 kishi qoidalari
+    # 19. Jamoa tarkibi va 10-13 kishi qoidalari
     elif intent == INTENT_TEAM_RULES:
         reply = get_team_rules_response(text)
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 11. Turnirlar grafigi va holati (Boshlanganmi yoki yangimi)
+    # 20. Turnirlar grafigi va holati (Boshlanganmi yoki yangimi)
     elif intent == INTENT_TOURNAMENT:
         reply = await get_tournament_status_response(API_BASE_URL)
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # 12. Falonchi o'yinchi bilan ko'rishish / bog'lanish / topish
+    # 21. Falonchi o'yinchi bilan ko'rishish / bog'lanish / topish
     elif intent == INTENT_CONNECT_PLAYER:
         await message.answer(
             "🧠 <b>Agent Rustam tahlili:</b>\n"

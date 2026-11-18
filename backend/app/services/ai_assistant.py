@@ -52,6 +52,16 @@ INTENT_MATCHMAKER_SOS = "MATCHMAKER_SOS"
 INTENT_PREMATCH_AI = "PREMATCH_AI"
 
 # Yangi avtonom intellekt yo'nalishlari:
+INTENT_BECOME_PRO = "BECOME_PRO"
+INTENT_SURPRISE_SKEPTICISM = "SURPRISE_SKEPTICISM"
+INTENT_SCOUTS_INFO = "SCOUTS_INFO"
+INTENT_PRICING_FREE = "PRICING_FREE"
+INTENT_VIDEO_GUIDE = "VIDEO_GUIDE"
+INTENT_AGE_LIMIT = "AGE_LIMIT"
+INTENT_LOCATION_INFO = "LOCATION_INFO"
+INTENT_TRAINING_ADVICE = "TRAINING_ADVICE"
+INTENT_CASUAL_CHAT = "CASUAL_CHAT"
+
 INTENT_FAREWELL = "FAREWELL"
 INTENT_GREETING = "GREETING"
 INTENT_GRATITUDE = "GRATITUDE"
@@ -70,64 +80,101 @@ def classify_intent(text: str) -> str:
     """
     clean = text.lower().strip()
 
-    # 1. Xayrlashuv va yaxshi tilaklar
+    # 1. Professional futbolchi bo'lish, kelajak va skautlar e'tibori
+    if any(k in clean for k in ["pro futbolchi", "professional futbolchi", "futbolchi bo'la", "futbolchi bola", "futbolchi bo'lish", "futbolchi bolish", "pro bo'lish", "pro bolish", "katta futbol", "kelajagim", "istiqbolim", "ko'rikka", "prosmotr", "ko'rik"]):
+        return INTENT_BECOME_PRO
+
+    # 2. Ajablanish, ishonchsizlik va qiziqish ("yoge", "rostdanmi")
+    if any(k in clean for k in ["yoge", "yo'g'e", "yoge?", "yo'g'e?", "rostdanmi", "rostanammi", "rostan ham", "jiddiymi", "hazillashyapsanmi", "ishonmayman", "aldamayapsanmi", "haqiqatdanmi", "nahotki", "rostmi"]):
+        return INTENT_SURPRISE_SKEPTICISM
+
+    # 3. Skautlar, klublar va kimlar ko'rishi
+    if any(k in clean for k in ["skautlar kim", "qaysi klublar", "qaysi skautlar", "kimlar ko'radi", "kimlar koradi", "superliga", "pro liga", "agentlar", "murabbiylar ko'radimi", "klublar bormi", "paxtakor", "nasaf", "bunyodkor", "navbahor", "skaut"]):
+        return INTENT_SCOUTS_INFO
+
+    # 4. Narx, to'lov va bepullik
+    if any(k in clean for k in ["tekinmi", "bepulmi", "pul to'laymanmi", "pul tolaymanmi", "narxi qancha", "qancha turadi", "to'lov bormi", "tolov bormi", "qancha to'lash kerak", "pullikmi", "to'lov qanday", "narxlar"]):
+        return INTENT_PRICING_FREE
+
+    # 5. Gol videosi talablari va qoidalari
+    if ("video" in clean and any(w in clean for w in ["qanaqa", "qanday", "talab", "format", "yukla", "yubor", "qaysi", "qanaqangi", "bolishi", "bo'lishi"])) or \
+       ("gol" in clean and any(w in clean for w in ["yukla", "yubor", "joyla", "qo'y", "qoy", "qanday", "qanaqa"])):
+        return INTENT_VIDEO_GUIDE
+
+    # 6. Yosh chegaralari va toifalar
+    if any(k in clean for k in ["necha yosh", "yosh chegarasi", "yoshim", "yosh toifasi", "kichkinaman", "kattalar ham", "yosh chegarasi bormi", "yoshim to'g'ri", "yosh kattami"]):
+        return INTENT_AGE_LIMIT
+
+    # 7. Viloyatlar va shaharlar
+    if any(k in clean for k in ["viloyat", "qayerda joylashgan", "man samarqand", "man farg'ona", "vodiy", "andijon", "namangan", "buxoro", "qashqadaryo", "surxondaryo", "xorazm", "nukus", "navoiy", "jizzax", "qishloq", "shaharlar", "qaysi hudud"]):
+        return INTENT_LOCATION_INFO
+
+    # 8. Futbol mashg'ulotlari va mahorat oshirish
+    if any(k in clean for k in ["mashq", "mashg'ulot", "trenirovka", "zarba", "zarbani kuchaytirish", "tezlikni oshirish", "dribling", "fint", "fintlar", "qanday o'ynash", "o'sish uchun", "butsa tanlash"]):
+        return INTENT_TRAINING_ADVICE
+
+    # 9. Xayrlashuv va yaxshi tilaklar
     if any(k in clean for k in ["hayr", "xayr", "ko'rishguncha", "korishguncha", "omad", "ketdim", "salomat bo'ling", "tinch bo'ling", "yaxshi qoling", "yaxshi boring", "bay", "bye", "mayli hayr"]):
         return INTENT_FAREWELL
 
-    # 2. Minnatdorchilik va tasanno
+    # 10. Minnatdorchilik va tasanno
     if any(k in clean for k in ["rahmat", "katta rahmat", "tashakkur", "spasibo", "tushundim", "zo'r", "zor", "gap yo'q", "boldi rahmat", "barakalla", "minnatdorman", "tashakkurnoma", "yaxshi bo'ldi", "yaxshi boldi"]):
         return INTENT_GRATITUDE
 
-    # 3. Agentlar jamoasi va mas'uliyat haqida
+    # 11. Agentlar jamoasi va mas'uliyat haqida
     if any(k in clean for k in ["kim masul", "kim mas'ul", "qaysi agent", "agentlar kim", "agent jamoasi", "mahoraga kim", "rustam kim", "farrux kim", "abdulbosit kim", "ikrom kim", "qaysi agent masul", "kim javob beradi", "masul agent"]):
         return INTENT_AGENTS_INFO
 
-    # 4. Loyiha egasi, asoschisi va rahbar haqida savollar
+    # 12. Loyiha egasi, asoschisi va rahbar haqida savollar
     if any(k in clean for k in ["loyihani egasi", "loyiha egasi", "ega kim", "egasi kim", "boshliq kim", "rahbar kim", "asoschi kim", "loyiha kimniki", "kim yaratgan", "futuro nima", "loyiha haqida", "platforma haqida", "kim boshqaradi", "platforma kimniki"]):
         return INTENT_OWNER_INFO
 
-    # 5. Javob kelish vaqti va tezlik
+    # 13. Javob kelish vaqti va tezlik
     if any(k in clean for k in ["qancha vaqtda javob", "qachon javob", "tez javob", "qachon yozasiz", "javob keladi", "qancha vaqtda keladi", "qancha kutaman", "javob vaqti", "tezroq javob"]):
         return INTENT_RESPONSE_TIME
 
-    # 6. Boshqa o'yinchilar, jamoa a'zolari va boshqalarni ko'rish
+    # 14. Boshqa o'yinchilar, jamoa a'zolari va boshqalarni ko'rish
     if any(k in clean for k in ["mandan boshqa", "boshqa odamlar", "boshqalarni", "o'yinchilar bormi", "odamlar ham bormi", "raqiblar", "o'yinchilarni ko'rmoqchi", "kimlar bor", "boshqa o'yinchilar", "odamlar bormi", "futbolchilar bormi"]):
         return INTENT_COMMUNITY_PLAYERS
 
-    # 7. Reyting, ball, OVR va video ta'siri haqida
+    # 15. Reyting, ball, OVR va video ta'siri haqida
     if any(k in clean for k in ["nega reytingim", "reyting qanday", "video qo'ymadim", "video qoymadim", "reytingim 82", "reytingim 85", "ovr qanday", "ball qanday", "ball qanday beriladi", "reyting oshirish", "ochko qanday", "ovr nima", "reyting nima"]):
         return INTENT_RATING_INFO
 
-    # 8. Jamoa tarkibi, 10 kishi, 11-13 kishi, texnik mag'lubiyat
+    # 16. Jamoa tarkibi, 10 kishi, 11-13 kishi, texnik mag'lubiyat
     if any(k in clean for k in ["10 kishi", "11 kishi", "12 kishi", "13 kishi", "tarkib", "jamoa nechta", "nechta odam", "jamoa qoidasi", "odam yetmasa", "odam topish", "reglament"]):
         return INTENT_TEAM_RULES
 
-    # 9. Turnirlar sanasi, o'yinlar qachon
+    # 17. Turnirlar sanasi, o'yinlar qachon
     if any(k in clean for k in ["turnir qachon", "turnirlar", "musobaqa", "kubok", "qachon start", "qachon boshlanadi", "start oladi", "turnir bormi", "chempionat", "o'yinlar qachon"]):
         return INTENT_TOURNAMENT
 
-    # 10. Boshqa o'yinchi bilan ko'rishish, chat, bog'lana olmayapman
+    # 18. Boshqa o'yinchi bilan ko'rishish, chat, bog'lana olmayapman
     if any(k in clean for k in ["bilan ko'rishib", "bilan gaplashmoqchi", "bilan ko'rishmoqchi", "bog'lana olmayapman", "aloqaga chiqmoqchi", "topib bering", "bilan bog'lanish", "chat qilsak", "xona och", "topolmayapman"]):
         return INTENT_CONNECT_PLAYER
 
-    # 11. Muhim shaxsiy murojaatlar (pul, nohaqlik, homiy, shikoyat)
+    # 19. Muhim shaxsiy murojaatlar (pul, nohaqlik, homiy, shikoyat)
     if any(k in clean for k in ["shikoyat", "pul", "to'lov", "nohaqlik", "hakam sotilgan", "homiy", "sponsor", "aldashdi", "jiddiy masala", "admin bilan gaplashmoqchiman"]):
         return INTENT_ADMIN_ALERT
 
-    # 12. SOS Matchmaker: Odam yetmayapti, futbolga odam kerak
+    # 20. SOS Matchmaker: Odam yetmayapti, futbolga odam kerak
     if any(k in clean for k in ["odam yetmayapti", "odam kerak", "o'yinchi kerak", "futbolga odam", "tarkib to'lmayapti", "zaxira kerak", "bitta odam kerak", "ikkita odam kerak", "matchmaker", "sos e'lon"]):
         return INTENT_MATCHMAKER_SOS
 
-    # 13. AI Pre-Match: Kim yutadi, ehtimollik qanaqa, o'yin bashorati
+    # 21. AI Pre-Match: Kim yutadi, ehtimollik qanaqa, o'yin bashorati
     if any(k in clean for k in ["kim yutadi", "yutish ehtimoli", "pre-match", "prematch", "o'yin bashorati", "kim kuchli", "ehtimollik qanaqa", "tahlil qilib ber", "taktik tahlil", "bashorat qil"]):
         return INTENT_PREMATCH_AI
 
-    # 14. Yordam va bot qanday ishlashi
+    # 22. Yordam va bot qanday ishlashi
     if any(k in clean for k in ["yordam", "nima qila olasan", "bot nima qiladi", "qanday foydalanaman", "help", "nima qilishim kerak", "yo'riqnoma", "qo'llanma"]):
         return INTENT_HELP
 
-    # 15. Salomlashish, start va umumiy kirish
-    if any(k in clean for k in ["salom", "assalom", "privet", "qalaysiz", "qalaysan", "charchamang", "tinchmisiz", "qalay", "nima gap", "start/", "/start", "start", "boshlash", "menyu", "bormisiz", "valeykum", "ilova haqida bilmayman", "ilovani bilmayman"]):
+    # 23. Do'stona kichik muloqot va replikalar
+    if any(k in clean for k in ["nima gap", "tinchlikmi", "ishlar qalay", "tushunarli", "gaplashaylik", "zerikdim", "aytingchi", "eshitaman"]):
+        return INTENT_CASUAL_CHAT
+
+    # 24. Salomlashish, start va umumiy kirish
+    if any(k in clean for k in ["salom", "assalom", "privet", "qalaysiz", "qalaysan", "charchamang", "tinchmisiz", "qalay", "start/", "/start", "start", "boshlash", "menyu", "bormisiz", "valeykum", "ilova haqida bilmayman", "ilovani bilmayman"]):
         return INTENT_GREETING
 
     return INTENT_GENERAL
@@ -469,6 +516,119 @@ async def get_prematch_ai_response(api_base_url: str, text: str) -> str:
 # 8. MAHORAGA ENGINE: AVTONOM MULOQOT VA JAVOBLAR GENERATORI
 # ==============================================================
 
+def get_become_pro_response(user_name: str = "Do'stim") -> str:
+    return (
+        f"⚽️ <b>Ha, albatta! {user_name}, Futuro aynan shuning uchun yaratilgan!</b>\n\n"
+        "Bizning asosiy maqsadimiz — O'zbekistondagi har bir iqtidorli yosh futbolchini mahalla va havaskorlikdan <b>katta professional futbolga</b> olib chiqishdir! 🚀\n\n"
+        "<b>Qanday qilib professional futbolchi bo'lasiz?</b>\n"
+        "1. 📹 <b>Gollaringiz videosini yuklang:</b> O'yin yoki mashg'ulotdagi eng chiroyli gollaringizni '⚽️ Gol videosini yuborish' tugmasi orqali yuborasiz.\n"
+        "2. 📈 <b>Reytingingizni (OVR) oshirasiz:</b> Har bir tasdiqlangan gol profilingizga <b>+2 ball</b> beradi. Reytingingiz qancha baland bo'lsa, O'zbekiston peshqadamlari jadvalida shuncha yuqorilab borasiz.\n"
+        "3. 🎯 <b>Professional skautlar e'tiboriga tushasiz:</b> Platformamizni professional akademiyalar, Superliga va Pro-liga skautlari kuzatib boradi. Ular aynan eng yuqori reytingli o'yinchilarni saralaydi.\n"
+        "4. 🤝 <b>Rasmiy taklif olasiz:</b> Mahoratingiz skautlarga ma'qul kelsa, siz bilan bot orqali bog'lanishadi yoki ko'rikka (prosmotr) taklif qilishadi!\n\n"
+        "💡 <i>Hamma narsa o'z qo'lingizda — intizom, mehnat va to'xtovsiz mashg'ulot! Profilingizni to'ldiring va birinchi golingiz videosini yuboring!</i>"
+    )
+
+
+def get_surprise_skepticism_response(user_name: str = "Do'stim") -> str:
+    return (
+        f"😄 <b>Yo'g'-e emas, haqiqat, {user_name}!</b>\n\n"
+        "Bu hazil yoki shunchaki gap emas — <b>Futuro</b> O'zbekiston yosh futbolchilari uchun maxsus yaratilgan professional raqamli skauting ekotizimidir! ⚡️\n\n"
+        "Bu yerda:\n"
+        "• Hech qanday tanish-bilishchilik yo'q — faqat o'yin mahoratingiz va tasdiqlangan videolaringiz gapiradi.\n"
+        "• Barcha reytinglar shaffof va ochiq hisoblanadi.\n"
+        "• O'zbekistonning istalgan nuqtasidan turib katta futbolga qadam qo'yish imkoniyatingiz bor.\n\n"
+        "<i>Ishonmasangiz, <b>🏆 Reyting</b> tugmasini bosing yoki <b>⚡️ Futuro Mini App</b> ilovasini ochib, boshqa o'yinchilarning profillarini ko'ring!</i>"
+    )
+
+
+def get_scouts_info_response() -> str:
+    return (
+        "🎯 <b>Futuro Skautlar Tizimi Qanday Ishlaydi?</b>\n\n"
+        "Platformamiz O'zbekistonning yetakchi futbol akademiyalari (Paxtakor, Bunyodkor, Nasaf, Navbahor va boshqalar) hamda mustaqil professional skautlar bilan hamkorlik qiladi.\n\n"
+        "• Skautlar reyting peshqadamlarini viloyat, yosh toifasi (U-14, U-16, U-18) va amplua bo'yicha saralashadi.\n"
+        "• Har bir o'yinchining video dalillarini tahlil qilib, iqtidorlilarga Agent Ikrom orqali virtual aloqa taklifini yuborishadi.\n\n"
+        "<i>Sizning vazifangiz — gollaringizni muntazam yuklab, reytingingizni eng yuqori darajada ushlab turish!</i>"
+    )
+
+
+def get_pricing_free_response() -> str:
+    return (
+        "🟢 <b>Futuro Mutlaqo BEPUL Platforma!</b>\n\n"
+        "• Profil ochish — <b>0 so'm (Tekin)</b>\n"
+        "• Gol videolarini yuborish va reyting olish — <b>0 so'm (Tekin)</b>\n"
+        "• Reyting va boshqa o'yinchilarni kuzatish — <b>0 so'm (Tekin)</b>\n"
+        "• Mini App'dan to'liq foydalanish — <b>0 so'm (Tekin)</b>\n\n"
+        "Biz yosh iqtidorlardan pul olmaymiz — bizning maqsadimiz iste'dodlarni kashf etish va ularga katta yo'l ochishdir! ⚽️"
+    )
+
+
+def get_video_guide_response() -> str:
+    return (
+        "📹 <b>Gol Videosini Yuborish Bo'yicha Yo'riqnoma:</b>\n\n"
+        "1. <b>Qanday video qabul qilinadi?</b>\n"
+        "   • Futbol maydonida, mini-futbol yoki mashg'ulotda urilgan haqiqiy gollar.\n"
+        "   • Chiroyli jarima zarbalari, ajoyib kombinatsiyalar, dribling yoki kuchli zarbalar.\n"
+        "2. <b>Format va davomiyligi:</b>\n"
+        "   • Telegram orqali oddiy video fayl ko'rinishida yuboriladi.\n"
+        "   • Davomiyligi: 10 soniyadan 60 soniyagacha (zarba va to'p to'rga tushishi aniq ko'rinsin).\n"
+        "3. <b>Qanday yuboriladi?</b>\n"
+        "   • Pastki menyudagi <b>'⚽️ Gol videosini yuborish'</b> tugmasini bosing va videoni jo'nating!\n\n"
+        "<i>Har bir tasdiqlangan gol sizga darhol +2 OVR ball beradi!</i>"
+    )
+
+
+def get_age_limit_response() -> str:
+    return (
+        "👶👦 <b>Yosh Chegaralari va Toifalar:</b>\n\n"
+        "Futuro platformasida yosh chegarasi qat'iy cheklanmagan, lekin skautlar asosan quyidagi toifalarni kuzatadilar:\n\n"
+        "• <b>U-14 (10–14 yosh):</b> Boshlang'ich iqtidorlar va akademiyalar uchun nomzodlar\n"
+        "• <b>U-16 (15–16 yosh):</b> Professional o'smirlar ligasi o'yinchilari\n"
+        "• <b>U-18 (17–18 yosh):</b> O'rinbosarlar va dubl tarkiblarga tavsiya etiluvchi yoshlar\n"
+        "• <b>20+ va Havaskorlar:</b> Mini App orqali SOS o'yinlar va jamoalarga qo'shilishi mumkin.\n\n"
+        "<i>Qaysi yoshda bo'lsangiz ham, o'z mahoratingizni ko'rsatishdan to'xtamang!</i>"
+    )
+
+
+def get_location_info_response() -> str:
+    return (
+        "📍 <b>O'zbekistonning Barcha Hududlari Uchun!</b>\n\n"
+        "Siz qaysi viloyat, shahar yoki qishloqda bo'lishingizdan qat'i nazar (Toshkent, Samarqand, Farg'ona, Andijon, Qashqadaryo, Xorazm, Buxoro, Surxondaryo, Namangan, Jizzax, Navoiy, Qoraqalpog'iston) — bemalol qatnashishingiz mumkin!\n\n"
+        "Platformaning go'zalligi shundaki — skautlar eng chekka hududdagi iqtidorlarni ham video va statistika orqali kashf etadi. "
+        "Siz faqat o'z maydoningizdagi gollarni videoga oling va yuboring! ⚡️"
+    )
+
+
+def get_training_advice_response() -> str:
+    return (
+        "⚽️ <b>Agent Farrux & Rustamdan Professional Futbol Maslahatlari:</b>\n\n"
+        "Mahoratingizni tezroq oshirish uchun 4 ta oltin qoida:\n"
+        "1. <b>Devor bilan mashq:</b> Har kuni 15–20 daqiqa ikkala oyoqda to'pni devorga urib, birinchi teginishni (first touch) mukammallashtiring.\n"
+        "2. <b>Zarba aniqligi:</b> Kuchdan ko'ra darvoza burchaklariga aniq yo'naltirishni mashq qiling.\n"
+        "3. <b>Jismoniy quvvat:</b> Tezlik va chaqqonlik (koordinatsiya) ustida ishlang.\n"
+        "4. <b>Videolaringizni tahlil qiling:</b> Maydondagi harakatlaringizni chetdan ko'rish kamchiliklarni to'g'rilashga yordam beradi.\n\n"
+        "<i>Mashg'ulotdagi natijalaringizni video qilib platformamizga yuklab boring!</i>"
+    )
+
+
+def get_casual_chat_response(text: str, user_name: str = "Do'stim") -> str:
+    clean = text.lower()
+    if any(w in clean for w in ["tinchlikmi", "nima gap", "ishlar qalay", "charchamang"]):
+        return (
+            f"🤝 <b>Rahmat, {user_name}! Hamma ishlar a'lo darajada!</b>\n\n"
+            "Futuro agentlar jamoasi 24/7 rejimida maydonlar va futbolchilarni kuzatmoqda. "
+            "Sizda nima yangiliklar? Bugun futbol bormi yoki mashg'ulot o'tkazdingizmi? ⚽️"
+        )
+    if any(w in clean for w in ["tushunarli", "tushundim"]):
+        return (
+            f"👍 <b>Juda soz, {user_name}!</b>\n\n"
+            "Agar yangi savol tug'ilsa yoki video yuklashni xohlasangiz, istalgan paytda yozing! 🚀"
+        )
+    return (
+        f"😊 <b>Siz bilan suhbatlashishdan mamnunmiz, {user_name}!</b>\n\n"
+        "Futuro jamoasi doimo sizning xizmatingizda. Futbolga oid nima savolingiz yoki maqsadingiz bo'lsa, bemalol aytavering! ⚽️"
+    )
+
+
 def get_farewell_response(user_name: str = "Do'stim") -> str:
     return (
         f"👋 <b>Ko'rishguncha, {user_name}!</b>\n\n"
@@ -580,31 +740,61 @@ def get_help_response() -> str:
 
 
 def get_mahoraga_general_response(text: str, user_name: str = "Do'stim") -> str:
-    clean = text.lower()
+    clean = text.lower().strip()
 
-    if any(w in clean for w in ["qoyil", "malades", "gap yo", "super", "yaxshi", "ok", "hop", "mayli"]):
+    # 1. Ruxsat yoki imkoniyat so'ralganda
+    if any(q in clean for q in ["mumkinmi", "bo'ladimi", "boladimi", "mumkunmi", "ruxsat"]):
         return (
-            f"👍 <b>Rahmat, {user_name}!</b>\n\n"
-            "Sizga xizmat ko'rsatishdan mamnunmiz. Agar biron ma'lumot yoki yordam kerak bo'lsa, "
-            "doimo shu yerdamiz! ⚽️"
+            f"✅ <b>Albatta bo'ladi, {user_name}!</b>\n\n"
+            f"Futuro platformasida o'z futbol mahoratingizni ko'rsatish va rivojlanish uchun barcha imkoniyatlar yaratilgan.\n\n"
+            "• Profilingizni ko'rish yoki ochish uchun: <b>👤 Profilim</b>\n"
+            "• Gollar videosini yuklash uchun: <b>⚽️ Gol videosini yuborish</b>\n"
+            "• Butun O'zbekiston bo'yicha reytingni ko'rish uchun: <b>🏆 Reyting</b>\n"
+            "• Maydonlar va o'yinlar uchun: <b>⚡️ Futuro Mini App</b> ilovasini oching!"
         )
 
-    if any(w in clean for w in ["butsa", "to'p", "top", "stadion", "forma", "mashg'ulot", "trenirovka"]):
+    # 2. Qanday qilish usuli so'ralganda
+    if any(q in clean for q in ["qanday", "qanaqa", "qanday qilib", "qanaqasiga"]):
         return (
-            f"⚽️ <b>Futbol Mashg'ulotlari va Jihozlar (Agent Farrux & Rustam):</b>\n\n"
-            "Futbolda yuqori cho'qqilarga erishish uchun muntazam mashg'ulot va to'g'ri rejim juda muhim!\n"
-            "Platformamizdagi o'z gollaringizni muntazam joylab boring, "
-            "bu sizning maydondagi o'sishingizni ko'rsatadi va professional klublar diqqatini tortadi.\n\n"
-            "<i>Yangi gollaringiz bo'lsa, '⚽️ Gol videosini yuborish' tugmasi orqali yuboring!</i>"
+            f"💡 <b>{user_name}, buning yo'li juda oson:</b>\n\n"
+            "1. Bot menyusidagi kerakli bo'limni tanlang (Profil, Gol yuborish yoki Reyting).\n"
+            "2. Bot sizga qadam-baqadam yo'l ko'rsatadi.\n"
+            "3. Shuningdek, <b>⚡️ Futuro Mini App</b> tugmasini bosib, barcha funksiyalarni qulay vizual ekranda boshqarishingiz mumkin!\n\n"
+            "<i>Aniqroq savolingiz bo'lsa, bemalol yozing — agentlarimiz darhol tushuntiradi.</i>"
         )
 
+    # 3. Joylashuv yoki qayerdan topish so'ralganda
+    if any(q in clean for q in ["qayerda", "qayerdan", "qayoqda"]):
+        return (
+            f"📍 <b>Bu bo'limlar to'g'ridan-to'g'ri shu bot ichida va Mini App'da joylashgan, {user_name}!</b>\n\n"
+            "• O'z o'yinchi profilingiz: <b>👤 Profilim</b> tugmasida\n"
+            "• Yetakchilar jadvali: <b>🏆 Reyting</b> tugmasida\n"
+            "• Stadionlar xaritasi va o'yinlar: <b>📱 Futuro Mini App</b> ichida!\n\n"
+            "Bosh menyudagi tugmalardan birini tanlang."
+        )
+
+    # 4. Kim mas'ul yoki kimlar qatnashadi so'ralganda
+    if any(q in clean for q in ["kim", "kimlar", "kimga"]):
+        return (
+            f"👥 <b>Futuro Jamiyati va Mutasaddilari:</b>\n\n"
+            "Platformamizda minglab yosh futbolchilar, professional skautlar va doimiy yordam beruvchi AI agentlar jamoasi (Rustam, Farrux, Abdulbosit, Ikrom) jamlangan.\n\n"
+            "<i>Siz ham o'z profilingizni faollashtirib, jamiyatimizning to'laqonli a'zosiga aylaning!</i>"
+        )
+
+    # 5. Qisqa replikalar yoki hayratlar
+    if len(clean.split()) <= 2:
+        return (
+            f"⚽️ <b>{user_name}, savolingizni to'liqroq yozsangiz bir zumda yordam beramiz!</b>\n\n"
+            "Men Agent Rustam va Mahoraga adaptiv intellektiman. Futuro platformasi, profilingiz, gollaringiz, reyting yoki futbol bo'yicha har qanday savolingizga javob berishga tayyorman!\n\n"
+            "<i>Masalan: 'qanday qilib gol yuklayman', 'pro futbolchi bo'lish yo'li' yoki 'skautlar kimlar' deb so'rang!</i>"
+        )
+
+    # 6. Boshqa ixtiyoriy matnlar uchun tabiiy javob
     return (
-        f"🤖 <b>Futuro Avtonom Yordamchisi (Agent Rustam & Mahoraga):</b>\n\n"
-        f"Hurmatli {user_name}, murojaatingizni qabul qildik!\n\n"
-        "Futuro platformasida siz:\n"
-        "• O'z futbolchi profilingizni ochishingiz\n"
-        "• Gollaringiz videosini yuklab reytingingizni oshirishingiz\n"
-        "• Turnirlar va musobaqalar jadvalini kuzatishingiz\n"
-        "• Mini App orqali shahringizdagi o'yinlarga qo'shilishingiz mumkin.\n\n"
-        "<i>Agar platforma yoki futbol qoidalari bo'yicha aniq savolingiz bo'lsa, bemalol so'rang — jamoamiz yordam berishga tayyor!</i>"
+        f"🤖 <b>Agent Rustam & Mahoraga:</b>\n\n"
+        f"Hurmatli {user_name}, fikringizni qabul qildik!\n\n"
+        "Futuro — sizning futbol mahoratingizni yangi bosqichga olib chiquvchi maydon. "
+        "Har qanday maqsad yoki savolingiz bo'lsa, botimiz orqali profilingizni yuritib, gollaringizni yuklab boring. "
+        "Biz sizning natijalaringizni professional darajada ko'rsatishga tayyormiz!\n\n"
+        "<i>Kerakli amalni pastdagi bosh menyu tugmalari orqali boshlashingiz mumkin! ⚡️</i>"
     )
