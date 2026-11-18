@@ -119,6 +119,13 @@ def get_foot_kb():
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
 
 
+def get_cancel_kb():
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="❌ Bekor qilish")]],
+        resize_keyboard=True
+    )
+
+
 # --- /start HANDLER ---
 
 @dp.message(CommandStart(), StateFilter("*"))
@@ -176,6 +183,25 @@ async def start_handler(message: types.Message, state: FSMContext):
         parse_mode="HTML",
         reply_markup=get_webapp_inline_kb()
     )
+
+
+# --- GLOBAL CANCEL / BEKOR HANDLER ---
+# Har qanday holatda (FSM qaysi bosqichda bo'lishidan qat'i nazar) bekor qilish
+@dp.message(Command("bekor", "cancel"), StateFilter("*"))
+@dp.message(
+    F.text.casefold().in_([
+        "bekor", "bekor qilish", "/bekor", "/cancel", "отмена", "orqaga", 
+        "❌ bekor qilish", "bosh menyu", "menyu"
+    ]),
+    StateFilter("*")
+)
+async def global_cancel_handler(message: types.Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        "❌ Amal bekor qilindi.\n\n👇 Bosh menyudan kerakli bo'limni tanlang:",
+        reply_markup=get_main_menu()
+    )
+
 
 # --- RO'YXATDAN O'TISH BOSQICHLARI ---
 
@@ -325,9 +351,9 @@ async def start_submit_goal(message: types.Message, state: FSMContext):
     await message.answer(
         "📹 <b>Gol yoki xavfli vaziyat aks etgan qisqa videoni yuboring:</b>\n"
         "(Video telegram orqali to'g'ridan-to'g'ri video formatida yuborilishi kerak)\n\n"
-        "Bekor qilish uchun: /bekor",
+        "Bekor qilish uchun: pastdagi <b>❌ Bekor qilish</b> tugmasini bosing yoki /bekor deb yozing.",
         parse_mode="HTML",
-        reply_markup=ReplyKeyboardRemove()
+        reply_markup=get_cancel_kb()
     )
     await state.set_state(SubmitGoalState.waiting_for_video)
 
@@ -338,17 +364,30 @@ async def process_video(message: types.Message, state: FSMContext):
     file_id = message.video.file_id
     await state.update_data(video_url=file_id)
 
+    caption_kb = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="O'tkazib yuborish")],
+            [KeyboardButton(text="❌ Bekor qilish")]
+        ],
+        resize_keyboard=True
+    )
     await message.answer(
         "Videoga qisqacha tavsif yozing (masalan: <i>'Mahalla ligasi chorak finali, jarima zarbasidan'</i>):\n"
-        "Yoki <b>O'tkazib yuborish</b> deb yozing.",
-        parse_mode="HTML"
+        "Yoki <b>O'tkazib yuborish</b> tugmasini bosing.",
+        parse_mode="HTML",
+        reply_markup=caption_kb
     )
     await state.set_state(SubmitGoalState.waiting_for_caption)
 
 
 @dp.message(SubmitGoalState.waiting_for_video)
 async def process_video_invalid(message: types.Message):
-    await message.answer("Iltimos, faqat <b>video fayl</b> yuboring!", parse_mode="HTML")
+    await message.answer(
+        "Iltimos, faqat <b>video fayl</b> yuboring!\n"
+        "Bekor qilish uchun pastdagi <b>❌ Bekor qilish</b> tugmasini bosing.",
+        parse_mode="HTML",
+        reply_markup=get_cancel_kb()
+    )
 
 
 @dp.message(SubmitGoalState.waiting_for_caption)
@@ -469,8 +508,9 @@ async def feedback_start(message: types.Message, state: FSMContext):
         "💬 <b>Fikr, taklif yoki muammo bildirish:</b>\n\n"
         "Platformada qanday muammo yoki xatolik ko'rdingiz? Nimani to'g'irlashimiz yoki qo'shishimiz kerak?\n\n"
         "📝 <i>Fikringizni matn ko'rinishida yozing yoki to'g'ridan-to'g'ri skrinshot (rasm) qilib yuboring!</i>\n\n"
-        "Bekor qilish uchun: /bekor",
-        parse_mode="HTML"
+        "Bekor qilish uchun: pastdagi <b>❌ Bekor qilish</b> tugmasini bosing yoki /bekor deb yozing.",
+        parse_mode="HTML",
+        reply_markup=get_cancel_kb()
     )
 
 
