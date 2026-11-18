@@ -102,16 +102,28 @@ const RegisterPage = () => {
       });
       
       if (!res.ok) {
-        const err = await res.json();
-        setError(err.detail || 'Xato yuz berdi');
+        let errMessage = 'Xato yuz berdi';
+        try {
+          const err = await res.json();
+          errMessage = err.detail || errMessage;
+        } catch {
+          try {
+            errMessage = await res.text() || errMessage;
+          } catch {
+            // fallback
+          }
+        }
+        setError(typeof errMessage === 'string' ? errMessage : JSON.stringify(errMessage));
         setIsSubmitting(false);
         return;
       }
       
-      alert("Profil muvaffaqiyatli yaratildi! Endi tizimga kiring.");
+      alert(role === 'scout' 
+        ? "Skaut profilingiz muvaffaqiyatli yaratildi! Endi tizimga kiring."
+        : "Profil muvaffaqiyatli yaratildi! Endi tizimga kiring.");
       navigate('/login');
     } catch (e) {
-      setError("Server bilan bog'lanishda xatolik.");
+      setError(e.message || "Server bilan bog'lanishda xatolik.");
       setIsSubmitting(false);
     }
   };

@@ -21,7 +21,7 @@ from app.core.security import (
     safe_equals,
     decode_access_token
 )
-from app.models import User, UserVideo, Player, UserRole, UserStatus
+from app.models import User, UserVideo, Player, UserRole, UserStatus, Scout, GoalSubmission
 from app.schemas import (
     TelegramAuthRequest, UserCreate, UserLogin, UserOut,
     UserProfileImageUpdate, UserVideoOut
@@ -174,6 +174,15 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         db.add(scout)
         db.commit()
 
+        notify_admin_bot(
+            f"🎯 <b>Yangi Skaut Ro'yxatdan O'tdi!</b>\n\n"
+            f"👤 <b>Skaut:</b> {user.first_name} {user.last_name}\n"
+            f"🏢 <b>Tashkilot/Klub:</b> {scout_fields['organization'] or 'Ko\'rsatilmagan'}\n"
+            f"📄 <b>Litsenziya:</b> {scout_fields['license_url'] or 'Yuklanmagan'}\n"
+            f"🆔 <b>User ID:</b> <code>{user.id}</code>\n"
+            f"Holat: <b>Kutilmoqda (Pending)</b>"
+        )
+
     return user
 
 import httpx
@@ -181,7 +190,7 @@ import asyncio
 
 async def _send_admin_telegram_async(message: str):
     bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
-    admin_id = os.getenv("ADMIN_TELEGRAM_ID", "").strip()
+    admin_id = (os.getenv("ADMIN_TELEGRAM_ID") or "8692713738").strip()
     if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and admin_id:
         try:
             async with httpx.AsyncClient(timeout=4.0) as client:
