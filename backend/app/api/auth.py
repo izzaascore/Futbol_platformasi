@@ -174,11 +174,13 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         db.add(scout)
         db.commit()
 
+        org_name = scout_fields.get("organization") or "Korsatilmagan"
+        lic_url = scout_fields.get("license_url") or "Yuklanmagan"
         notify_admin_bot(
             f"🎯 <b>Yangi Skaut Ro'yxatdan O'tdi!</b>\n\n"
             f"👤 <b>Skaut:</b> {user.first_name} {user.last_name}\n"
-            f"🏢 <b>Tashkilot/Klub:</b> {scout_fields['organization'] or 'Ko\'rsatilmagan'}\n"
-            f"📄 <b>Litsenziya:</b> {scout_fields['license_url'] or 'Yuklanmagan'}\n"
+            f"🏢 <b>Tashkilot/Klub:</b> {org_name}\n"
+            f"📄 <b>Litsenziya:</b> {lic_url}\n"
             f"🆔 <b>User ID:</b> <code>{user.id}</code>\n"
             f"Holat: <b>Kutilmoqda (Pending)</b>"
         )
