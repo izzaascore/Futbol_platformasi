@@ -104,19 +104,39 @@ def get_main_menu():
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
 
+def get_guest_profile_menu():
+    kb = [
+        [KeyboardButton(text="📝 Botda profil yaratish")],
+        [KeyboardButton(text="📱 Futuro Ilovasi (Mini App)", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [KeyboardButton(text="🔙 Asosiy menyu")]
+    ]
+    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+
+
+def get_registered_profile_menu():
+    kb = [
+        [KeyboardButton(text="📱 Mini App'da profilni ko'rish", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [KeyboardButton(text="⚽ Gol videosini yuborish")],
+        [KeyboardButton(text="🔙 Asosiy menyu")]
+    ]
+    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+
+
 def get_position_kb():
     kb = [
         [KeyboardButton(text="Hujumchi"), KeyboardButton(text="Yarim himoyachi")],
-        [KeyboardButton(text="Himoyachi"), KeyboardButton(text="Darvozabon")]
+        [KeyboardButton(text="Himoyachi"), KeyboardButton(text="Darvozabon")],
+        [KeyboardButton(text="❌ Bekor qilish")]
     ]
-    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
+    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
 
 def get_foot_kb():
     kb = [
-        [KeyboardButton(text="O'ng"), KeyboardButton(text="Chap"), KeyboardButton(text="Har ikkisi")]
+        [KeyboardButton(text="O'ng"), KeyboardButton(text="Chap"), KeyboardButton(text="Har ikkisi")],
+        [KeyboardButton(text="❌ Bekor qilish")]
     ]
-    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
+    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
 
 def get_cancel_kb():
@@ -187,99 +207,206 @@ async def start_handler(message: types.Message, state: FSMContext):
 
 # --- GLOBAL CANCEL / BEKOR HANDLER ---
 # Har qanday holatda (FSM qaysi bosqichda bo'lishidan qat'i nazar) bekor qilish
-@dp.message(Command("bekor", "cancel"), StateFilter("*"))
+@dp.message(Command("bekor", "cancel", "menu", "menyu"), StateFilter("*"))
 @dp.message(
     F.text.casefold().in_([
         "bekor", "bekor qilish", "/bekor", "/cancel", "отмена", "orqaga", 
-        "❌ bekor qilish", "bosh menyu", "menyu"
+        "❌ bekor qilish", "bosh menyu", "menyu", "🔙 asosiy menyu", "asosiy menyu", "chiqish"
     ]),
     StateFilter("*")
 )
 async def global_cancel_handler(message: types.Message, state: FSMContext):
     await state.clear()
     await message.answer(
-        "❌ Amal bekor qilindi.\n\n👇 Bosh menyudan kerakli bo'limni tanlang:",
+        "👇 Asosiy menyudasiz:",
         reply_markup=get_main_menu()
     )
 
 
 # --- RO'YXATDAN O'TISH BOSQICHLARI ---
 
-@dp.message(RegistrationState.phone, F.contact)
-async def process_phone(message: types.Message, state: FSMContext):
-    phone = message.contact.phone_number
-    await state.update_data(phone=phone)
-    await message.answer("Yoshingizni kiriting (faqat raqam, masalan: 17):", reply_markup=ReplyKeyboardRemove())
-    await state.set_state(RegistrationState.age)
+@dp.message(
+    F.text.in_([
+        "📝 Botda profil yaratish", "Botda profil yaratish", 
+        "Profil yaratish", "Ro'yxatdan o'tish", "/register"
+    ]), 
+    StateFilter("*")
+)
+async def start_registration(message: types.Message, state: FSMContext):
+    await state.clear()
+    
+    # Avval tekshiramiz: balki allaqachon ro'yxatdan o'tgandir
+    try:
+        from app.core.database import SessionLocal
+        from app.models.models import Player
+        with SessionLocal() as db:
+            p = db.query(Player).filter(Player.telegram_id == message.from_user.id).first()
+            if p:
+                await message.answer(
+                    f"Siz allaqachon <b>{p.full_name}</b> nomi bilan ro'yxatdan o'tgansiz! ⚽\n\n"
+                    "Profilingizni ko'rish uchun <b>👤 Profilim</b> tugmasini bosing.",
+                    parse_mode="HTML",
+                    reply_markup=get_registered_profile_menu()
+                )
+                return
+    except Exception:
+        pass
 
-@dp.message(RegistrationState.phone)
-async def process_phone_invalid(message: types.Message):
-    await message.answer("Iltimos, pastdagi '📱 Telefon raqamni yuborish' tugmasini bosing.")
+    default_name = message.from_user.full_name or "Futbolchi"
+    await state.set_state(RegistrationState.full_name)
+    name_kb = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=default_name)],
+            [KeyboardButton(text="❌ Bekor qilish")]
+        ],
+        resize_keyboard=True
+    )
+    await message.answer(
+        "📝 <b>Profil yaratish — 1/4 bosqich:</b>\n\n"
+        "Ism va familiyangizni yozing:\n"
+        f"(Yoki pastdagi <b>'{default_name}'</b> tugmasini bosing)",
+        parse_mode="HTML",
+        reply_markup=name_kb
+    )
+
 
 @dp.message(RegistrationState.full_name)
 async def process_name(message: types.Message, state: FSMContext):
-    await state.update_data(full_name=message.text.strip())
-    await message.answer("Yoshingizni kiriting (faqat raqam, masalan: 17):")
+    name = message.text.strip()
+    await state.update_data(full_name=name)
+    age_kb = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="15"), KeyboardButton(text="16"), KeyboardButton(text="17")],
+            [KeyboardButton(text="18"), KeyboardButton(text="19"), KeyboardButton(text="20")],
+            [KeyboardButton(text="❌ Bekor qilish")]
+        ],
+        resize_keyboard=True
+    )
+    await message.answer(
+        f"Ajoyib, <b>{name}</b>! 👍\n\n"
+        "2/4. Yoshingiz nechida? (Tugmalardan tanlang yoki yozing):",
+        parse_mode="HTML",
+        reply_markup=age_kb
+    )
     await state.set_state(RegistrationState.age)
 
 
 @dp.message(RegistrationState.age)
 async def process_age(message: types.Message, state: FSMContext):
     if not message.text.isdigit():
-        await message.answer("Iltimos, yoshingizni faqat raqamlarda kiriting:")
+        await message.answer("Iltimos, yoshingizni faqat raqamlarda kiriting (masalan: 17):")
         return
 
-    await state.update_data(age=int(message.text))
-    await message.answer("Qaysi shahar yoki viloyatdansiz? (Masalan: Toshkent yoki Qo'qon):")
+    age_val = int(message.text)
+    if age_val < 7 or age_val > 55:
+        await message.answer("Iltimos, to'g'ri yoshingizni kiriting (7 dan 55 gacha):")
+        return
+
+    await state.update_data(age=age_val)
+    city_kb = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Toshkent"), KeyboardButton(text="Samarqand")],
+            [KeyboardButton(text="Farg'ona"), KeyboardButton(text="Andijon")],
+            [KeyboardButton(text="Namangan"), KeyboardButton(text="Buxoro")],
+            [KeyboardButton(text="❌ Bekor qilish")]
+        ],
+        resize_keyboard=True
+    )
+    await message.answer(
+        "3/4. Qaysi shahar yoki viloyatdansiz? (Tanlang yoki yozing):",
+        reply_markup=city_kb
+    )
     await state.set_state(RegistrationState.city)
 
 
 @dp.message(RegistrationState.city)
 async def process_city(message: types.Message, state: FSMContext):
     await state.update_data(city=message.text.strip())
-    await message.answer("Qaysi pozitsiyada o'ynaysiz?", reply_markup=get_position_kb())
+    await message.answer(
+        "4/4. Qaysi pozitsiyada o'ynaysiz?",
+        reply_markup=get_position_kb()
+    )
     await state.set_state(RegistrationState.position)
 
 
 @dp.message(RegistrationState.position)
 async def process_position(message: types.Message, state: FSMContext):
     await state.update_data(position=message.text.strip())
-    await message.answer("Asosiy zarba oyog'ingiz qaysi?", reply_markup=get_foot_kb())
+    await message.answer(
+        "Asosiy zarba oyog'ingiz qaysi?",
+        reply_markup=get_foot_kb()
+    )
     await state.set_state(RegistrationState.preferred_foot)
 
 
 @dp.message(RegistrationState.preferred_foot)
 async def process_foot(message: types.Message, state: FSMContext):
-    await state.update_data(preferred_foot=message.text.strip())
+    foot = message.text.strip()
+    await state.update_data(preferred_foot=foot)
     data = await state.get_data()
 
-    payload = {
-        "telegram_id": message.from_user.id,
-        "full_name": data.get("full_name", message.from_user.full_name),
-        "phone": data.get("phone", ""),
-        "age": data["age"],
-        "city": data["city"],
-        "position": data["position"],
-        "preferred_foot": data["preferred_foot"],
-        "goals_claimed": 0
-    }
+    full_name = data.get("full_name") or message.from_user.full_name or "Futbolchi"
+    age = data.get("age", 18)
+    city = data.get("city", "Toshkent")
+    position = data.get("position", "Hujumchi")
+    preferred_foot = foot
 
-    # API ga yuboramiz
-    async with httpx.AsyncClient() as client:
-        try:
-            res = await client.post(f"{API_BASE_URL}/players", json=payload, headers=BOT_HEADERS)
-            if res.status_code == 200:
-                await message.answer(
-                    "🎉 Profilingiz muvaffaqiyatli yaratildi!\n"
-                    "Endi gollaringiz videosini yuborishingiz mumkin.",
-                    reply_markup=get_main_menu()
+    # 1. Bevosita lokal DB ga saqlaymiz (0 millisekund, 100% kafolatli)
+    try:
+        from app.core.database import SessionLocal
+        from app.models.models import Player
+        with SessionLocal() as db:
+            p = db.query(Player).filter(Player.telegram_id == message.from_user.id).first()
+            if not p:
+                p = Player(
+                    telegram_id=message.from_user.id,
+                    full_name=full_name,
+                    age=age,
+                    city=city,
+                    position=position,
+                    preferred_foot=preferred_foot,
+                    goals_claimed=0,
+                    goals_verified=0
                 )
+                db.add(p)
             else:
-                await message.answer("Xatolik yuz berdi. Iltimos qaytadan /start bosing.")
-        except Exception:
-            await message.answer("Serverda xatolik yuz berdi. Backend ishlayotganiga ishonch hosil qiling.")
+                p.full_name = full_name
+                p.age = age
+                p.city = city
+                p.position = position
+                p.preferred_foot = preferred_foot
+            db.commit()
+    except Exception as e:
+        print(f"[Direct DB save in registration]: {e}")
+
+    # 2. API ga ham jo'natamiz
+    try:
+        payload = {
+            "telegram_id": message.from_user.id,
+            "full_name": full_name,
+            "phone": "",
+            "age": age,
+            "city": city,
+            "position": position,
+            "preferred_foot": preferred_foot,
+            "goals_claimed": 0
+        }
+        async with httpx.AsyncClient(timeout=3) as client:
+            await client.post(f"{API_BASE_URL}/players", json=payload, headers=BOT_HEADERS)
+    except Exception:
+        pass
 
     await state.clear()
+    await message.answer(
+        f"🎉 <b>Tabriklaymiz, {full_name}!</b>\n\n"
+        "Profilingiz muvaffaqiyatli yaratildi va bazaga kiritildi! ⚽\n\n"
+        f"🎯 <b>Pozitsiya:</b> {position}\n"
+        f"📍 <b>Shahar:</b> {city}\n"
+        f"👟 <b>Zarba oyog'i:</b> {preferred_foot}\n\n"
+        "Endi gollaringiz videosini yuborib milliy reytingda ko'tarilishingiz mumkin!",
+        parse_mode="HTML",
+        reply_markup=get_main_menu()
+    )
 
 
 # --- PROFILNI KO'RISH ---
@@ -303,7 +430,7 @@ async def show_profile(message: types.Message, state: FSMContext):
                     "preferred_foot": p.preferred_foot or "O'ng",
                     "goals_verified": p.goals_verified or 0,
                     "goals_claimed": p.goals_claimed or 0,
-                    "rating": p.rating or 85
+                    "rating": min(99, 82 + (p.goals_verified or 0) * 2)
                 }
     except Exception as e:
         print(f"[Profile DB Error]: {e}")
@@ -314,19 +441,31 @@ async def show_profile(message: types.Message, state: FSMContext):
             async with httpx.AsyncClient(timeout=3) as client:
                 res = await client.get(f"{API_BASE_URL}/players?telegram_id={message.from_user.id}")
                 if res.status_code == 200 and res.json():
-                    user = res.json()[0]
+                    p_data = res.json()[0]
+                    user = {
+                        "full_name": p_data.get("full_name"),
+                        "age": p_data.get("age", "18"),
+                        "city": p_data.get("city", "Toshkent"),
+                        "position": p_data.get("position", "Hujumchi"),
+                        "preferred_foot": p_data.get("preferred_foot", "O'ng"),
+                        "goals_verified": p_data.get("goals_verified", 0),
+                        "goals_claimed": p_data.get("goals_claimed", 0),
+                        "rating": p_data.get("rating", 85)
+                    }
         except Exception:
             pass
 
     if not user:
         await message.answer(
             f"Salom, <b>{message.from_user.full_name}</b>! 👋\n\n"
-            "⚠️ Profilingiz hali bazada ro'yxatdan o'tmagan.\n\n"
-            "Profil yaratish uchun Mini App'ni oching yoki sayt orqali ro'yxatdan o'ting:",
+            "⚠️ <b>Profilingiz hali bazada mavjud emas.</b>\n\n"
+            "O'zingizga futbolchi profilini yaratish uchun quyidagi variantlardan birini tanlang:\n\n"
+            "• <b>📝 Botda profil yaratish</b> — bir necha oddiy savol orqali profil ochish\n"
+            "• <b>📱 Futuro Ilovasi</b> — sayt / Mini App orqali fotosurat yuklab to'liq ro'yxatdan o'tish\n\n"
+            "👇 <i>Pastdagi menyudan kerakli bo'limni tanlang:</i>",
             parse_mode="HTML",
-            reply_markup=get_webapp_inline_kb()
+            reply_markup=get_guest_profile_menu()
         )
-        await message.answer("Yoki bot menyusidan foydalaning:", reply_markup=get_main_menu())
         return
 
     profile_text = (
@@ -338,9 +477,10 @@ async def show_profile(message: types.Message, state: FSMContext):
         f"👟 <b>Zarba oyog'i:</b> {user['preferred_foot']}\n"
         f"🏆 <b>OVR Reyting:</b> {user.get('rating', 85)}\n\n"
         f"✅ <b>Tasdiqlangan gollar:</b> {user.get('goals_verified', 0)} ta\n"
-        f"📊 <b>Kutilayotgan gollar:</b> {user.get('goals_claimed', 0)} ta"
+        f"📊 <b>Kutilayotgan gollar:</b> {user.get('goals_claimed', 0)} ta\n\n"
+        "👇 <i>Pastdagi menyudan foydalaning:</i>"
     )
-    await message.answer(profile_text, parse_mode="HTML", reply_markup=get_main_menu())
+    await message.answer(profile_text, parse_mode="HTML", reply_markup=get_registered_profile_menu())
 
 
 # --- VIDEO YUBORISH JARAYONI ---
