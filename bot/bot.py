@@ -62,9 +62,28 @@ from app.services.ai_assistant import (
     INTENT_ADMIN_ALERT,
     INTENT_MATCHMAKER_SOS,
     INTENT_PREMATCH_AI,
+    INTENT_FAREWELL,
+    INTENT_GREETING,
+    INTENT_GRATITUDE,
+    INTENT_OWNER_INFO,
+    INTENT_RESPONSE_TIME,
+    INTENT_COMMUNITY_PLAYERS,
+    INTENT_RATING_INFO,
+    INTENT_AGENTS_INFO,
+    INTENT_HELP,
+    INTENT_GENERAL,
     get_sos_callouts_response,
     get_prematch_ai_response,
-    INTENT_GENERAL
+    get_farewell_response,
+    get_greeting_response,
+    get_gratitude_response,
+    get_owner_info_response,
+    get_response_time_response,
+    get_community_players_response,
+    get_rating_info_response,
+    get_agents_info_response,
+    get_help_response,
+    get_mahoraga_general_response
 )
 
 bot = Bot(token=BOT_TOKEN)
@@ -900,19 +919,73 @@ async def adaptive_ai_handler(message: types.Message, state: FSMContext):
     # 2. Rustam agenti xabarning niyatini (Intent) tahlil qiladi
     intent = classify_intent(text)
 
-    # A) Jamoa tarkibi va 10-13 kishi qoidalari
-    if intent == INTENT_TEAM_RULES:
+    # 1. Xayrlashuv va yaxshi tilaklar
+    if intent == INTENT_FAREWELL:
+        reply = get_farewell_response(user_name)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 2. Minnatdorchilik va tasanno
+    elif intent == INTENT_GRATITUDE:
+        reply = get_gratitude_response(user_name)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 3. Agentlar jamoasi va kim mas'ulligi
+    elif intent == INTENT_AGENTS_INFO:
+        reply = get_agents_info_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 4. Salomlashish, start va umumiy kirish
+    elif intent == INTENT_GREETING:
+        reply = get_greeting_response(user_name)
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 5. Loyiha egasi va rahbar haqida
+    elif intent == INTENT_OWNER_INFO:
+        reply = get_owner_info_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 6. Javob berish tezligi
+    elif intent == INTENT_RESPONSE_TIME:
+        reply = get_response_time_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 7. Boshqa o'yinchilar va jamiyat
+    elif intent == INTENT_COMMUNITY_PLAYERS:
+        reply = get_community_players_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 8. Reyting va OVR qoidalari
+    elif intent == INTENT_RATING_INFO:
+        reply = get_rating_info_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 9. Bot yordam va yo'riqnoma
+    elif intent == INTENT_HELP:
+        reply = get_help_response()
+        await message.answer(reply, parse_mode="HTML")
+        return
+
+    # 10. Jamoa tarkibi va 10-13 kishi qoidalari
+    elif intent == INTENT_TEAM_RULES:
         reply = get_team_rules_response(text)
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # B) Turnirlar grafigi va holati (Boshlanganmi yoki yangimi)
+    # 11. Turnirlar grafigi va holati (Boshlanganmi yoki yangimi)
     elif intent == INTENT_TOURNAMENT:
         reply = await get_tournament_status_response(API_BASE_URL)
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # C) Falonchi o'yinchi bilan ko'rishish / bog'lanish / topish
+    # 12. Falonchi o'yinchi bilan ko'rishish / bog'lanish / topish
     elif intent == INTENT_CONNECT_PLAYER:
         await message.answer(
             "🧠 <b>Agent Rustam tahlili:</b>\n"
@@ -1017,9 +1090,9 @@ async def adaptive_ai_handler(message: types.Message, state: FSMContext):
         await message.answer(reply, parse_mode="HTML")
         return
 
-    # G) Boshqa noma'lum / noodatiy savollar (RAG -> Human-in-the-Loop)
+    # G) Noma'lum / Erkin so'rovlar: Obsidian RAG -> Mahoraga Avtonom Javob
     else:
-        # 1-qadam: Obsidian Bilimlar Bazasidan qidiramiz (RAG)
+        # 1-qadam: Obsidian Bilimlar Bazasidan qidiramiz (FAQ)
         rag_result = search_obsidian_knowledge_base(text)
         if rag_result:
             answer_content, source_file = rag_result
@@ -1031,29 +1104,9 @@ async def adaptive_ai_handler(message: types.Message, state: FSMContext):
             )
             return
 
-        # 2-qadam: Agar bazada ham topilmasa — Mahoraga Human-in-the-Loop (Adminga yuborish)
-        await message.answer(
-            "🤔 <b>Juda qiziq va noodatiy savol bo'ldi!</b>\n\n"
-            "Bu savol bo'yicha eng aniq ma'lumotni olish uchun uni to'g'ridan-to'g'ri loyiha rahbariga (Adminga) yo'naltirdim. "
-            "Rahbarimiz javob yozishi bilan sizga shu yerning o'zida yetkazaman va kelgusi safar uchun tizim buni avtomatik o'rganib oladi! ⚡️",
-            parse_mode="HTML"
-        )
-
-        if ADMIN_TELEGRAM_ID:
-            try:
-                admin_msg = await bot.send_message(
-                    ADMIN_TELEGRAM_ID,
-                    f"❓ <b>NOODATIY SAVOL KELDI (Human-in-the-Loop):</b>\n\n"
-                    f"👤 <b>Foydalanuvchi:</b> {user_name} ({username})\n"
-                    f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
-                    f"📝 <b>Savol:</b>\n<i>{text}</i>\n\n"
-                    f"✍️ <i>Ushbu xabarga <b>Reply (Javob)</b> qilib javob yozsangiz, bot javobingizni foydalanuvchiga yetkazadi "
-                    f"hamda 'Bilimlar_Bazasi_FAQ.md' ga avtomatik qo'shib tizimga o'rgatadi!</i>",
-                    parse_mode="HTML"
-                )
-                register_pending_question(admin_msg.message_id, user_id, user_name, text)
-            except Exception as e:
-                print(f"Admin forward error: {e}")
+        # 2-qadam: Mahoraga adaptiv intellekti mustaqil javob beradi!
+        reply = get_mahoraga_general_response(text, user_name)
+        await message.answer(reply, parse_mode="HTML")
         return
 
 
