@@ -380,6 +380,14 @@ async def process_video(message: types.Message, state: FSMContext):
     await state.set_state(SubmitGoalState.waiting_for_caption)
 
 
+# ⚡ ALOHIDA BEKOR: video kutish paytida /bekor yoki tugma bosilsa
+@dp.message(SubmitGoalState.waiting_for_video, Command("bekor", "cancel"))
+@dp.message(SubmitGoalState.waiting_for_video, F.text.casefold().in_(["bekor", "bekor qilish", "❌ bekor qilish", "orqaga", "menyu"]))
+async def cancel_video_state(message: types.Message, state: FSMContext):
+    await state.clear()
+    await message.answer("❌ Amal bekor qilindi.\n\n👇 Bosh menyudan kerakli bo'limni tanlang:", reply_markup=get_main_menu())
+
+
 @dp.message(SubmitGoalState.waiting_for_video)
 async def process_video_invalid(message: types.Message):
     await message.answer(
@@ -388,6 +396,14 @@ async def process_video_invalid(message: types.Message):
         parse_mode="HTML",
         reply_markup=get_cancel_kb()
     )
+
+
+# ⚡ ALOHIDA BEKOR: caption kutish paytida
+@dp.message(SubmitGoalState.waiting_for_caption, Command("bekor", "cancel"))
+@dp.message(SubmitGoalState.waiting_for_caption, F.text.casefold().in_(["bekor", "bekor qilish", "❌ bekor qilish", "orqaga", "menyu"]))
+async def cancel_caption_state(message: types.Message, state: FSMContext):
+    await state.clear()
+    await message.answer("❌ Amal bekor qilindi.\n\n👇 Bosh menyudan kerakli bo'limni tanlang:", reply_markup=get_main_menu())
 
 
 @dp.message(SubmitGoalState.waiting_for_caption)
