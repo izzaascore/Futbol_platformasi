@@ -38,8 +38,7 @@ API_BASE_URL = os.getenv("API_BASE_URL", "https://futbol-platform.onrender.com")
 # Jonli WebApp manzili:
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://futbol-platformasi-alpha.vercel.app")
 # Admin Telegram ID (muhim shaxsiy xabarlar uchun):
-ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "8692713738").strip()
-ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "")
+ADMIN_TELEGRAM_ID = (os.getenv("ADMIN_TELEGRAM_ID") or "8692713738").strip()
 # Botning API uchun kaliti (admin huquqi bermaydi). Railway Variables da BOT_API_KEY ni o'rnating.
 BOT_API_KEY = os.getenv("BOT_API_KEY", "").strip()
 BOT_HEADERS = {"X-Bot-Key": BOT_API_KEY} if BOT_API_KEY else {}
