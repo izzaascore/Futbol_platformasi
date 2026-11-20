@@ -463,3 +463,34 @@ def toggle_feedback(feedback_id: int, db: Session = Depends(get_db)):
     fb.is_done = not fb.is_done
     db.commit()
     return {"id": fb.id, "is_done": fb.is_done}
+
+
+# --- TWO-WAY ADMIN TO TELEGRAM SYNC ---
+
+class AdminTelegramReply(BaseModel):
+    telegram_id: int | str
+    message: str
+    feedback_id: int | None = None
+
+@router.post("/api/admin/send-telegram-message", dependencies=[Depends(RequireRole(["admin"]))])
+def admin_send_telegram_message(data: AdminTelegramReply, db: Session = Depends(get_db)):
+    from app.api.auth import notify_telegram_user
+    msg_text = (data.message or "").strip()
+    if not msg_text:
+        raise HTTPException(status_code=400, detail="Xabar matni bo'sh bo'lishi mumkin emas")
+    
+    formatted = (
+        f"📩 <b>Futuro Platformasi Ma'muriyatidan Javob:</b>\n\n"
+        f"{msg_text}\n\n"
+        f"<i>Futuro jamoasi sizning e'tiboringiz va fikr-mulohazangiz uchun minnatdorchilik bildiradi!</i>"
+    )
+    notify_telegram_user(str(data.telegram_id), formatted)
+
+    if data.feedback_id:
+        fb = db.query(Feedback).filter(Feedback.id == data.feedback_id).first()
+        if fb:
+            fb.is_done = True
+            db.commit()
+
+    return {"ok": True, "message": "Xabar foydalanuvchining Telegramiga yuborildi"}
+

@@ -178,12 +178,13 @@ def approve_scout(user_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     if user.telegram_id:
+        webapp_url = (os.getenv("WEBAPP_URL") or "https://futbol-platformasi-alpha.vercel.app").rstrip("/")
         notify_telegram_user(
             user.telegram_id,
             f"🎉 <b>Tabriklaymiz, {user.first_name}!</b>\n\n"
             f"Sizning Futuro <b>Scout PRO</b> akkreditatsiyangiz ma'muriyat tomonidan tasdiqlandi! ✅\n\n"
             f"Endi siz platformadagi barcha yosh iqtidorlar statistikasi, tahlillari va ularni ko'rikka taklif qilish imkoniyatiga to'liq egasiz.\n\n"
-            f"🌐 Havola: https://futbol-platform.onrender.com/scouts"
+            f"🌐 Havola: {webapp_url}/scouts"
         )
     return {"message": "Skaut muvaffaqiyatli tasdiqlandi", "user_id": user.id, "status": "active"}
 

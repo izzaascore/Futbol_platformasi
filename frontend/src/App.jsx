@@ -423,9 +423,37 @@ function App() {
     }
   }, []);
 
+  // Render Free Tier Cold-Start Indicator (Server uyg'onishini sezish)
+  const [serverWaking, setServerWaking] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const timer = setTimeout(() => {
+      if (isMounted) setServerWaking(true);
+    }, 2000);
+
+    fetch(`${API_URL}/health`)
+      .then(() => {
+        clearTimeout(timer);
+        if (isMounted) setServerWaking(false);
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, []);
+
   return (
     <BrowserRouter>
       <FeedbackButton />
+      {serverWaking && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-stone-900/95 border border-amber-500/40 text-amber-400 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-2 animate-pulse pointer-events-none">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+          <span>Server uyg'onmoqda, iltimos kuting... ⏳</span>
+        </div>
+      )}
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />

@@ -335,6 +335,7 @@ from app.api import (
     tournaments_router,
     scouts_router,
     community_router,
+    shop_router,
 )
 
 app.include_router(auth_router)
@@ -343,6 +344,7 @@ app.include_router(matches_router)
 app.include_router(tournaments_router)
 app.include_router(scouts_router)
 app.include_router(community_router)
+app.include_router(shop_router)
 
 
 # Frontend statik fayllari va SPA integratsiyasi
