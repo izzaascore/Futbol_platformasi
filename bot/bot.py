@@ -183,16 +183,10 @@ def get_cancel_kb():
 
 
 # --- /start HANDLER ---
-# Har qanday holatda (FSM holati nima bo'lishidan qat'i nazar) va har qanday variantda (/start, start, start/) darhol javob beradi
+# Har qanday holatda (FSM holati nima bo'lishidan qat'i nazar) /start bosilganda darhol javob beradi
 @dp.message(CommandStart(), StateFilter("*"))
 @dp.message(Command("start"), StateFilter("*"))
-@dp.message(
-    F.text.casefold().in_([
-        "/start", "start", "start/", "/start/", "start /", "boshlash", 
-        "/start@futbol_platormabot", "/start@futbol_platormabot/"
-    ]),
-    StateFilter("*")
-)
+@dp.message(F.text.func(lambda t: t and t.strip().lower() in ["/start", "/start@futbol_platormabot"]), StateFilter("*"))
 async def start_handler(message: types.Message, state: FSMContext):
     # Har qanday tiqilib qolgan holatni bir zumda tozalaymiz
     await state.clear()
@@ -773,7 +767,7 @@ async def feedback_receive_photo(message: types.Message, state: FSMContext):
 @dp.message(FeedbackState.waiting_text, F.text)
 async def feedback_receive(message: types.Message, state: FSMContext):
     text = (message.text or "").strip()
-    if text.lower() in ["start", "start/", "/start", "boshlash"]:
+    if text.lower() in ["/start", "/start@futbol_platormabot"]:
         await start_handler(message, state)
         return
     if text.startswith("/"):
