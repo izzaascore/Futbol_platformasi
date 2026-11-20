@@ -165,6 +165,21 @@ async def lifespan(app: FastAPI):
 
     asyncio.create_task(auto_restore_all_videos())
 
+    # 24/7 Keep-Alive self ping task for Render Free Tier (uyquga ketishdan saqlaydi)
+    async def keep_alive_ping():
+        await asyncio.sleep(20)
+        render_url = (os.getenv("RENDER_EXTERNAL_URL") or "https://futbol-platform.onrender.com").rstrip("/")
+        while True:
+            try:
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    await client.get(f"{render_url}/health")
+            except Exception:
+                pass
+            # Render'ning 15 daqiqalik uyqu limitidan oldin (har 10 daqiqada bir marta) ping yuboradi
+            await asyncio.sleep(600)
+
+    asyncio.create_task(keep_alive_ping())
+
     yield
 
     # Shutdown: webhook rejimida sessiyani yopamiz
@@ -304,7 +319,8 @@ async def telegram_webhook(request: Request):
         from aiogram.types import Update
         data = await request.json()
         update = Update.model_validate(data, context={"bot": bot})
-        await dp.feed_update(bot=bot, update=update)
+        # Background taskda bajariladi — Telegram webhook 200 OK ni 5ms da qabul qiladi va timeout bo'lmaydi
+        asyncio.create_task(dp.feed_update(bot=bot, update=update))
         return {"ok": True}
     except Exception as e:
         print(f"[Webhook Error]: {e}")

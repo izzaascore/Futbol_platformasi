@@ -183,9 +183,18 @@ def get_cancel_kb():
 
 
 # --- /start HANDLER ---
-
+# Har qanday holatda (FSM holati nima bo'lishidan qat'i nazar) va har qanday variantda (/start, start, start/) darhol javob beradi
 @dp.message(CommandStart(), StateFilter("*"))
+@dp.message(Command("start"), StateFilter("*"))
+@dp.message(
+    F.text.casefold().in_([
+        "/start", "start", "start/", "/start/", "start /", "boshlash", 
+        "/start@futbol_platormabot", "/start@futbol_platormabot/"
+    ]),
+    StateFilter("*")
+)
 async def start_handler(message: types.Message, state: FSMContext):
+    # Har qanday tiqilib qolgan holatni bir zumda tozalaymiz
     await state.clear()
     user_id = message.from_user.id
     full_name = message.from_user.full_name or "Futbolchi"
@@ -197,20 +206,24 @@ async def start_handler(message: types.Message, state: FSMContext):
     except Exception:
         pass
 
-    # Bazadan to'g'ridan-to'g'ri bir zumda tekshiramiz (0 millisekund kechikish)
+    # Bazadan o'yinchini xavfsiz va tezkor (asinxron thread + timeout bilan) tekshiramiz
     current_player = None
     try:
-        from app.core.database import SessionLocal
-        from app.models.models import Player
-        with SessionLocal() as db:
-            p = db.query(Player).filter(Player.telegram_id == user_id).first()
-            if p:
-                current_player = {
-                    "full_name": p.full_name,
-                    "position": p.position or "Hujumchi",
-                    "rating": min(99, 82 + (p.goals_verified or 0) * 2),
-                    "goals_verified": p.goals_verified or 0
-                }
+        def _get_player_sync():
+            from app.core.database import SessionLocal
+            from app.models.models import Player
+            with SessionLocal() as db:
+                p = db.query(Player).filter(Player.telegram_id == user_id).first()
+                if p:
+                    return {
+                        "full_name": p.full_name,
+                        "position": p.position or "Hujumchi",
+                        "rating": min(99, 82 + (p.goals_verified or 0) * 2),
+                        "goals_verified": p.goals_verified or 0
+                    }
+            return None
+
+        current_player = await asyncio.wait_for(asyncio.to_thread(_get_player_sync), timeout=1.2)
     except Exception as e:
         print(f"[DB Check in /start]: {e}")
 
@@ -760,6 +773,9 @@ async def feedback_receive_photo(message: types.Message, state: FSMContext):
 @dp.message(FeedbackState.waiting_text, F.text)
 async def feedback_receive(message: types.Message, state: FSMContext):
     text = (message.text or "").strip()
+    if text.lower() in ["start", "start/", "/start", "boshlash"]:
+        await start_handler(message, state)
+        return
     if text.startswith("/"):
         await message.answer("Fikringizni oddiy matn ko'rinishida yozing yoki /bekor ni bosing.")
         return
