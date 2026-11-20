@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 import React, { useState, useEffect } from 'react';
-import { Upload, Star, Target, Trophy, PlayCircle, ShieldCheck, Camera, Video, Activity, Clock, Share2, Settings, Plus, Eye, BarChart2, Users, MessageSquare, Shield, CheckCircle, XCircle, Send, Flame } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Upload, Star, Target, Trophy, PlayCircle, ShieldCheck, Camera, Video, Activity, Clock, Share2, Settings, Plus, Eye, BarChart2, Users, MessageSquare, Shield, CheckCircle, XCircle, Send, Flame, LogIn, UserPlus, ArrowRight, Lock, Sparkles } from 'lucide-react';
 import PageTransition from '../components/PageTransition';
 import { getVideoDuration } from '../utils/videoUtils';
 import { API_URL } from '../config';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
+  const [isGuest, setIsGuest] = useState(false);
+  const [showDemoPreview, setShowDemoPreview] = useState(false);
   const [activeTab, setActiveTab] = useState('performance');
   const [pitchFilter, setPitchFilter] = useState('shots');
   const [isUploading, setIsUploading] = useState(false);
@@ -39,8 +42,9 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
     const savedUser = localStorage.getItem('talaqCurrentUser');
-    if (savedUser) {
+    if (token && savedUser) {
       try {
         const u = JSON.parse(savedUser);
         u.first_name = u.first_name || (u.full_name ? u.full_name.split(' ')[0] : (u.username || 'Futbolchi'));
@@ -52,12 +56,12 @@ export default function ProfilePage() {
         u.hardcore_mode = u.hardcore_mode ?? false;
         u.profile_image = u.profile_image || '/images/player.jpg';
         setUser(u);
+        setIsGuest(false);
       } catch (e) {
-        setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent, O\'zbekiston', email: 'umidjon@example.com', profile_image: '/images/player.jpg', discipline_score: 95, streak: 12, hardcore_mode: false });
+        setIsGuest(true);
       }
     } else {
-      // Demo user for testing the UI if not logged in
-      setUser({ id: 999, first_name: 'Umidjon', last_name: 'Erkinov', age: 19, address: 'Toshkent, O\'zbekiston', email: 'umidjon@example.com', profile_image: null, discipline_score: 95, streak: 12, hardcore_mode: false });
+      setIsGuest(true);
     }
   }, []);
 
@@ -190,11 +194,150 @@ export default function ProfilePage() {
     }
   };
 
+  if (isGuest && !showDemoPreview) {
+    return (
+      <PageTransition>
+        <div className="w-full bg-[#030303] min-h-[85vh] font-sans text-stone-200 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+          {/* Subtle background effects */}
+          <div className="absolute inset-0 bg-stadium opacity-10 pointer-events-none"></div>
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div className="w-full max-w-xl relative z-10">
+            <div className="bg-stone-900/70 border border-white/10 rounded-2xl p-6 sm:p-10 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center">
+              {/* Crest Badge */}
+              <div className="w-16 h-16 rounded-2xl border border-white/20 overflow-hidden bg-black/60 p-1 mb-6 shadow-glow">
+                <img src="/images/futuro_crest.jpg" alt="Futuro Crest" className="w-full h-full object-cover rounded-xl" />
+              </div>
+
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest mb-3">
+                <ShieldCheck className="w-3.5 h-3.5" /> Futuro Shaxsiy Profil
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-heading font-black uppercase text-white tracking-wide mb-3">
+                Profilingizga Kiring
+              </h1>
+
+              <p className="text-stone-400 text-xs sm:text-sm leading-relaxed max-w-md mb-8">
+                Shaxsiy statistika, video gollarni yuklash, jamoa tuzish hamda skautlar e'tiboriga tushish uchun profilingizga kiring yoki yangi profil yarating.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="w-full flex flex-col gap-3 mb-8">
+                <Link
+                  to="/login"
+                  className="w-full py-3.5 px-6 rounded-xl bg-white hover:bg-stone-200 text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 shadow-glow flex items-center justify-center gap-2"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>🔐 Profilga Kirish</span>
+                </Link>
+
+                <Link
+                  to="/register"
+                  className="w-full py-3.5 px-6 rounded-xl bg-white/5 hover:bg-white/10 border border-white/20 text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>📝 Yangi Profil Yaratish</span>
+                </Link>
+              </div>
+
+              {/* Features List */}
+              <div className="w-full grid grid-cols-2 gap-3 text-left pt-6 border-t border-white/10 mb-6">
+                <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-black/40 border border-white/5">
+                  <PlayCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-[11px] font-bold text-white">Video Gollari</h4>
+                    <p className="text-[10px] text-stone-400 leading-tight">Eng sara lahzalaringizni joylang</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-black/40 border border-white/5">
+                  <BarChart2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-[11px] font-bold text-white">Radar Tahlil</h4>
+                    <p className="text-[10px] text-stone-400 leading-tight">Tezlik, dribling, aniqlik</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-black/40 border border-white/5">
+                  <Trophy className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-[11px] font-bold text-white">Milliy Reyting</h4>
+                    <p className="text-[10px] text-stone-400 leading-tight">Yulduzlar ro'yxatida ko'tariling</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-black/40 border border-white/5">
+                  <Users className="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-[11px] font-bold text-white">Skautlar E'tibori</h4>
+                    <p className="text-[10px] text-stone-400 leading-tight">Klublar taklifini qabul qiling</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Demo preview link */}
+              <button
+                onClick={() => {
+                  setShowDemoPreview(true);
+                  setUser({
+                    id: 999,
+                    first_name: 'Umidjon',
+                    last_name: 'Erkinov',
+                    age: 19,
+                    address: "Toshkent, O'zbekiston",
+                    email: 'umidjon@example.com',
+                    profile_image: '/images/player.jpg',
+                    discipline_score: 95,
+                    streak: 12,
+                    hardcore_mode: false
+                  });
+                }}
+                className="text-stone-400 hover:text-amber-400 text-xs font-semibold tracking-wider transition-colors inline-flex items-center gap-1.5"
+              >
+                <Eye className="w-4 h-4" />
+                <span>Namunaviy (Demo) profilni ko'rish</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
+
   if (!user) return <div className="min-h-screen bg-[#030303] flex items-center justify-center text-white">Loading...</div>;
 
   return (
     <PageTransition>
       <div className="w-full bg-[#030303] min-h-screen font-sans text-stone-200">
+        
+        {/* Guest Demo Preview Banner */}
+        {isGuest && showDemoPreview && (
+          <div className="sticky top-20 z-40 bg-stone-900/95 border-b border-amber-500/40 px-4 py-3 backdrop-blur-xl flex flex-wrap items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping flex-shrink-0"></span>
+              <span className="text-xs font-semibold text-amber-200">
+                Siz namunaviy (Demo) profilni ko'rmoqdasiz. O'z natijalaringizni yuritish uchun profilingizga kiring.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold uppercase tracking-wider transition shadow-sm flex items-center gap-1.5"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>🔐 Profilga Kirish</span>
+              </Link>
+              <Link
+                to="/register"
+                className="px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider transition border border-white/10 flex items-center gap-1.5"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Ro'yxatdan O'tish</span>
+              </Link>
+            </div>
+          </div>
+        )}
         
         {/* Profile Bosh bilan (Cinematic) */}
         <div className="relative w-full h-[40vh] min-h-[350px]">

@@ -141,18 +141,31 @@ def get_main_menu():
 
 
 def get_guest_profile_menu():
+    login_url = f"{WEBAPP_URL}/login"
+    register_url = f"{WEBAPP_URL}/register"
     kb = [
-        [KeyboardButton(text="📝 Botda profil yaratish")],
-        [KeyboardButton(text="📱 Futuro Ilovasi (Mini App)", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [
+            KeyboardButton(text="🔐 Profilga kirish", web_app=WebAppInfo(url=login_url)),
+            KeyboardButton(text="📝 Profil yaratish", web_app=WebAppInfo(url=register_url))
+        ],
+        [
+            KeyboardButton(text="🤖 Botda ro'yxatdan o'tish"),
+            KeyboardButton(text="📱 Mini App (Bosh sahifa)", web_app=WebAppInfo(url=WEBAPP_URL))
+        ],
         [KeyboardButton(text="🔙 Asosiy menyu")]
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
 
 def get_registered_profile_menu():
+    profile_url = f"{WEBAPP_URL}/profile"
+    login_url = f"{WEBAPP_URL}/login"
     kb = [
-        [KeyboardButton(text="📱 Mini App'da profilni ko'rish", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [KeyboardButton(text="⚽ Gol videosini yuborish")],
+        [KeyboardButton(text="📱 Mini App'da profilni ko'rish", web_app=WebAppInfo(url=profile_url))],
+        [
+            KeyboardButton(text="⚽ Gol videosini yuborish"),
+            KeyboardButton(text="🔐 Profilga kirish (Web)", web_app=WebAppInfo(url=login_url))
+        ],
         [KeyboardButton(text="🔙 Asosiy menyu")]
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
@@ -499,15 +512,26 @@ async def show_profile(message: types.Message, state: FSMContext):
             pass
 
     if not user:
+        login_url = f"{WEBAPP_URL}/login"
+        register_url = f"{WEBAPP_URL}/register"
+        ikb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔐 Profilga kirish (Login)", web_app=WebAppInfo(url=login_url))],
+            [InlineKeyboardButton(text="📝 Yangi profil yaratish", web_app=WebAppInfo(url=register_url))],
+            [InlineKeyboardButton(text="⚡ Futuro Mini App (Bosh sahifa)", web_app=WebAppInfo(url=WEBAPP_URL))]
+        ])
         await message.answer(
             f"Salom, <b>{message.from_user.full_name}</b>! 👋\n\n"
-            "⚠️ <b>Profilingiz hali bazada mavjud emas.</b>\n\n"
-            "O'zingizga futbolchi profilini yaratish uchun quyidagi variantlardan birini tanlang:\n\n"
-            "• <b>📝 Botda profil yaratish</b> — bir necha oddiy savol orqali profil ochish\n"
-            "• <b>📱 Futuro Ilovasi</b> — sayt / Mini App orqali fotosurat yuklab to'liq ro'yxatdan o'tish\n\n"
+            "⚠️ <b>Profilingiz hali bazada mavjud emas yoki tizimga kirmagansiz.</b>\n\n"
+            "• Agar profilingiz bo'lsa: <b>🔐 Profilga kirish</b> tugmasini bosing\n"
+            "• Yangi profil ochish uchun: <b>📝 Profil yaratish</b> yoki bot orqali ro'yxatdan o'ting\n\n"
             "👇 <i>Pastdagi menyudan kerakli bo'limni tanlang:</i>",
             parse_mode="HTML",
             reply_markup=get_guest_profile_menu()
+        )
+        await message.answer(
+            "👇 <b>Tezkor kirish yoki yangi profil yaratish:</b>",
+            parse_mode="HTML",
+            reply_markup=ikb
         )
         return
 
@@ -524,6 +548,26 @@ async def show_profile(message: types.Message, state: FSMContext):
         "👇 <i>Pastdagi menyudan foydalaning:</i>"
     )
     await message.answer(profile_text, parse_mode="HTML", reply_markup=get_registered_profile_menu())
+
+
+# --- PROFILGA KIRISH (LOGIN) HANDLER ---
+
+@dp.message(F.text.in_(["🔐 Profilga kirish", "Profilga kirish", "/login", "Kirish", "🔐 Profilga kirish (Web)"]), StateFilter("*"))
+async def login_instruction_handler(message: types.Message, state: FSMContext):
+    await state.clear()
+    login_url = f"{WEBAPP_URL}/login"
+    ikb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔐 Futuro profiliga kirish (Mini App)", web_app=WebAppInfo(url=login_url))],
+        [InlineKeyboardButton(text="🌐 Sayt orqali ochish", url=login_url)]
+    ])
+    await message.answer(
+        "🔐 <b>Futuro Profiliga Kirish:</b>\n\n"
+        "O'z profilingiz, statistikangiz va gollaringizni boshqarish uchun pastdagi tugmani bosing va tizimga kiring:\n\n"
+        "<i>(Ism, familiyangiz va parolingiz orqali yoki Telegram orqali 1 ta bosishda tezkor kirishingiz mumkin)</i>",
+        parse_mode="HTML",
+        reply_markup=ikb
+    )
+
 
 
 # --- VIDEO YUBORISH JARAYONI ---
