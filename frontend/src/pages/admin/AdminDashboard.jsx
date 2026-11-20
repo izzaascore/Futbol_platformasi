@@ -4,7 +4,7 @@ import {
     ShieldAlert, Users, Video, AlertOctagon, Trophy, LogOut, CheckCircle, XCircle, Search, Activity, 
     Lock, Key, LineChart, FileText, ShieldCheck, BadgeCheck, UserX, BarChart2, Database, Wrench, 
     FileClock, MessageSquareWarning, DollarSign, MessageCircle, ShieldX, ChevronDown, ChevronRight,
-    ShoppingBag, Truck, Package
+    ShoppingBag, Truck, Package, ExternalLink, RefreshCw
 } from 'lucide-react';
 
 import { API_URL } from '../../config';
@@ -229,7 +229,7 @@ export default function AdminPage({ defaultTab }) {
                         {activeTab === 'tournaments' && <TournamentsHub />}
                         {activeTab === 'news' && <PlaceholderPanel title="News & Announcements Manager" desc="Markaziy yangiliklar va e'lonlar boshqaruvi" icon={<FileText className="w-16 h-16 text-[#333] mb-4" />} />}
                         {activeTab === 'clubs' && <PlaceholderPanel title="Pro Club Verification" desc="Klublar va Akademiyalarning arizalarini tasdiqlash" icon={<ShieldCheck className="w-16 h-16 text-[#333] mb-4" />} />}
-                        {activeTab === 'scouts' && <PlaceholderPanel title="Scout Accreditation" desc="Skautlar va Agentlar registratsiyasini nazorat qilish" icon={<BadgeCheck className="w-16 h-16 text-[#333] mb-4" />} />}
+                        {activeTab === 'scouts' && <ScoutAccreditation />}
                         {activeTab === 'antifake' && <PlaceholderPanel title="Anti-Fake & Cleanup" desc="Soxta profillar va dublikatlarni aniqlash va o'chirish" icon={<UserX className="w-16 h-16 text-[#333] mb-4" />} />}
                         {activeTab === 'rating_integrity' && <PlaceholderPanel title="Rating Integrity Monitor" desc="Hakamlar va Akademiyalar reytingini kuzatish (Nakrutkaga qarshi)" icon={<BarChart2 className="w-16 h-16 text-[#333] mb-4" />} />}
                         {activeTab === 'sponsorship' && <PlaceholderPanel title="Sponsorship Fund Monitor" desc="Homiylar va jamg'arma mablag'larini kuzatish" icon={<DollarSign className="w-16 h-16 text-[#333] mb-4" />} />}
@@ -717,6 +717,283 @@ function ShopOrdersMonitor() {
                             <tr>
                                 <td colSpan="7" className="px-6 py-12 text-center text-[#555] text-xs font-bold uppercase tracking-widest">
                                     Hozircha do'konda buyurtmalar mavjud emas
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </motion.div>
+    );
+}
+
+function ScoutAccreditation() {
+    const [scouts, setScouts] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [filter, setFilter] = useState('all'); // 'all' | 'pending' | 'active' | 'banned'
+    const [search, setSearch] = useState('');
+    const [actionLoading, setActionLoading] = useState(null);
+
+    const fetchScouts = async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/api/admin/scouts`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setScouts(Array.isArray(data) ? data : []);
+            } else {
+                setScouts([]);
+            }
+        } catch (e) {
+            console.error(e);
+            setScouts([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchScouts();
+    }, []);
+
+    const handleApprove = async (userId) => {
+        if (!userId) return;
+        setActionLoading(userId);
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/api/admin/scouts/${userId}/approve`, {
+                method: 'POST',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (res.ok) {
+                fetchScouts();
+            } else {
+                alert("Tasdiqlashda xatolik yuz berdi");
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleReject = async (userId) => {
+        if (!userId || !window.confirm("Rostdan ham ushbu skautni rad etmoqchimisiz?")) return;
+        setActionLoading(userId);
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/api/admin/scouts/${userId}/reject`, {
+                method: 'POST',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (res.ok) {
+                fetchScouts();
+            } else {
+                alert("Rad etishda xatolik yuz berdi");
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const pendingCount = scouts.filter(s => s.status === 'pending').length;
+    const activeCount = scouts.filter(s => s.status === 'active').length;
+    const bannedCount = scouts.filter(s => s.status === 'banned').length;
+
+    const filteredScouts = scouts.filter(s => {
+        if (filter !== 'all' && s.status !== filter) return false;
+        if (search) {
+            const q = search.toLowerCase();
+            return (s.full_name && s.full_name.toLowerCase().includes(q)) ||
+                   (s.organization && s.organization.toLowerCase().includes(q)) ||
+                   (s.email && s.email.toLowerCase().includes(q));
+        }
+        return true;
+    });
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 border-b border-[#1f1f1f] pb-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-white uppercase tracking-tighter flex items-center gap-3">
+                        Scout & Agent Accreditation 
+                        {pendingCount > 0 && (
+                            <span className="bg-amber-500 text-stone-950 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.5)] animate-pulse">
+                                {pendingCount} yangi ariza
+                            </span>
+                        )}
+                    </h2>
+                    <p className="text-[#666] text-xs uppercase tracking-widest mt-1">
+                        Professional skautlar va murabbiylarning litsenziya va arizalarini tasdiqlash
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-initial">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
+                        <input 
+                            type="text" 
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Skaut yoki klub..." 
+                            className="bg-[#111] border border-[#222] text-white px-9 py-2 text-xs focus:outline-none focus:border-amber-500 w-full sm:w-56" 
+                        />
+                    </div>
+                    <button 
+                        onClick={fetchScouts}
+                        className="p-2 bg-[#111] border border-[#222] text-[#888] hover:text-white hover:border-[#444] transition-colors"
+                        title="Yangilash"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-500' : ''}`} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex gap-2 border-b border-[#1f1f1f] pb-2">
+                {[
+                    { id: 'all', label: `Barchasi (${scouts.length})` },
+                    { id: 'pending', label: `Kutilmoqda (${pendingCount})`, highlight: pendingCount > 0 },
+                    { id: 'active', label: `Tasdiqlangan (${activeCount})` },
+                    { id: 'banned', label: `Rad etilgan (${bannedCount})` }
+                ].map(t => (
+                    <button
+                        key={t.id}
+                        onClick={() => setFilter(t.id)}
+                        className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all ${
+                            filter === t.id 
+                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50' 
+                                : t.highlight 
+                                    ? 'bg-amber-950/40 text-amber-400 border border-amber-800 animate-pulse'
+                                    : 'text-[#666] hover:text-[#ccc] hover:bg-[#111]'
+                        }`}
+                    >
+                        {t.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Scouts Table */}
+            <div className="bg-[#0a0a0a] border border-[#1f1f1f] overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-[#111] text-[10px] font-bold text-[#666] uppercase tracking-widest border-b border-[#1f1f1f]">
+                        <tr>
+                            <th className="px-6 py-4">UID / Skaut</th>
+                            <th className="px-6 py-4">Tashkilot / Klub</th>
+                            <th className="px-6 py-4">Hujjat / Litsenziya</th>
+                            <th className="px-6 py-4 text-center">Status</th>
+                            <th className="px-6 py-4 text-right">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#1f1f1f]">
+                        {filteredScouts.map(s => {
+                            const isActionThis = actionLoading === s.user_id;
+                            return (
+                                <tr key={s.user_id || s.id} className="hover:bg-[#111] transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="font-bold text-white flex items-center gap-2">
+                                            <span>{s.full_name}</span>
+                                            {s.is_pro && (
+                                                <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] font-black uppercase rounded">
+                                                    PRO
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="text-[10px] text-[#666] font-mono">
+                                            UID: #{s.user_id || s.id} {s.email ? `• ${s.email}` : ''}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="font-bold text-stone-300">{s.organization}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {s.kyc_document_url ? (
+                                            <a 
+                                                href={s.kyc_document_url} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="text-xs font-mono text-cyan-400 hover:text-cyan-300 underline inline-flex items-center gap-1"
+                                            >
+                                                Litsenziyani ko'rish <ExternalLink className="w-3 h-3" />
+                                            </a>
+                                        ) : (
+                                            <span className="text-[10px] text-[#555] font-mono">Yuklanmagan</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        {s.status === 'pending' && (
+                                            <span className="inline-block px-2.5 py-1 bg-amber-950/60 text-amber-400 border border-amber-800 text-[10px] font-bold uppercase tracking-widest animate-pulse rounded">
+                                                ⏳ Kutilmoqda
+                                            </span>
+                                        )}
+                                        {s.status === 'active' && (
+                                            <span className="inline-block px-2.5 py-1 bg-emerald-950/60 text-emerald-400 border border-emerald-800 text-[10px] font-bold uppercase tracking-widest rounded">
+                                                ✓ Tasdiqlangan
+                                            </span>
+                                        )}
+                                        {s.status === 'banned' && (
+                                            <span className="inline-block px-2.5 py-1 bg-rose-950/60 text-rose-400 border border-rose-800 text-[10px] font-bold uppercase tracking-widest rounded">
+                                                ✕ Rad Etilgan
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-right space-x-2">
+                                        {s.status === 'pending' && (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleApprove(s.user_id)}
+                                                    disabled={isActionThis}
+                                                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-black text-xs font-black uppercase tracking-wider rounded transition-all shadow-[0_0_10px_rgba(16,185,129,0.3)] disabled:opacity-50"
+                                                >
+                                                    {isActionThis ? "..." : "✓ Tasdiqlash"}
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleReject(s.user_id)}
+                                                    disabled={isActionThis}
+                                                    className="px-3 py-1.5 bg-red-950 hover:bg-red-900 border border-red-800 text-red-400 text-xs font-bold uppercase tracking-wider rounded transition-colors disabled:opacity-50"
+                                                >
+                                                    Rad etish
+                                                </button>
+                                            </>
+                                        )}
+                                        {s.status === 'active' && (
+                                            <button 
+                                                onClick={() => handleReject(s.user_id)}
+                                                disabled={isActionThis}
+                                                className="px-2.5 py-1 text-red-500 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                                            >
+                                                Bloklash
+                                            </button>
+                                        )}
+                                        {s.status === 'banned' && (
+                                            <button 
+                                                onClick={() => handleApprove(s.user_id)}
+                                                disabled={isActionThis}
+                                                className="px-2.5 py-1 text-emerald-500 hover:text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                                            >
+                                                Qayta faollashtirish
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                        {filteredScouts.length === 0 && !loading && (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-12 text-center text-[#555] text-xs font-bold uppercase tracking-widest">
+                                    Akkreditatsiya so'rovlari topilmadi
+                                </td>
+                            </tr>
+                        )}
+                        {loading && (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-12 text-center text-amber-500 text-xs font-bold uppercase tracking-widest animate-pulse">
+                                    Skautlar ro'yxati yuklanmoqda...
                                 </td>
                             </tr>
                         )}

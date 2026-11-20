@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user, RequireRole, check_ownership
-from app.models import Scout, ScoutReport, ScoutInvitation, Player, User
+from app.models import Scout, ScoutReport, ScoutInvitation, Player, User, UserRole, UserStatus
+from app.api.auth import notify_telegram_user
 from app.schemas import (
     ScoutCreate, ScoutOut, ScoutReportBase, ScoutReportCreate, ScoutReportOut,
     ScoutInvitationCreate, ScoutInvitationOut
@@ -107,4 +108,104 @@ def respond_to_invitation(
     db.commit()
     db.refresh(inv)
     return inv
+
+
+# --- ADMIN SCOUT ACCREDITATION MANAGEMENT ---
+
+@router.get("/api/admin/scouts", dependencies=[Depends(RequireRole(["admin"]))])
+def get_admin_scouts(db: Session = Depends(get_db)):
+    scouts = db.query(Scout).all()
+    res = []
+    scout_user_ids = set()
+    for s in scouts:
+        u = db.query(User).filter(User.id == s.user_id).first() if s.user_id else None
+        if s.user_id:
+            scout_user_ids.add(s.user_id)
+        
+        status_val = u.status.value if (u and hasattr(u.status, "value")) else (str(u.status) if u else "pending")
+        res.append({
+            "id": s.id,
+            "user_id": s.user_id,
+            "full_name": s.full_name or (f"{u.first_name} {u.last_name}" if u else "Noma'lum"),
+            "organization": s.organization or "Ko'rsatilmagan",
+            "contact_info": s.contact_info or (u.email if u else None),
+            "is_pro": s.is_pro,
+            "status": status_val,
+            "email": u.email if u else None,
+            "kyc_document_url": u.kyc_document_url if u else None,
+            "telegram_id": u.telegram_id if u else None,
+            "created_at": (u.created_at or s.created_at).isoformat() if (u and u.created_at) or s.created_at else None
+        })
+
+    # Also include any User with role == 'scout' that doesn't have a Scout entry yet
+    orphan_scout_users = db.query(User).filter(User.role == UserRole.SCOUT).all()
+    for u in orphan_scout_users:
+        if u.id not in scout_user_ids:
+            status_val = u.status.value if hasattr(u.status, "value") else str(u.status)
+            res.append({
+                "id": None,
+                "user_id": u.id,
+                "full_name": f"{u.first_name} {u.last_name}",
+                "organization": "Ko'rsatilmagan",
+                "contact_info": u.email,
+                "is_pro": False,
+                "status": status_val,
+                "email": u.email,
+                "kyc_document_url": u.kyc_document_url,
+                "telegram_id": u.telegram_id,
+                "created_at": u.created_at.isoformat() if u.created_at else None
+            })
+    return res
+
+@router.post("/api/admin/scouts/{user_id}/approve", dependencies=[Depends(RequireRole(["admin"]))])
+def approve_scout(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")
+    
+    user.status = UserStatus.ACTIVE
+    scout = db.query(Scout).filter(Scout.user_id == user.id).first()
+    if scout:
+        scout.is_pro = True
+    else:
+        scout = Scout(
+            user_id=user.id,
+            full_name=f"{user.first_name} {user.last_name}",
+            organization="Professional Skaut",
+            is_pro=True
+        )
+        db.add(scout)
+    db.commit()
+
+    if user.telegram_id:
+        notify_telegram_user(
+            user.telegram_id,
+            f"🎉 <b>Tabriklaymiz, {user.first_name}!</b>\n\n"
+            f"Sizning Futuro <b>Scout PRO</b> akkreditatsiyangiz ma'muriyat tomonidan tasdiqlandi! ✅\n\n"
+            f"Endi siz platformadagi barcha yosh iqtidorlar statistikasi, tahlillari va ularni ko'rikka taklif qilish imkoniyatiga to'liq egasiz.\n\n"
+            f"🌐 Havola: https://futbol-platform.onrender.com/scouts"
+        )
+    return {"message": "Skaut muvaffaqiyatli tasdiqlandi", "user_id": user.id, "status": "active"}
+
+@router.post("/api/admin/scouts/{user_id}/reject", dependencies=[Depends(RequireRole(["admin"]))])
+def reject_scout(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")
+    
+    user.status = UserStatus.BANNED
+    scout = db.query(Scout).filter(Scout.user_id == user.id).first()
+    if scout:
+        scout.is_pro = False
+    db.commit()
+
+    if user.telegram_id:
+        notify_telegram_user(
+            user.telegram_id,
+            f"⚠️ <b>Hurmatli {user.first_name}!</b>\n\n"
+            f"Afsuski, sizning skautlik arizangiz ma'lumotlar yetarli bo'lmagani yoki tasdiqlanmagani sababli rad etildi.\n"
+            f"Qo'shimcha savollar bo'lsa, @FuturoAdminBot ga murojaat qilishingiz mumkin."
+        )
+    return {"message": "Skaut arizasi rad etildi", "user_id": user.id, "status": "banned"}
+
 

@@ -190,24 +190,26 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 import httpx
 import asyncio
 
-async def _send_admin_telegram_async(message: str):
+async def _send_telegram_async(chat_id: int | str, message: str):
     bot_token = (os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
-    admin_id = (os.getenv("ADMIN_TELEGRAM_ID") or "8692713738").strip()
-    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and admin_id:
+    if bot_token and ":" in bot_token and not bot_token.startswith("1234567890") and chat_id:
         try:
             async with httpx.AsyncClient(timeout=4.0) as client:
                 url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                await client.post(url, json={"chat_id": admin_id, "text": message, "parse_mode": "HTML"})
+                await client.post(url, json={"chat_id": str(chat_id), "text": message, "parse_mode": "HTML"})
         except Exception:
             pass
 
-def notify_admin_bot(message: str):
-    # Non-blocking background notification
+def notify_telegram_user(chat_id: int | str, message: str):
     try:
         loop = asyncio.get_running_loop()
-        loop.create_task(_send_admin_telegram_async(message))
+        loop.create_task(_send_telegram_async(chat_id, message))
     except Exception:
         pass
+
+def notify_admin_bot(message: str):
+    admin_id = (os.getenv("ADMIN_TELEGRAM_ID") or "8692713738").strip()
+    notify_telegram_user(admin_id, message)
 
 @router.post("/api/auth/login")
 def login(login_data: UserLogin, db: Session = Depends(get_db)):
@@ -221,12 +223,69 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Ism, familiya yoki parol noto'g'ri")
         
     access_token = create_access_token(data={"sub": str(user.id)})
+
+    user_dict = {
+        "id": user.id,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+        "status": user.status.value if hasattr(user.status, "value") else str(user.status),
+        "email": user.email,
+        "profile_image": user.profile_image,
+        "kyc_document_url": user.kyc_document_url,
+        "telegram_id": user.telegram_id,
+        "created_at": user.created_at.isoformat() if user.created_at else None
+    }
+    if user.role == UserRole.SCOUT:
+        scout = db.query(Scout).filter(Scout.user_id == user.id).first()
+        if scout:
+            user_dict["organization"] = scout.organization
+            user_dict["is_pro"] = scout.is_pro
+            user_dict["scout_id"] = scout.id
+    elif user.role == UserRole.PLAYER:
+        player = db.query(Player).filter(Player.user_id == user.id).first()
+        if player:
+            user_dict["player_id"] = player.id
+            user_dict["team"] = player.team
+            user_dict["position"] = player.position
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
         "role": user.role,
-        "user": user
+        "user": user_dict
     }
+
+@router.get("/api/auth/me")
+def get_current_user_profile(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_dict = {
+        "id": current_user.id,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "role": current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role),
+        "status": current_user.status.value if hasattr(current_user.status, "value") else str(current_user.status),
+        "email": current_user.email,
+        "profile_image": current_user.profile_image,
+        "kyc_document_url": current_user.kyc_document_url,
+        "telegram_id": current_user.telegram_id,
+        "created_at": current_user.created_at.isoformat() if current_user.created_at else None
+    }
+    if current_user.role == UserRole.SCOUT:
+        scout = db.query(Scout).filter(Scout.user_id == current_user.id).first()
+        if scout:
+            user_dict["organization"] = scout.organization
+            user_dict["is_pro"] = scout.is_pro
+            user_dict["scout_id"] = scout.id
+    elif current_user.role == UserRole.PLAYER:
+        player = db.query(Player).filter(Player.user_id == current_user.id).first()
+        if player:
+            user_dict["player_id"] = player.id
+            user_dict["team"] = player.team
+            user_dict["position"] = player.position
+    return user_dict
 
 @router.post("/api/auth/logout")
 def logout(request: Request, db: Session = Depends(get_db)):
@@ -440,7 +499,18 @@ def admin_login(data: dict, db: Session = Depends(get_db)):
 @router.get("/admin/users", dependencies=[Depends(RequireRole(["admin"]))])
 @router.get("/api/admin/users", dependencies=[Depends(RequireRole(["admin"]))])
 def admin_get_users(db: Session = Depends(get_db)):
-    # Barcha foydalanuvchilar (Player sifatida misol)
-    players = db.query(Player).all()
-    return players
+    users = db.query(User).order_by(User.id.desc()).all()
+    res = []
+    for u in users:
+        res.append({
+            "id": u.id,
+            "full_name": f"{u.first_name} {u.last_name}",
+            "role": u.role.value if hasattr(u.role, "value") else str(u.role),
+            "status": u.status.value if hasattr(u.status, "value") else str(u.status),
+            "city": u.address or "O'zbekiston",
+            "email": u.email,
+            "kyc_document_url": u.kyc_document_url,
+            "created_at": u.created_at.isoformat() if u.created_at else None
+        })
+    return res
 
