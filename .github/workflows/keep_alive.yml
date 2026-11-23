@@ -1,0 +1,26 @@
+name: Render Keep Alive 24/7
+
+on:
+  schedule:
+    # Har 10 daqiqada bir marta Render serverini uyg'otib turadi
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # GitHub orqali qo'lda ham ishga tushirish imkoni
+
+jobs:
+  ping-render:
+    name: Ping Render Backend Health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Keep-Alive HTTP Request
+        run: |
+          echo "⏰ Sending keep-alive ping to Render..."
+          STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" --max-time 30 https://futbol-platform.onrender.com/health)
+          echo "📡 HTTP Response Status: $STATUS"
+          if [ "$STATUS" -eq 200 ]; then
+            echo "✅ Render backend muvaffaqiyatli uyg'oq tutildi (200 OK)."
+          else
+            echo "⚠️ Render status kodi: $STATUS. Qayta urinilmoqda..."
+            sleep 5
+            RETRY_STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" --max-time 45 https://futbol-platform.onrender.com/health)
+            echo "📡 Qayta urinish natijasi: $RETRY_STATUS"
+          fi

@@ -1,6 +1,7 @@
 import os
 import sys
 import asyncio
+import httpx
 from pathlib import Path
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -167,16 +168,18 @@ async def lifespan(app: FastAPI):
 
     # 24/7 Keep-Alive self ping task for Render Free Tier (uyquga ketishdan saqlaydi)
     async def keep_alive_ping():
-        await asyncio.sleep(20)
+        await asyncio.sleep(15)
         render_url = (os.getenv("RENDER_EXTERNAL_URL") or "https://futbol-platform.onrender.com").rstrip("/")
         while True:
             try:
                 async with httpx.AsyncClient(timeout=10.0) as client:
-                    await client.get(f"{render_url}/health")
-            except Exception:
-                pass
-            # Render'ning 15 daqiqalik uyqu limitidan oldin (har 10 daqiqada bir marta) ping yuboradi
-            await asyncio.sleep(600)
+                    res = await client.get(f"{render_url}/health")
+                    if res.status_code == 200:
+                        print(f"💓 [Keep-Alive] Render o'zini uyg'oq tutmoqda: {render_url}/health (200 OK)")
+            except Exception as e:
+                print(f"⚠️ [Keep-Alive Notice]: {e}")
+            # Render'ning 15 daqiqalik uyqu limitidan oldin (har 5 daqiqada bir marta) ping yuboradi
+            await asyncio.sleep(300)
 
     asyncio.create_task(keep_alive_ping())
 
