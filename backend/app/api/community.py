@@ -418,7 +418,14 @@ async def upload_feedback_image(file: UploadFile = File(...)):
 
 @router.post("/api/bot/feedback", dependencies=[Depends(require_bot_key)])
 def submit_bot_feedback(data: BotFeedbackCreate, db: Session = Depends(get_db)):
-    fb = Feedback(text=data.text.strip(), source="telegram", telegram_id=data.telegram_id)
+    linked_user = db.query(User).filter(User.telegram_id == data.telegram_id).first() if data.telegram_id else None
+    fb = Feedback(
+        text=data.text.strip(),
+        page="telegram_bot",
+        source="telegram",
+        user_id=linked_user.id if linked_user else None,
+        telegram_id=data.telegram_id,
+    )
     db.add(fb)
     db.commit()
     db.refresh(fb)

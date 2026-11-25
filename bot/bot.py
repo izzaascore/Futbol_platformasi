@@ -763,6 +763,43 @@ async def feedback_cancel(message: types.Message, state: FSMContext):
     await message.answer("Bekor qilindi.", reply_markup=get_main_menu())
 
 
+async def _persist_bot_feedback(text: str, user_id: int) -> None:
+    """Botdan kelgan fikrni bazaga to'g'ridan-to'g'ri saqlaydi; aks holda API orqali urinib ko'radi."""
+    saved = False
+    try:
+        from app.core.database import SessionLocal
+        from app.models.models import Feedback, User
+
+        def _save_sync():
+            with SessionLocal() as db:
+                linked_user = db.query(User).filter(User.telegram_id == user_id).first()
+                fb = Feedback(
+                    text=text.strip(),
+                    page="telegram_bot",
+                    source="telegram",
+                    user_id=linked_user.id if linked_user else None,
+                    telegram_id=user_id,
+                )
+                db.add(fb)
+                db.commit()
+
+        await asyncio.to_thread(_save_sync)
+        saved = True
+    except Exception as db_err:
+        print(f"Bot feedback DB save fallback notice: {db_err}")
+
+    if not saved and BOT_API_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                await client.post(
+                    f"{API_BASE_URL}/api/bot/feedback",
+                    json={"text": text.strip(), "telegram_id": user_id},
+                    headers=BOT_HEADERS,
+                )
+        except Exception as api_err:
+            print(f"Bot feedback API error: {api_err}")
+
+
 @dp.message(FeedbackState.waiting_text, F.photo)
 async def feedback_receive_photo(message: types.Message, state: FSMContext):
     caption = message.caption or "Rasm / Skrinshot orqali muammo yuborildi"
@@ -788,16 +825,8 @@ async def feedback_receive_photo(message: types.Message, state: FSMContext):
     except Exception as e:
         print(f"Admin photo alert error: {e}")
 
-    # 2. API ga ham saqlaymiz
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            await client.post(
-                f"{API_BASE_URL}/api/bot/feedback",
-                json={"text": f"[Skrinshot/Rasm]: {caption}", "telegram_id": user_id},
-                headers=BOT_HEADERS,
-            )
-    except Exception:
-        pass
+    # 2. Bazaga / API ga saqlaymiz (BOT_API_KEY bo'lmasa ham ishlaydi)
+    await _persist_bot_feedback(f"[Skrinshot/Rasm]: {caption}", user_id)
 
     await state.clear()
     await message.answer(
@@ -839,16 +868,8 @@ async def feedback_receive(message: types.Message, state: FSMContext):
     except Exception as e:
         print(f"Admin alert error: {e}")
 
-    # 2. API ga saqlaymiz
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            await client.post(
-                f"{API_BASE_URL}/api/bot/feedback",
-                json={"text": text, "telegram_id": user_id},
-                headers=BOT_HEADERS,
-            )
-    except Exception:
-        pass
+    # 2. Bazaga / API ga saqlaymiz
+    await _persist_bot_feedback(text, user_id)
 
     await state.clear()
     await message.answer(

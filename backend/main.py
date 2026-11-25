@@ -25,6 +25,8 @@ from sqlalchemy.orm import Session
 
 from app.core.database import Base, engine, get_db
 from app.core.security import rate_limiter, detect_malicious_payload, get_client_ip
+import app.models  # noqa: F401
+from app.api.shop import Product, ShopOrder, ShopNotifyRequest  # noqa: F401
 
 
 # Ma'lumotlar bazasi jadvallarini avtomatik yaratish
