@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Calendar, MapPin, CheckCircle, XCircle, Shield, Award, PlaySquare, Video, ArrowUpRight, Play, Film, Loader2 } from 'lucide-react';
+import { Mail, Calendar, MapPin, CheckCircle, XCircle, Shield, Award, PlaySquare, Video, ArrowUpRight, Play, Film, Loader2, X } from 'lucide-react';
 import { getVideoDuration } from '../../utils/videoUtils';
 import { API_URL } from '../../config';
+
+const resolveMediaUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 
 const PlayerDashboard = () => {
   const userStr = localStorage.getItem('talaqCurrentUser');
@@ -12,20 +18,23 @@ const PlayerDashboard = () => {
   const [actionMessage, setActionMessage] = useState('');
 
   const [videoList, setVideoList] = useState([]);
+  const [playingVideo, setPlayingVideo] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
+  const [uploadError, setUploadError] = useState(false);
   const videoInputRef = useRef(null);
 
   const playerId = user?.player_id || user?.id || 1;
+  const videoUserId = user?.id || playerId;
 
   useEffect(() => {
     fetchInvitations();
     fetchUserVideos();
-  }, [playerId]);
+  }, [playerId, videoUserId]);
 
   const fetchUserVideos = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/users/${playerId}/videos`);
+      const res = await fetch(`${API_URL}/api/users/${videoUserId}/videos`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -118,16 +127,19 @@ const PlayerDashboard = () => {
     if (!file) return;
 
     if (!file.type.startsWith('video/')) {
+      setUploadError(true);
       setUploadMsg("Faqat video formatidagi fayllarni yuklash mumkin (.mp4, .mov, .webm)");
       setTimeout(() => setUploadMsg(''), 4000);
       return;
     }
 
     setIsUploading(true);
+    setUploadError(false);
     setUploadMsg("Video davomiyligi aniqlanmoqda va yuklanmoqda...");
 
     const realDuration = await getVideoDuration(file);
     const cleanTitle = file.name.replace(/\.[^/.]+$/, "");
+    const localBlobUrl = URL.createObjectURL(file);
 
     const formData = new FormData();
     formData.append('file', file);
@@ -137,7 +149,7 @@ const PlayerDashboard = () => {
 
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
-      const res = await fetch(`${API_URL}/api/users/${playerId}/videos`, {
+      const res = await fetch(`${API_URL}/api/users/${videoUserId}/videos`, {
         method: 'POST',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         body: formData
@@ -152,36 +164,23 @@ const PlayerDashboard = () => {
             duration: newVid.duration || realDuration,
             date: "Hozir",
             views: 1,
-            url: newVid.video_url
+            url: newVid.video_url || newVid.file_path,
+            localUrl: localBlobUrl
           },
           ...prev
         ]);
-        setUploadMsg("Video muvaffaqiyatli yuklandi va saqlandi!");
+        setUploadError(false);
+        setUploadMsg("Video muvaffaqiyatli yuklandi va saqlandi! Ko'rish uchun ustiga bosing.");
       } else {
-        setVideoList(prev => [
-          {
-            id: Date.now(),
-            title: cleanTitle,
-            duration: realDuration,
-            date: "Hozir",
-            views: 1
-          },
-          ...prev
-        ]);
-        setUploadMsg("Video saqlandi!");
+        const errData = await res.json().catch(() => ({}));
+        URL.revokeObjectURL(localBlobUrl);
+        setUploadError(true);
+        setUploadMsg(errData.detail || "Video yuklashda xatolik yuz berdi. Profilingizga qaytadan kiring.");
       }
     } catch (err) {
-      setVideoList(prev => [
-        {
-          id: Date.now(),
-          title: cleanTitle,
-          duration: realDuration,
-          date: "Hozir",
-          views: 1
-        },
-        ...prev
-      ]);
-      setUploadMsg("Video saqlandi!");
+      URL.revokeObjectURL(localBlobUrl);
+      setUploadError(true);
+      setUploadMsg("Server bilan aloqa o'rnatilmadi. Internetni tekshiring.");
     } finally {
       setIsUploading(false);
       if (videoInputRef.current) videoInputRef.current.value = '';
@@ -383,8 +382,16 @@ const PlayerDashboard = () => {
         </div>
 
         {uploadMsg && (
-          <div className="mb-6 p-3 bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold inline-flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
+          <div className={`mb-6 p-3 rounded-xl text-xs font-bold inline-flex items-center gap-2 border ${
+            uploadError
+              ? 'bg-red-950/60 border-red-500/40 text-red-300'
+              : 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
+          }`}>
+            {uploadError ? (
+              <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            ) : (
+              <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            )}
             {uploadMsg}
           </div>
         )}
@@ -401,7 +408,12 @@ const PlayerDashboard = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-left mt-6">
             {videoList.map((vid) => (
-              <div key={vid.id} className="p-4 bg-stone-950/60 border border-white/10 rounded-2xl flex items-center gap-4 hover:border-amber-500/30 transition group">
+              <button
+                key={vid.id}
+                type="button"
+                onClick={() => setPlayingVideo(vid)}
+                className="w-full text-left p-4 bg-stone-950/60 border border-white/10 rounded-2xl flex items-center gap-4 hover:border-amber-500/40 hover:bg-stone-900/80 active:scale-[0.99] transition group cursor-pointer"
+              >
                 <div className="w-14 h-14 rounded-xl bg-stone-800 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500/20 transition">
                   <Play className="w-6 h-6 text-amber-500 fill-amber-500/30" />
                 </div>
@@ -413,11 +425,57 @@ const PlayerDashboard = () => {
                     <span>👁 {vid.views} ko'rish</span>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
       </div>
+
+      {/* Video Player Modal */}
+      {playingVideo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"
+          onClick={() => setPlayingVideo(null)}
+        >
+          <div
+            className="relative w-full max-w-3xl bg-[#080808] border border-white/20 rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 bg-white/[0.04] border-b border-white/10 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h4 className="font-heading font-black text-white text-sm sm:text-base uppercase tracking-tight truncate">
+                  {playingVideo.title}
+                </h4>
+                <span className="text-[11px] text-amber-500 font-mono">Davomiyligi: {playingVideo.duration}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPlayingVideo(null)}
+                aria-label="Yopish"
+                className="p-2 rounded-xl bg-white/10 text-stone-400 hover:text-white transition flex-shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="aspect-video w-full bg-black flex items-center justify-center">
+              {(resolveMediaUrl(playingVideo.url) || playingVideo.localUrl) ? (
+                <video
+                  src={resolveMediaUrl(playingVideo.url) || playingVideo.localUrl}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="text-center p-8 text-stone-400 text-xs">
+                  <Video className="w-12 h-12 mx-auto mb-2 text-stone-600" />
+                  <p>Video fayli topilmadi yoki server qayta yuklangan.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -1127,6 +1127,7 @@ export default function ProfilePage() {
                     src={playingVideo.video_url.startsWith('http') ? playingVideo.video_url : `${API_URL}${playingVideo.video_url.startsWith('/') ? '' : '/'}${playingVideo.video_url}`}
                     controls
                     autoPlay
+                    playsInline
                     className="w-full h-full object-contain"
                   />
                 ) : (
